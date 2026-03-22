@@ -1,0 +1,22 @@
+version = 1
+revision = 3
+requires-python = ">=3.13"
+
+[[package]]
+name = "voicevox-core"
+version = "0.16.4"
+source = { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.4/voicevox_core-0.16.4-cp310-abi3-manylinux_2_34_x86_64.whl" }
+wheels = [
+    { url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.4/voicevox_core-0.16.4-cp310-abi3-manylinux_2_34_x86_64.whl", hash = "sha256:a9fdcffa2de4e365c1e0eda20d723ac87f66770d41c21299ca0e15b8267bd09d" },
+]
+
+[[package]]
+name = "voicevox-tutorial"
+version = "0.1.0"
+source = { virtual = "." }
+dependencies = [
+    { name = "voicevox-core" },
+]
+
+[package.metadata]
+requires-dist = [{ name = "voicevox-core", url = "https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.4/voicevox_core-0.16.4-cp310-abi3-manylinux_2_34_x86_64.whl" }]
