@@ -48,4 +48,5 @@ new PipelineStack(app, `${prefix}-PipelineStack`, {
   githubConnectionArn: cfg.githubConnectionArnParam,
   repoName: cfg.repoName,
   branchName: cfg.branchName,
+  synthesizeVoiceRepositoryName: cfg.synthesizeVoiceRepositoryName,
 });
