@@ -159,6 +159,13 @@ export class PipelineStack extends cdk.Stack {
         ],
       }),
     );
+    this.codebuild.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["ecr:GetAuthorizationToken"],
+        resources: ["*"],
+      }),
+    );
 
     this.pipeline = new codepipeline.Pipeline(this, "Pipeline", {
       artifactBucket: this.artifactBucket,
