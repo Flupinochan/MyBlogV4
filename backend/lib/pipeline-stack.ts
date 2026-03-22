@@ -80,6 +80,13 @@ export class PipelineStack extends cdk.Stack {
             commands: [
               `npm ci --prefix backend`,
               `npm run cdk --prefix backend -- deploy --all --parallel --ci --require-approval never --context env=${props.envName}`,
+              // build and push Docker image for synthesizeVoice Lambda
+              `export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)`,
+              `export ECR_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${props.repoName}`,
+              `aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com`,
+              `docker build -t ${props.repoName} backend/lambda/synthesizeVoice`,
+              `docker tag ${props.repoName}:latest $ECR_URI:latest`,
+              `docker push $ECR_URI:latest`,
             ],
           },
           // build frontend
