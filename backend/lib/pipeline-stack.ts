@@ -150,6 +150,16 @@ export class PipelineStack extends cdk.Stack {
       }),
     );
 
+    this.codebuild.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["ecr:*"],
+        resources: [
+          `arn:aws:ecr:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:repository/${props.repoName}`,
+        ],
+      }),
+    );
+
     this.pipeline = new codepipeline.Pipeline(this, "Pipeline", {
       artifactBucket: this.artifactBucket,
       crossAccountKeys: false,
