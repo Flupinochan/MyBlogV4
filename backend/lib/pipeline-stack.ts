@@ -78,17 +78,15 @@ export class PipelineStack extends cdk.Stack {
           // build & deploy backend
           pre_build: {
             commands: [
-              `cd backend`,
-              `npm ci`,
-              `npm run cdk -- deploy --all --parallel --ci --require-approval never --context env=${props.envName}`,
+              `npm ci --prefix backend`,
+              `npm run cdk --prefix backend -- deploy --all --parallel --ci --require-approval never --context env=${props.envName}`,
             ],
           },
           // build frontend
           build: {
             commands: [
-              `cd frontend`,
-              `npm ci`,
-              `npm run build --mode ${props.envName}`,
+              `npm ci --prefix frontend`,
+              `npm run build --prefix frontend --mode ${props.envName}`,
             ],
           },
           // deploy frontend
