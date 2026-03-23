@@ -1,0 +1,50 @@
+---
+
+---
+
+<header>
+  <div class="flex items-center justify-between p-4">
+    <div class="text-lg font-bold">Logo</div>
+
+    <nav>
+      <ul class="flex space-x-6">
+        <li>Home</li>
+        <li>About</li>
+        <li>Services</li>
+        <li>Contact</li>
+      </ul>
+    </nav>
+  </div>
+</header>
+
+<style>
+  header {
+    position: fixed;
+    z-index: 100;
+    inset: 0 0 auto;
+    transition: translate 0.25s;
+    color: white;
+    background: rgb(31 41 55 / 80%);
+    backdrop-filter: blur(8px);
+  }
+
+  /* 下へスクロール中、かつ下にスクロール可能な場合にheaderを非表示 */
+  @container html-scroll-state (
+  (scroll-state(scrolled: bottom) and scroll-state(scrollable: bottom))
+) {
+    header {
+      translate: 0 -100%;
+    }
+  }
+
+  /* 上へスクロール中、またはページ最上部、またはページ最下部の場合にheaderを表示 */
+  @container html-scroll-state (
+  scroll-state(scrolled: top) or 
+  (not scroll-state(scrolled: bottom)) or 
+  (not scroll-state(scrollable: bottom))
+) {
+    header {
+      translate: 0 0;
+    }
+  }
+</style>

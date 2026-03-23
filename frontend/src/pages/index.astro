@@ -1,9 +1,17 @@
 ---
-import Welcome from "../components/Welcome.astro";
-import Layout from "../layouts/Layout.astro";
-import "../styles/global.css";
+import Layout from "../layouts/Base.astro";
 ---
 
 <Layout>
-  <Welcome />
+  <section>
+    <h1 class="text-2xl font-bold">スクロールバー確認用コンテンツ</h1>
+    {
+      Array.from({ length: 100 }, (_, i) => (
+        <p key={i}>
+          これはサンプルテキストです。番号: {i + 1}.
+          コンテンツを増やして、スクロールバー表示を確認します。
+        </p>
+      ))
+    }
+  </section>
 </Layout>
