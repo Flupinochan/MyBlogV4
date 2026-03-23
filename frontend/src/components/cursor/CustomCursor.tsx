@@ -20,6 +20,12 @@ const COLOR_MAP: Record<CursorColor, string> = {
   emerald: "#34d399",
 };
 
+const LERP_FACTOR = 0.1;
+
+function lerp(a: number, b: number, t: number): number {
+  return a + (b - a) * t;
+}
+
 function StarPath({ size }: { size: number }) {
   const r = size / 2;
   const innerR = r * 0.42;
@@ -109,8 +115,6 @@ function CursorSVG({
       )}
       {shape === "star" && <StarPath size={size} />}
       {shape === "cross" && <CrossPath size={size} />}
-      {/* 中心ドット */}
-      <circle cx={size / 2} cy={size / 2} r="2" fill="currentColor" />
     </svg>
   );
 }
@@ -133,86 +137,131 @@ export default function CustomCursor({
     hoverLabel: null,
   });
 
+  const targetRef = useRef({ x: -100, y: -100 });
+  const currentPosRef = useRef({ x: -100, y: -100 });
+  const hoverInfoRef = useRef<{
+    isHovering: boolean;
+    color: CursorColor;
+    shape: CursorShape;
+    hoverLabel: string | null;
+  }>({ isHovering: false, color, shape, hoverLabel: null });
+
+  const dotRef = useRef<HTMLDivElement>(null);
   const rafRef = useRef<number | null>(null);
-  const posRef = useRef({ x: -100, y: -100 });
 
   const handleMouseMove = useCallback(
     (e: MouseEvent) => {
-      posRef.current = { x: e.clientX, y: e.clientY };
+      targetRef.current = { x: e.clientX, y: e.clientY };
 
-      if (rafRef.current) cancelAnimationFrame(rafRef.current);
-      rafRef.current = requestAnimationFrame(() => {
-        const target = e.target as HTMLElement;
-        const hoverEl = target.closest(
-          "[data-cursor-color], [data-cursor-shape], [data-cursor-label]",
-        );
-
-        const hoverColor = hoverEl?.getAttribute(
-          "data-cursor-color",
-        ) as CursorColor | null;
-        const hoverShape = hoverEl?.getAttribute(
-          "data-cursor-shape",
-        ) as CursorShape | null;
-        const hoverLabel = hoverEl?.getAttribute("data-cursor-label") ?? null;
-
-        setState((prev) => ({
-          ...prev,
-          x: posRef.current.x,
-          y: posRef.current.y,
-          isHovering: !!hoverEl,
-          color: hoverColor ?? color,
-          shape: hoverShape ?? shape,
-          hoverLabel,
-        }));
-      });
+      const target = e.target as HTMLElement;
+      const hoverEl = target.closest(
+        "[data-cursor-color], [data-cursor-shape], [data-cursor-label]",
+      );
+      hoverInfoRef.current = {
+        isHovering: !!hoverEl,
+        color:
+          (hoverEl?.getAttribute("data-cursor-color") as CursorColor) ?? color,
+        shape:
+          (hoverEl?.getAttribute("data-cursor-shape") as CursorShape) ?? shape,
+        hoverLabel: hoverEl?.getAttribute("data-cursor-label") ?? null,
+      };
     },
     [color, shape],
   );
 
   useEffect(() => {
+    const animate = () => {
+      if (dotRef.current) {
+        dotRef.current.style.left = `${targetRef.current.x}px`;
+        dotRef.current.style.top = `${targetRef.current.y}px`;
+      }
+
+      const cx = lerp(
+        currentPosRef.current.x,
+        targetRef.current.x,
+        LERP_FACTOR,
+      );
+      const cy = lerp(
+        currentPosRef.current.y,
+        targetRef.current.y,
+        LERP_FACTOR,
+      );
+      currentPosRef.current = { x: cx, y: cy };
+
+      setState({
+        x: cx,
+        y: cy,
+        ...hoverInfoRef.current,
+      });
+
+      rafRef.current = requestAnimationFrame(animate);
+    };
+
+    rafRef.current = requestAnimationFrame(animate);
     window.addEventListener("mousemove", handleMouseMove);
+    document.body.style.cursor = "none";
+
     return () => {
       window.removeEventListener("mousemove", handleMouseMove);
       if (rafRef.current) cancelAnimationFrame(rafRef.current);
+      document.body.style.cursor = "";
     };
   }, [handleMouseMove]);
 
   return (
-    <div
-      aria-hidden="true"
-      style={{
-        position: "fixed",
-        left: state.x,
-        top: state.y,
-        transform: "translate(-50%, -50%)",
-        pointerEvents: "none",
-        zIndex: 9999,
-        transition: "transform 0.08s ease-out",
-      }}
-    >
-      <CursorSVG
-        shape={state.shape}
-        color={state.color}
-        isHovering={state.isHovering}
+    <>
+      <div
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          left: state.x,
+          top: state.y,
+          transform: "translate(-50%, -50%)",
+          pointerEvents: "none",
+          zIndex: 9999,
+        }}
+      >
+        <CursorSVG
+          shape={state.shape}
+          color={state.color}
+          isHovering={state.isHovering}
+        />
+        {state.isHovering && state.hoverLabel && (
+          <span
+            style={{
+              position: "absolute",
+              top: "calc(100% + 6px)",
+              left: "50%",
+              transform: "translateX(-50%)",
+              whiteSpace: "nowrap",
+              fontSize: "11px",
+              fontFamily: "monospace",
+              color: COLOR_MAP[state.color],
+              opacity: 0.9,
+              letterSpacing: "0.04em",
+            }}
+          >
+            {state.hoverLabel}
+          </span>
+        )}
+      </div>
+
+      <div
+        ref={dotRef}
+        aria-hidden="true"
+        style={{
+          position: "fixed",
+          left: -100,
+          top: -100,
+          width: 4,
+          height: 4,
+          borderRadius: "50%",
+          backgroundColor: COLOR_MAP[state.color],
+          transform: "translate(-50%, -50%)",
+          pointerEvents: "none",
+          zIndex: 10000,
+        }}
       />
-      {state.isHovering && state.hoverLabel && (
-        <span
-          style={{
-            position: "absolute",
-            top: "calc(100% + 6px)",
-            left: "50%",
-            transform: "translateX(-50%)",
-            whiteSpace: "nowrap",
-            fontSize: "11px",
-            fontFamily: "monospace",
-            color: COLOR_MAP[state.color],
-            opacity: 0.9,
-            letterSpacing: "0.04em",
-          }}
-        >
-          {state.hoverLabel}
-        </span>
-      )}
-    </div>
+    </>
   );
 }
