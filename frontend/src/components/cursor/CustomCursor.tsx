@@ -1,7 +1,9 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-
-export type CursorShape = "circle" | "square" | "star" | "diamond" | "cross";
-export type CursorColor = "violet" | "cyan" | "amber" | "rose" | "emerald";
+import {
+  COLOR_MAP,
+  type CursorColor,
+  type CursorShape,
+} from "../../layouts/ThemeColor";
 
 interface CursorState {
   x: number;
@@ -11,14 +13,6 @@ interface CursorState {
   isHovering: boolean;
   hoverLabel: string | null;
 }
-
-const COLOR_MAP: Record<CursorColor, string> = {
-  violet: "#8b5cf6",
-  cyan: "#22d3ee",
-  amber: "#f59e0b",
-  rose: "#fb7185",
-  emerald: "#34d399",
-};
 
 const LERP_FACTOR = 0.1;
 

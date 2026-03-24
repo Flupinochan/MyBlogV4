@@ -3,9 +3,7 @@
 ---
 
 <header>
-  <div class="flex items-center justify-between p-4">
-    <div class="text-lg font-bold">Logo</div>
-
+  <div class="flex items-center justify-end p-4">
     <nav>
       <ul class="flex space-x-6">
         <li data-cursor-color="cyan" data-cursor-shape="circle">Home</li>
@@ -17,30 +15,83 @@
   </div>
 </header>
 
+<script>
+  import { COLOR_MAP } from "./ThemeColor.js";
+  const COLORS = COLOR_MAP as Record<string, string>;
+  const DEFAULT_COLOR = "rgba(255 255 255 / 0.08)";
+
+  const header = document.querySelector("header");
+  if (!header) throw new Error("Header element not found");
+
+  header.addEventListener("mousemove", (e) => {
+    const rect = header.getBoundingClientRect();
+    header.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`);
+    header.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`);
+  });
+
+  header.addEventListener("mouseleave", () => {
+    header.style.setProperty("--mouse-x", "-9999px");
+    header.style.setProperty("--mouse-y", "-9999px");
+  });
+
+  header.querySelectorAll("li[data-cursor-color]").forEach((li) => {
+    const hex = COLORS[li.getAttribute("data-cursor-color") ?? ""] ?? null;
+    const color = hex ? `${hex}30` : DEFAULT_COLOR;
+    li.addEventListener("mouseenter", () =>
+      header.style.setProperty("--spotlight-color", color),
+    );
+    li.addEventListener("mouseleave", () =>
+      header.style.setProperty("--spotlight-color", DEFAULT_COLOR),
+    );
+  });
+</script>
+
 <style>
   header {
     position: fixed;
     z-index: 100;
     inset: 0 0 auto;
-    transition: translate 0.25s;
+    transition:
+      translate 0.25s,
+      background 0.25s ease;
     color: white;
-    background: rgb(31 41 55 / 80%);
+    background:
+      radial-gradient(
+        circle 220px at var(--mouse-x) var(--mouse-y),
+        var(--spotlight-color),
+        transparent 80%
+      ),
+      rgb(31 41 55 / 80%);
     backdrop-filter: blur(8px);
+
+    --mouse-x: -9999px;
+    --mouse-y: -9999px;
+    --spotlight-color: rgba(255 255 255 / 0.08);
   }
 
-  /* 下へスクロール中、かつ下にスクロール可能な場合にheaderを非表示 */
+  /* 
+  header非表示設定
+    - 下へスクロール中 かつ
+    - 下にスクロール可能
+   */
   @container html-scroll-state (
-  (scroll-state(scrolled: bottom) and scroll-state(scrollable: bottom))
+  scroll-state(scrolled: bottom) and
+  scroll-state(scrollable: bottom)
 ) {
     header {
       translate: 0 -100%;
     }
   }
 
-  /* 上へスクロール中、またはページ最上部、またはページ最下部の場合にheaderを表示 */
+  /*
+  header表示設定
+    - 上へスクロール中 または
+    - 上にスクロール不可能(ページ最上部) または
+    - 下にスクロール不可能(ページ最下部)
+  */
   @container html-scroll-state (
   scroll-state(scrolled: top) or 
-  (not scroll-state(scrolled: bottom)) or 
+  (not scroll-state(scrollable: top)) or 
   (not scroll-state(scrollable: bottom))
 ) {
     header {
