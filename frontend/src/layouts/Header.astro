@@ -1,24 +1,42 @@
 ---
-
+import Moon from "../components/icons/Moon.astro";
+import Sun from "../components/icons/Sun.astro";
 ---
 
 <header>
-  <div class="flex items-center justify-end p-4">
+  <div class="flex items-center justify-end">
     <nav>
-      <ul class="flex space-x-6">
-        <li data-cursor-color="cyan" data-cursor-shape="circle">Home</li>
-        <li data-cursor-color="amber" data-cursor-shape="square">About</li>
-        <li data-cursor-color="rose" data-cursor-shape="star">Services</li>
-        <li data-cursor-color="emerald" data-cursor-shape="diamond">Contact</li>
+      <ul class="flex">
+        <li class="p-4" data-cursor-color="cyan" data-cursor-shape="circle">
+          Profile
+        </li>
+        <li class="p-4" data-cursor-color="amber" data-cursor-shape="square">
+          Blog
+        </li>
+        <li class="p-4" data-cursor-color="rose" data-cursor-shape="star">
+          Tools
+        </li>
+        <li class="p-4" data-cursor-color="emerald" data-cursor-shape="diamond">
+          GitHub
+        </li>
       </ul>
     </nav>
+    <button class="toggle-dark-mode pr-4">
+      <span class="dark:hidden">
+        <Moon />
+      </span>
+      <span class="hidden dark:block">
+        <Sun />
+      </span>
+    </button>
   </div>
 </header>
 
 <script>
+  // header hover時のcolor effect
   import { COLOR_MAP } from "./ThemeColor.js";
   const COLORS = COLOR_MAP as Record<string, string>;
-  const DEFAULT_COLOR = "rgba(255 255 255 / 0.08)";
+  const DEFAULT_COLOR = `${COLOR_MAP["violet"]}30`;
 
   const header = document.querySelector("header");
   if (!header) throw new Error("Header element not found");
@@ -44,6 +62,32 @@
       header.style.setProperty("--spotlight-color", DEFAULT_COLOR),
     );
   });
+
+  // ダークモード切替
+  const toggleButton = header.querySelector("button.toggle-dark-mode");
+  toggleButton?.addEventListener("click", async () => {
+    const overlay = document.getElementById("gif-overlay");
+    const gif = document.getElementById("theme-gif");
+
+    // GIF表示
+    overlay?.classList.add("opacity-100");
+    // 1秒待機
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // GIF拡大
+    gif?.classList.add("expand");
+    await new Promise((resolve) => {
+      gif?.addEventListener("transitionend", resolve, { once: true });
+    });
+
+    // ダークモード切替
+    const isDarkMode = document.documentElement.classList.toggle("dark");
+    localStorage.setItem("theme", isDarkMode ? "dark" : "light");
+
+    // GIF非表示
+    overlay?.classList.remove("opacity-100");
+    gif?.classList.remove("expand");
+  });
 </script>
 
 <style>
@@ -54,14 +98,13 @@
     transition:
       translate 0.25s,
       background 0.25s ease;
-    color: white;
     background:
       radial-gradient(
         circle 220px at var(--mouse-x) var(--mouse-y),
         var(--spotlight-color),
         transparent 80%
       ),
-      rgb(31 41 55 / 80%);
+      rgb(31 41 55 / 10%);
     backdrop-filter: blur(8px);
 
     --mouse-x: -9999px;
@@ -97,5 +140,14 @@
     header {
       translate: 0 0;
     }
+  }
+
+  li:hover {
+    font-weight: bold;
+    color: #ffffff;
+    text-decoration: underline;
+    transition: transform 0.15s ease;
+    transform: scale(1.03);
+    text-underline-offset: 10px;
   }
 </style>

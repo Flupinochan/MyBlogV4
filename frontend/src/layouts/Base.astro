@@ -6,6 +6,7 @@ import Avatar from "../components/avatar/Avatar.js";
 import "../styles/global.css";
 import CustomCursor from "../components/cursor/CustomCursor.js";
 import ScrollToTopButton from "./ScrollToTopButton.astro";
+import DarkModeGif from "./DarkModeGif.astro";
 ---
 
 <!doctype html>
@@ -13,13 +14,26 @@ import ScrollToTopButton from "./ScrollToTopButton.astro";
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
+    <meta name="generator" content={Astro.generator} />
+
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
-    <meta name="generator" content={Astro.generator} />
+
     <title>Astro Basics</title>
+
+    <script is:inline>
+      const isDarkMode =
+        localStorage.theme === "dark" ||
+        (!("theme" in localStorage) &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.classList.toggle("dark", isDarkMode);
+    </script>
   </head>
-  <body class="flex flex-col">
+  <body
+    class="flex flex-col bg-no-repeat bg-center bg-cover dark:bg-slate-900 text-gray-500"
+  >
     <CustomCursor client:load />
+    <DarkModeGif />
     <ScrollToTopButton />
     <Header />
     <Flex class="flex-1">
@@ -33,26 +47,3 @@ import ScrollToTopButton from "./ScrollToTopButton.astro";
     <Footer />
   </body>
 </html>
-
-<style>
-  html {
-    container-type: scroll-state;
-    container-name: html-scroll-state;
-    cursor: none;
-  }
-  body {
-    color: white;
-    background:
-      linear-gradient(
-        to right,
-        rgba(255, 0, 200, 0.02) 0%,
-        rgba(255, 0, 200, 0.02) 20%,
-        rgba(0, 200, 255, 0.02) 50%,
-        rgba(0, 200, 255, 0.02) 100%
-      ),
-      #0a0a0f;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-size: cover;
-  }
-</style>

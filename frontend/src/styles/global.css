@@ -1,1 +1,11 @@
 @import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@layer base {
+  html {
+    container-type: scroll-state;
+    container-name: html-scroll-state;
+    cursor: none;
+  }
+}
