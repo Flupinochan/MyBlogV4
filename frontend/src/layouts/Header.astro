@@ -21,7 +21,9 @@ import Sun from "../components/icons/Sun.astro";
         </li>
       </ul>
     </nav>
-    <button class="toggle-dark-mode pr-4">
+    <button
+      class="toggle-dark-mode pr-4 transform active:scale-95 transition-transform duration-150"
+    >
       <span class="dark:hidden">
         <Moon />
       </span>
@@ -72,7 +74,7 @@ import Sun from "../components/icons/Sun.astro";
     // GIF表示
     overlay?.classList.add("opacity-100");
     // 1秒待機
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+    await new Promise((resolve) => setTimeout(resolve, 3000));
 
     // GIF拡大
     gif?.classList.add("expand");

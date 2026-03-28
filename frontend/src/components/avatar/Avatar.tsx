@@ -39,6 +39,21 @@ function Model() {
 
   useShapeKeyEffect({ mesh, shapeKeyRef });
 
+  useEffect(() => {
+    // scene が存在する > モデルロード完了 > ローディングオーバーレイを非表示
+    if (scene) {
+      const loading = document.getElementById("loading-overlay");
+      if (loading) {
+        loading.classList.remove("opacity-100");
+        loading.classList.add("opacity-0");
+        // フェードアウト完了後にDOMからも消すようnoneにしておく
+        setTimeout(() => {
+          loading.style.display = "none";
+        }, 500);
+      }
+    }
+  }, [scene]);
+
   return (
     // アバター位置
     <group position={[1, -0.7, 1]}>
