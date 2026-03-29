@@ -1,0 +1,36 @@
+{
+  "inputs": [],
+  "servers": {
+    "Astro docs": {
+      "type": "http",
+      "url": "https://mcp.docs.astro.build/mcp"
+    },
+    "aws-knowledge-mcp-server": {
+      "type": "http",
+      "url": "https://knowledge-mcp.global.api.aws"
+    },
+    "io.github.ChromeDevTools/chrome-devtools-mcp": {
+      "args": [
+        "--registry",
+        "https://registry.npmjs.org",
+        "chrome-devtools-mcp@0.20.0"
+      ],
+      "command": "npx",
+      "type": "stdio"
+    },
+    "io.github.github/github-mcp-server": {
+      "type": "http",
+      "url": "https://api.githubcopilot.com/mcp/"
+    },
+    "microsoft/markitdown": {
+      "args": ["markitdown-mcp@0.0.1a4"],
+      "command": "uvx",
+      "type": "stdio"
+    },
+    "microsoft/playwright-mcp": {
+      "args": ["@playwright/mcp@latest"],
+      "command": "npx",
+      "type": "stdio"
+    }
+  }
+}
