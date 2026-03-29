@@ -71,6 +71,13 @@ export class PipelineStack extends cdk.Stack {
     );
   }
 }
+
+// NG: StackAのOutputをStackBで直接参照
+const bucket = s3.Bucket.fromBucketName(
+  this,
+  "Bucket",
+  buildAssetsStack.bucket.bucketName,
+);
 ```
 
 ## Frontend Rules
