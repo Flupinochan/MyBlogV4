@@ -70,6 +70,11 @@ export class PipelineStack extends cdk.Stack {
             },
             commands: [
               "node -v",
+              "curl -fsSL https://bun.com/install | bash",
+              'export BUN_INSTALL="$HOME/.bun"',
+              'export PATH="$BUN_INSTALL/bin:$PATH"',
+              "ln -s $HOME/.bun/bin/bun /usr/local/bin/bun",
+              "bun -v",
               // prepare voicevox assets
               "mkdir -p backend/lambda/synthesizeVoice",
               `aws s3 cp s3://${props.buildAssetsBucketName}/voicevox.tar.gz voicevox.tar.gz`,
@@ -86,16 +91,18 @@ export class PipelineStack extends cdk.Stack {
               `docker build -t ${props.synthesizeVoiceRepositoryName} backend/lambda/synthesizeVoice`,
               `docker tag ${props.synthesizeVoiceRepositoryName}:latest $ECR_URI:latest`,
               `docker push $ECR_URI:latest`,
+              "cd backend",
               // deploy backend
-              `npm ci --prefix backend`,
-              `npm run cdk --prefix backend -- deploy --all --parallel --ci --require-approval never --context env=${props.envName}`,
+              `bun install --frozen-lockfile`,
+              `bun run cdk -- deploy --all --parallel --ci --require-approval never --context env=${props.envName}`,
             ],
           },
           // build frontend
           build: {
             commands: [
-              `npm ci --prefix frontend`,
-              `npm run build --prefix frontend --mode ${props.envName}`,
+              "cd ../frontend",
+              `bun install --frozen-lockfile`,
+              `bun run build --mode ${props.envName}`,
             ],
           },
           // deploy frontend
