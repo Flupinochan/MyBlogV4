@@ -3,35 +3,49 @@ import Moon from "../components/icons/Moon.astro";
 import Sun from "../components/icons/Sun.astro";
 ---
 
-<header>
-  <div class="flex items-center justify-end">
-    <nav>
-      <ul class="flex">
-        <li class="p-4" data-cursor-color="cyan" data-cursor-shape="circle">
-          Profile
-        </li>
-        <li class="p-4" data-cursor-color="amber" data-cursor-shape="square">
-          Blog
-        </li>
-        <li class="p-4" data-cursor-color="rose" data-cursor-shape="star">
-          Tools
-        </li>
-        <li class="p-4" data-cursor-color="emerald" data-cursor-shape="diamond">
-          GitHub
-        </li>
-      </ul>
-    </nav>
-    <button
-      class="toggle-dark-mode pr-4 transform active:scale-95 transition-transform duration-150"
-    >
-      <span class="dark:hidden">
-        <Moon />
-      </span>
-      <span class="hidden dark:block">
-        <Sun />
-      </span>
-    </button>
-  </div>
+<header class="flex items-center justify-between h-16 pl-10">
+  <nav>
+    <ul class="flex">
+      <li
+        class="p-4 textWrapper"
+        data-cursor-color="cyan"
+        data-cursor-shape="circle"
+      >
+        <a href="#" class="backgroundImage">Profile</a>
+      </li>
+      <li
+        class="p-4 textWrapper"
+        data-cursor-color="amber"
+        data-cursor-shape="square"
+      >
+        <a href="#" class="backgroundImage">Blog</a>
+      </li>
+      <li
+        class="p-4 textWrapper"
+        data-cursor-color="rose"
+        data-cursor-shape="star"
+      >
+        <a href="#" class="backgroundImage">Tools</a>
+      </li>
+      <li
+        class="p-4 textWrapper"
+        data-cursor-color="emerald"
+        data-cursor-shape="diamond"
+      >
+        <a href="#" class="backgroundImage">GitHub</a>
+      </li>
+    </ul>
+  </nav>
+  <button
+    class="toggle-dark-mode mr-10 transform active:scale-95 transition-transform duration-150"
+  >
+    <span class="dark:hidden">
+      <Moon class="size-6" />
+    </span>
+    <span class="hidden dark:block">
+      <Sun class="size-6" />
+    </span>
+  </button>
 </header>
 
 <script>
@@ -54,9 +68,16 @@ import Sun from "../components/icons/Sun.astro";
     header.style.setProperty("--mouse-y", "-9999px");
   });
 
-  header.querySelectorAll("li[data-cursor-color]").forEach((li) => {
+  header.querySelectorAll("li[data-cursor-color]").forEach((element) => {
+    const li = element as HTMLLIElement;
     const hex = COLORS[li.getAttribute("data-cursor-color") ?? ""] ?? null;
     const color = hex ? `${hex}30` : DEFAULT_COLOR;
+    const underlineColor = hex ?? COLOR_MAP["violet"];
+
+    // data-cursor-color属性に基づいてCSS変数を設定
+    li.style.setProperty("--underline-color", underlineColor);
+    li.style.setProperty("--text-fill-color", underlineColor);
+
     li.addEventListener("mouseenter", () =>
       header.style.setProperty("--spotlight-color", color),
     );
@@ -74,7 +95,7 @@ import Sun from "../components/icons/Sun.astro";
     // GIF表示
     overlay?.classList.add("opacity-100");
     // 1秒待機
-    await new Promise((resolve) => setTimeout(resolve, 3000));
+    await new Promise((resolve) => setTimeout(resolve, 1500));
 
     // GIF拡大
     gif?.classList.add("expand");
@@ -144,12 +165,50 @@ import Sun from "../components/icons/Sun.astro";
     }
   }
 
-  li:hover {
-    font-weight: bold;
-    color: #ffffff;
-    text-decoration: underline;
-    transition: transform 0.15s ease;
-    transform: scale(1.03);
-    text-underline-offset: 10px;
+  /* underline animation and text fill animation */
+  .backgroundImage {
+    position: relative;
+    display: inline-block;
+    padding-bottom: 5px;
+
+    color: inherit;
+    background-image: linear-gradient(
+      90deg,
+      var(--text-fill-color, #8b5cf6),
+      var(--text-fill-color, #8b5cf6)
+    );
+    background-size: 0% 100%;
+    background-position: left center;
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    transition:
+      background-size 0.3s ease-out,
+      color 0.3s ease-out;
+  }
+
+  .textWrapper:hover .backgroundImage {
+    color: transparent;
+    background-size: 100% 100%;
+    font-weight: 700;
+  }
+
+  .backgroundImage::after {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: var(--underline-color, #8b5cf6);
+    transition: width 0.3s ease-out;
+  }
+
+  .textWrapper:hover .backgroundImage {
+    background-size: 100% 100%;
+  }
+
+  .textWrapper:hover .backgroundImage::after {
+    width: 100%;
   }
 </style>

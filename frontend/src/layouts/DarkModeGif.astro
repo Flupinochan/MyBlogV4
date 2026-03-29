@@ -1,5 +1,8 @@
 ---
-
+interface Props {
+  size: number;
+}
+const { size }: Props = Astro.props;
 ---
 
 <div
@@ -23,6 +26,8 @@
   <img
     id="theme-gif"
     src="/dark-mode.gif"
+    width={size}
+    height={size}
     class="[filter:url(#recolor-slate-900)] dark:invert dark:brightness-0 transition-transform duration-200"
   />
 </div>
