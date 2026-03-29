@@ -1,0 +1,19 @@
+{
+  "author": "MetalMental",
+  "bugs": {
+    "url": "https://github.com/Flupinochan/MyBlogV4/issues"
+  },
+  "homepage": "https://github.com/Flupinochan/MyBlogV4#readme",
+  "name": "myblogv4",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Flupinochan/MyBlogV4.git"
+  },
+  "version": "1.0.0",
+  "devDependencies": {
+    "husky": "^9.1.7"
+  },
+  "scripts": {
+    "prepare": "husky"
+  }
+}
