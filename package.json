@@ -13,7 +13,7 @@
     "url": "git+https://github.com/Flupinochan/MyBlogV4.git"
   },
   "scripts": {
-    "prepare": "husky"
+    "prepare": "husky || true"
   },
   "version": "1.0.0"
 }

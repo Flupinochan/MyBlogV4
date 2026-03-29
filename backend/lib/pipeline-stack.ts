@@ -56,6 +56,11 @@ export class PipelineStack extends cdk.Stack {
         buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
         privileged: true,
       },
+      environmentVariables: {
+        // husky対策
+        CI: { value: "true" },
+        HUSKY: { value: "0" },
+      },
       logging: {
         cloudWatch: {
           logGroup: this.codeBuildLogGroup,
@@ -91,25 +96,25 @@ export class PipelineStack extends cdk.Stack {
               `docker build -t ${props.synthesizeVoiceRepositoryName} backend/lambda/synthesizeVoice`,
               `docker tag ${props.synthesizeVoiceRepositoryName}:latest $ECR_URI:latest`,
               `docker push $ECR_URI:latest`,
-              "cd backend",
+              "cd $CODEBUILD_SRC_DIR/backend",
               // deploy backend
-              `bun install --frozen-lockfile`,
+              `bun install --frozen-lockfile --ignore-scripts`,
               `bun run cdk -- deploy --all --parallel --ci --require-approval never --context env=${props.envName}`,
             ],
           },
           // build frontend
           build: {
             commands: [
-              "cd ../frontend",
-              `bun install --frozen-lockfile`,
-              `bun run build --mode ${props.envName}`,
+              "cd $CODEBUILD_SRC_DIR/frontend",
+              `bun install --frozen-lockfile --ignore-scripts`,
+              `bun run build -- --mode ${props.envName}`,
             ],
           },
           // deploy frontend
           post_build: {
             commands: [
               // upload built assets to hosting bucket
-              `aws s3 sync frontend/dist/ s3://${props.hostingBucketName}/ --delete`,
+              `aws s3 sync $CODEBUILD_SRC_DIR/frontend/dist/ s3://${props.hostingBucketName}/ --delete`,
               // finally invalidate CloudFront
               `aws cloudfront create-invalidation --distribution-id ${props.hostingDistributionId} --paths "/*"`,
             ],
