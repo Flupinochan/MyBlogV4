@@ -13,6 +13,14 @@ export interface EnvConfig {
   buildAssetsBucketName: string;
   synthesizeVoiceFunctionName: string;
   synthesizeVoiceRepositoryName: string;
+  sourceBucketName: string;
+  vectorBucketName: string;
+  kbName: string;
+  dataSourceName: string;
+  embeddingModelId: string;
+  enrichingModelId: string;
+  blogRepoName: string;
+  blogBranchName: string;
 }
 
 export function getEnvConfig(env: string): EnvConfig {

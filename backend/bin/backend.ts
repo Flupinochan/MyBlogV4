@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib/core";
+import { BlogKBPipelineStack } from "../lib/blog-kb-pipeline-stack";
+import { BlogKBStack } from "../lib/blog-kb-stack";
 import { BuildAssetsStack } from "../lib/build-assets-stack";
 import { HostingStack } from "../lib/hosting-stack";
 import { SynthesizeVoiceEcrStack } from "../lib/lambda/synthesize-voice-ecr-stack";
@@ -49,4 +51,22 @@ new PipelineStack(app, `${prefix}-PipelineStack`, {
   repoName: cfg.repoName,
   branchName: cfg.branchName,
   synthesizeVoiceRepositoryName: cfg.synthesizeVoiceRepositoryName,
+});
+
+const blogKBStack = new BlogKBStack(app, `${prefix}-BlogKBStack`, {
+  sourceBucketName: cfg.sourceBucketName,
+  vectorBucketName: cfg.vectorBucketName,
+  kbName: cfg.kbName,
+  dataSourceName: cfg.dataSourceName,
+  embeddingModelId: cfg.embeddingModelId,
+  enrichingModelId: cfg.enrichingModelId,
+});
+
+new BlogKBPipelineStack(app, `${prefix}-BlogKBPipelineStack`, {
+  githubConnectionArnParam: cfg.githubConnectionArnParam,
+  repositoryName: cfg.blogRepoName,
+  branchName: cfg.blogBranchName,
+  sourceBucketName: cfg.sourceBucketName,
+  kbid: blogKBStack.kb.attrKnowledgeBaseId,
+  dataSourceId: blogKBStack.dataSource.attrDataSourceId,
 });
