@@ -57,6 +57,7 @@ def invoke(request):
     # 1. まずはAgentにまかせて回答させる
     result = agent(custom_input, structured_output_model=AgentResponse)
     agentResponse: AgentResponse = result.structured_output
+    log.info("Agent initial response: %s, requires_additional_info: %s", agentResponse.answer, agentResponse.requires_additional_info)
     if not agentResponse.requires_additional_info:
         return clean_response(agentResponse.answer)
 
