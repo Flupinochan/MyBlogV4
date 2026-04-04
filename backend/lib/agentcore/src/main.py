@@ -3,8 +3,8 @@ import re
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from strands import Agent
 from strands.models.bedrock import BedrockModel
-
-from backend.lib.agentcore.src.tools.knowledgebase import get_tech_blog_content
+from tools.knowledgebase import get_tech_blog_content  # ty:ignore[unresolved-import]
+from tools.resume import get_resume_content  # ty:ignore[unresolved-import]
 
 # 環境変数
 MODEL_ID = "jp.amazon.nova-2-lite-v1:0"
@@ -14,7 +14,7 @@ AGENT: Agent | None = None
 app = BedrockAgentCoreApp()
 log = app.logger
 tools = []
-tools.append(get_tech_blog_content)
+tools.extend([get_tech_blog_content, get_resume_content])
 
 
 def get_or_create_agent(agent: Agent | None) -> Agent:

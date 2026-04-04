@@ -39,27 +39,33 @@ export const handler = withDurableExecution(
     const parsedEvent = inboundSchema.parse(event);
 
     // 生成AI (AgentCore) 呼び出し
-    const textResponseOutput = await context.step(async () => {
-      const sessionId = context.executionContext.durableExecutionArn;
-      const client = new BedrockAgentCoreClient();
-      const input = {
-        runtimeSessionId: sessionId,
-        agentRuntimeArn: AGENT_RUNTIME_ARN,
-        qualifier: "DEFAULT",
-        payload: JSON.stringify({ prompt: parsedEvent.message }),
-      };
-      const command = new InvokeAgentRuntimeCommand(input);
-      const response = await client.send(command);
-      const textResponse = await response.response?.transformToString();
-      return textResponse;
-    });
+    const textResponseOutput = await context.step(
+      async () => {
+        const sessionId = context.executionContext.durableExecutionArn;
+        const client = new BedrockAgentCoreClient();
+        const input = {
+          runtimeSessionId: sessionId,
+          agentRuntimeArn: AGENT_RUNTIME_ARN,
+          qualifier: "DEFAULT",
+          payload: JSON.stringify({ prompt: parsedEvent.message }),
+        };
+        const command = new InvokeAgentRuntimeCommand(input);
+        const response = await client.send(command);
+        const textResponse = await response.response?.transformToString();
+        return textResponse;
+      },
+      { retryStrategy: () => ({ shouldRetry: false }) },
+    );
     logger.info("AgentCore function invoked", { textResponseOutput });
 
     // 音声合成 (SynthesizeVoice) 呼び出し
     const result = await context.invoke(
       "SynthesizeVoiceFunction",
       SYNTHESIZE_VOICE_FUNCTION_ARN,
-      { message: textResponseOutput },
+      {
+        message: textResponseOutput,
+        retryStrategy: () => ({ shouldRetry: false }),
+      },
     );
     logger.info("SynthesizeVoice function invoked", { result });
 
