@@ -10,7 +10,14 @@ from aws_lambda_powertools import Logger
 from aws_lambda_powertools.utilities.parser import event_parser
 from aws_lambda_powertools.utilities.typing import LambdaContext
 from pydantic import BaseModel
-from voicevox_core.blocking import Onnxruntime, OpenJtalk, Synthesizer, VoiceModelFile
+from voicevox_core import UserDictWord
+from voicevox_core.blocking import (
+    Onnxruntime,
+    OpenJtalk,
+    Synthesizer,
+    UserDict,
+    VoiceModelFile,
+)
 
 # ロガー初期化
 logger = Logger()
@@ -31,9 +38,20 @@ s3_client = boto3.client("s3")
 
 # 1. Synthesizerの初期化
 ## Lambdaの場合は1,769MBで1vCPU相当
+user_dict_word = UserDictWord(
+    surface="MetalMental",
+    pronunciation="メタルメンタル",
+    word_type="PROPER_NOUN",
+    priority=9,
+    accent_type=4,  # メタルメの4拍目にアクセント
+)
+user_dict = UserDict()
+user_dict.add_word(user_dict_word)
+open_jtalk = OpenJtalk(OPEN_JTALK_PATH)
+open_jtalk.use_user_dict(user_dict)
 synthesizer = Synthesizer(
     Onnxruntime.load_once(filename=ONNX_RUNTIME_PATH),
-    OpenJtalk(OPEN_JTALK_PATH),
+    open_jtalk,
     acceleration_mode="CPU",
     cpu_num_threads=multiprocessing.cpu_count(),
 )
