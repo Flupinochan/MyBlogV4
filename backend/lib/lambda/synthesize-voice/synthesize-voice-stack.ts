@@ -10,6 +10,7 @@ interface SynthesizeVoiceStackProps extends cdk.StackProps {
   functionName: string;
   repository: ecr.IRepository;
   imageTagOrDigest: string;
+  voiceOutputBucketName: string;
 }
 
 export class SynthesizeVoiceStack extends cdk.Stack {
@@ -33,6 +34,19 @@ export class SynthesizeVoiceStack extends cdk.Stack {
           "service-role/AWSLambdaBasicExecutionRole",
         ),
       ],
+      inlinePolicies: {
+        SynthesizeVoicePolicy: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              actions: ["s3:*"],
+              resources: [
+                `arn:aws:s3:::${props.voiceOutputBucketName}`,
+                `arn:aws:s3:::${props.voiceOutputBucketName}/*`,
+              ],
+            }),
+          ],
+        }),
+      },
     });
 
     this.function = new lambda.DockerImageFunction(this, "function", {
@@ -46,6 +60,9 @@ export class SynthesizeVoiceStack extends cdk.Stack {
       logGroup: this.logGroup,
       loggingFormat: lambda.LoggingFormat.JSON,
       role: this.role,
+      environment: {
+        VOICE_OUTPUT_BUCKET_NAME: props.voiceOutputBucketName,
+      },
     });
   }
 }

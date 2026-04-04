@@ -9,6 +9,7 @@ import path from "path";
 interface ChatAudioDurableStackProps extends cdk.StackProps {
   functionName: string;
   agentCoreArn: string;
+  synthesizeVoiceFunctionName: string;
 }
 
 export class ChatAudioDurableStack extends cdk.Stack {
@@ -18,6 +19,8 @@ export class ChatAudioDurableStack extends cdk.Stack {
 
   constructor(scope: Construct, id: string, props: ChatAudioDurableStackProps) {
     super(scope, id, props);
+
+    const synthesizeVoiceFunctionArn = `arn:aws:lambda:${this.region}:${this.account}:function:${props.synthesizeVoiceFunctionName}`;
 
     this.logGroup = new logs.LogGroup(this, "ChatAudioDurableLogGroup", {
       logGroupName: `/aws/lambda/${props.functionName}`,
@@ -38,6 +41,14 @@ export class ChatAudioDurableStack extends cdk.Stack {
             new iam.PolicyStatement({
               actions: ["bedrock-agentcore:InvokeAgentRuntime"],
               resources: [`${props.agentCoreArn}`, `${props.agentCoreArn}/*`],
+            }),
+          ],
+        }),
+        InvokeSynthesizeVoiceFunction: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              actions: ["lambda:InvokeFunction"],
+              resources: [synthesizeVoiceFunctionArn],
             }),
           ],
         }),
@@ -65,6 +76,7 @@ export class ChatAudioDurableStack extends cdk.Stack {
         TZ: "Asia/Tokyo",
         POWERTOOLS_LOGGER_LOG_EVENT: "true",
         AGENT_RUNTIME_ARN: props.agentCoreArn,
+        SYNTHESIZE_VOICE_FUNCTION_ARN: synthesizeVoiceFunctionArn,
       },
       durableConfig: {
         executionTimeout: cdk.Duration.minutes(15),

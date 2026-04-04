@@ -8,6 +8,7 @@ import {
   withDurableExecution,
 } from "@aws/durable-execution-sdk-js";
 
+// 環境変数取得
 function getEnv(key: string): string {
   const value = process.env[key];
   if (!value) {
@@ -15,11 +16,13 @@ function getEnv(key: string): string {
   }
   return value;
 }
-
 const AGENT_RUNTIME_ARN = getEnv("AGENT_RUNTIME_ARN");
+const SYNTHESIZE_VOICE_FUNCTION_ARN = getEnv("SYNTHESIZE_VOICE_FUNCTION_ARN");
 
+// ロガー定義
 const logger = new Logger({ serviceName: "chat-audio-durable" });
 
+// Entry Point
 export const handler = withDurableExecution(
   async (event: unknown, context: DurableContext) => {
     logger.addContext(context);
@@ -27,9 +30,10 @@ export const handler = withDurableExecution(
 
     logger.info("Durable function started");
 
-    const result = await context.step(async () => {
+    // 生成AI (AgentCore) 呼び出し
+    const textResponseOutput = await context.step(async () => {
       const sessionId = context.executionContext.durableExecutionArn;
-      const input_text = "こんにちは、世界！";
+      const input_text = "こんにちは";
       const client = new BedrockAgentCoreClient();
       const input = {
         runtimeSessionId: sessionId,
@@ -43,7 +47,12 @@ export const handler = withDurableExecution(
       return textResponse;
     });
 
-    logger.info("Durable function step completed", { result });
-    return result;
+    // 音声合成 (SynthesizeVoice) 呼び出し
+    const resut = await context.invoke("SynthesizeVoiceFunction", SYNTHESIZE_VOICE_FUNCTION_ARN, {
+      message: textResponseOutput,
+    });
+
+    logger.info("Durable function step completed", { result: textResponseOutput });
+    return textResponseOutput;
   },
 );

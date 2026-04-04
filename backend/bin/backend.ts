@@ -45,6 +45,7 @@ new SynthesizeVoiceStack(app, `${prefix}-SynthesizeVoiceStack`, {
   functionName: cfg.synthesizeVoiceFunctionName,
   repository: synthesizeVoiceEcrStack.repository,
   imageTagOrDigest: synthesizeVoiceImageTagOrDigest,
+  voiceOutputBucketName: cfg.hostingBucketName,
 });
 
 const hostingStack = new HostingStack(app, `${prefix}-HostingStack`, {
@@ -105,5 +106,6 @@ const chatAudioDurableStack = new ChatAudioDurableStack(
   {
     functionName: cfg.chatAudioDurableFunctionName,
     agentCoreArn: agentCoreStack.agentCoreRuntime.attrAgentRuntimeArn,
+    synthesizeVoiceFunctionName: cfg.synthesizeVoiceFunctionName,
   },
 );
