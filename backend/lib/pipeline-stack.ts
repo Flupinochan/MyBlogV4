@@ -81,9 +81,9 @@ export class PipelineStack extends cdk.Stack {
               "ln -s $HOME/.bun/bin/bun /usr/local/bin/bun",
               "bun -v",
               // prepare voicevox assets
-              "mkdir -p backend/lambda/synthesizeVoice",
+              "mkdir -p backend/lib/lambda/synthesize-voice",
               `aws s3 cp s3://${props.buildAssetsBucketName}/voicevox.tar.gz voicevox.tar.gz`,
-              "tar -xzf voicevox.tar.gz -C backend/lambda/synthesizeVoice",
+              "tar -xzf voicevox.tar.gz -C backend/lib/lambda/synthesize-voice",
             ],
           },
           // build & deploy backend
@@ -93,7 +93,7 @@ export class PipelineStack extends cdk.Stack {
               `export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)`,
               `export ECR_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${props.synthesizeVoiceRepositoryName}`,
               `aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com`,
-              `docker build -t ${props.synthesizeVoiceRepositoryName} backend/lambda/synthesizeVoice`,
+              `docker build -t ${props.synthesizeVoiceRepositoryName} backend/lib/lambda/synthesize-voice`,
               `docker tag ${props.synthesizeVoiceRepositoryName}:latest $ECR_URI:latest`,
               `docker push $ECR_URI:latest`,
               "cd $CODEBUILD_SRC_DIR/backend",

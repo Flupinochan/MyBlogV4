@@ -9,6 +9,7 @@ export const config: EnvConfig = {
   githubConnectionArnParam: "github-connection-arn",
   hostingBucketName: "dev-myblogv4-bucket",
   buildAssetsBucketName: "dev-myblogv4-build-assets",
+  chatAudioDurableFunctionName: "dev-myblogv4-chat-audio-durable",
   synthesizeVoiceFunctionName: "dev-myblogv4-synthesize-voice",
   synthesizeVoiceRepositoryName: "dev-myblogv4-synthesize-voice",
   sourceBucketName: "dev-myblogv4-blog-kb-source",
@@ -19,4 +20,7 @@ export const config: EnvConfig = {
   enrichingModelId: "amazon.nova-micro-v1:0",
   blogRepoName: "zenn-content",
   blogBranchName: "master",
+  entryPoint: ["opentelemetry-instrument", "main.py"],
+  agentRuntimeName: "devMyblogv4AgentRuntime",
+  agentCorePlatform: 'aarch64-manylinux2014',
 };

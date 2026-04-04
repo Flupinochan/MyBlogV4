@@ -65,3 +65,9 @@ uv add https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.4/voicev
 ## API Document
 
 [docs](https://voicevox.github.io/voicevox_core/apis/python_api/autoapi/voicevox_core/blocking/index.html)
+
+## pip compile
+
+```bash
+uv pip compile -o requirements.txt pyproject.toml
+```

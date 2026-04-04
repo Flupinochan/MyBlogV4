@@ -1,11 +1,14 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib/core";
+import { AgentCoreStack } from "../lib/agentcore/agentcore-stack";
+import { CreateZipAssetStack } from "../lib/agentcore/create-zip-asset-stack";
 import { BlogKBPipelineStack } from "../lib/blog-kb-pipeline-stack";
 import { BlogKBStack } from "../lib/blog-kb-stack";
 import { BuildAssetsStack } from "../lib/build-assets-stack";
 import { HostingStack } from "../lib/hosting-stack";
-import { SynthesizeVoiceEcrStack } from "../lib/lambda/synthesize-voice-ecr-stack";
-import { SynthesizeVoiceStack } from "../lib/lambda/synthesize-voice-stack";
+import { ChatAudioDurableStack } from "../lib/lambda/chat-audio-durable/chat-audio-durable-stack";
+import { SynthesizeVoiceEcrStack } from "../lib/lambda/synthesize-voice/synthesize-voice-ecr-stack";
+import { SynthesizeVoiceStack } from "../lib/lambda/synthesize-voice/synthesize-voice-stack";
 import { PipelineStack } from "../lib/pipeline-stack";
 import { getEnvConfig } from "./env";
 
@@ -70,3 +73,28 @@ new BlogKBPipelineStack(app, `${prefix}-BlogKBPipelineStack`, {
   kbid: blogKBStack.kb.attrKnowledgeBaseId,
   dataSourceId: blogKBStack.dataSource.attrDataSourceId,
 });
+
+const createZipAssetStack = new CreateZipAssetStack(
+  app,
+  `${prefix}-CreateZipAssetStack`,
+  {
+    platform: cfg.agentCorePlatform,
+  },
+);
+
+const agentCoreStack = new AgentCoreStack(app, `${prefix}-AgentCoreStack`, {
+  kbid: blogKBStack.kb.attrKnowledgeBaseId,
+  assetBucketName: createZipAssetStack.asset.s3BucketName,
+  assetPrefix: createZipAssetStack.asset.s3ObjectKey,
+  entryPoint: cfg.entryPoint,
+  agentRuntimeName: cfg.agentRuntimeName,
+});
+
+const chatAudioDurableStack = new ChatAudioDurableStack(
+  app,
+  `${prefix}-ChatAudioDurableStack`,
+  {
+    functionName: cfg.chatAudioDurableFunctionName,
+    agentCoreArn: agentCoreStack.agentCoreRuntime.attrAgentRuntimeArn,
+  },
+);

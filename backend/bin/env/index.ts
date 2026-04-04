@@ -11,6 +11,7 @@ export interface EnvConfig {
   // Stack間の依存関係を断つためにOutputは利用せず、事前にリソース名は定義しておく
   hostingBucketName: string;
   buildAssetsBucketName: string;
+  chatAudioDurableFunctionName: string;
   synthesizeVoiceFunctionName: string;
   synthesizeVoiceRepositoryName: string;
   sourceBucketName: string;
@@ -21,6 +22,9 @@ export interface EnvConfig {
   enrichingModelId: string;
   blogRepoName: string;
   blogBranchName: string;
+  entryPoint: string[];
+  agentRuntimeName: string;
+  agentCorePlatform: 'aarch64-manylinux2014' | 'aarch64-manylinux_2_28' | 'aarch64-manylinux_2_34';
 }
 
 export function getEnvConfig(env: string): EnvConfig {
