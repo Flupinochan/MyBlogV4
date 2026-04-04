@@ -54,10 +54,6 @@ export class ChatAudioDurableStack extends cdk.Stack {
       logGroup: this.logGroup,
       loggingFormat: lambda.LoggingFormat.JSON,
       role: this.role,
-      architecture: lambda.Architecture.ARM_64,
-      bundling: {
-        platform: "linux/arm64",
-      },
       layers: [
         lambda.LayerVersion.fromLayerVersionArn(
           this,
