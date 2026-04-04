@@ -36,8 +36,10 @@ except KeyError:
 
 s3_client = boto3.client("s3")
 
-# 1. Synthesizerの初期化
-## Lambdaの場合は1,769MBで1vCPU相当
+# ユーザ辞書の定義
+# surface 入力テキスト
+# pronunciation カタカナで発音を指定
+# accent_type メタルメンタルは、7文字のため1から7の整数で指定
 user_dict_word = UserDictWord(
     surface="MetalMental",
     pronunciation="メタルメンタル",
@@ -49,6 +51,9 @@ user_dict = UserDict()
 user_dict.add_word(user_dict_word)
 open_jtalk = OpenJtalk(OPEN_JTALK_PATH)
 open_jtalk.use_user_dict(user_dict)
+
+# 1. Synthesizerの初期化
+## Lambdaの場合は1,769MBで1vCPU相当
 synthesizer = Synthesizer(
     Onnxruntime.load_once(filename=ONNX_RUNTIME_PATH),
     open_jtalk,

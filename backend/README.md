@@ -12,3 +12,5 @@ aws bedrock list-inference-profiles \
 
 AgentCoreのログ設定はコードからはできない  
 デプロイ後に自動作成されたCloudWatch LogGroupの保存期間を `1日` にすること
+
+CodePipelineやCodeBuildの設定を変更する場合はローカルでデプロイすること
