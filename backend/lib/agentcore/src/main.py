@@ -13,7 +13,7 @@ from tools.resume import get_resume_content  # ty:ignore[unresolved-import]
 
 # 環境変数
 MODEL_ID = "jp.amazon.nova-2-lite-v1:0"
-UNIFIED_PROMPT = """Markdown、箇条書き、表、記号、特殊文字を使用しないで出力してください。文章では、。等の句読点を適切に使ってください。改行せず1行で出力し、必ず最大2文に収めてください。"""  # noqa: E501
+UNIFIED_PROMPT = """質問に対する答えが分からない場合は全てのツールを利用するようにしてください。Markdown、箇条書き、表、記号、特殊文字を使用せずに出力してください。文章では、。等の句読点を適切に使用してください。改行せず1行で出力し、必ず最大2文に収めてください。"""  # noqa: E501
 AGENT: Agent | None = None
 
 app = BedrockAgentCoreApp()
