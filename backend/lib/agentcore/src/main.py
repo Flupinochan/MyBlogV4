@@ -80,6 +80,7 @@ def invoke(request) -> str:  # noqa: ANN001
 
     # 2. 分からなかった場合(requires_additional_info=True)は、
     #    全ツールを実行して収集した情報をもとにAgentに回答させる
+    log.info("全ツールの実行開始")
     all_tools_result = []
     for tool in tools:
         try:
@@ -100,6 +101,11 @@ def invoke(request) -> str:  # noqa: ANN001
     )
     final_result = agent(final_prompt, structured_output_model=AgentResponse)
     final_agent_response = cast("AgentResponse", final_result.structured_output)
+    log.info(
+        "Agent final response: %s, requires_additional_info: %s",
+        final_agent_response.answer,
+        final_agent_response.requires_additional_info,
+    )
 
     return clean_response(final_agent_response.answer)
 
