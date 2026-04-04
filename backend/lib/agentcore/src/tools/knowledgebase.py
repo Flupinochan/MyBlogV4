@@ -26,9 +26,6 @@ def get_tech_blog_content(query: str) -> list[str]:
         knowledgeBaseId=KNOWLEDGE_BASE_ID,
         retrievalConfiguration={
             "vectorSearchConfiguration": {
-                "implicitFilterConfiguration": {
-                    "modelArn": EMBEDDING_MODEL_ARN,
-                },
                 "numberOfResults": 10,
             },
         },

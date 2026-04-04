@@ -13,5 +13,11 @@ def get_resume_content() -> str:
         str: 履歴書 (Markdown形式) の内容
 
     """
-    with Path(RESUME_FILE_NAME).open() as f:
-        return f.read()
+    resume_path = Path(__file__).resolve().with_name(RESUME_FILE_NAME)
+
+    try:
+        return resume_path.read_text(encoding="utf-8")
+    except FileNotFoundError as error:
+        raise RuntimeError(f"履歴書ファイルが見つかりません: {resume_path}") from error
+    except OSError as error:
+        raise RuntimeError(f"履歴書ファイルを読み込めませんでした: {resume_path}") from error
