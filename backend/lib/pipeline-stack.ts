@@ -97,6 +97,9 @@ export class PipelineStack extends cdk.Stack {
               `docker tag ${props.synthesizeVoiceRepositoryName}:latest $ECR_URI:latest`,
               `docker push $ECR_URI:latest`,
               "cd $CODEBUILD_SRC_DIR/backend",
+              // install uv
+              "curl -LsSf https://astral.sh/uv/install.sh | sh",
+              "export PATH=\"$HOME/.local/bin:$PATH\"",
               // deploy backend
               `bun install --frozen-lockfile --ignore-scripts`,
               `bun run cdk -- deploy --all --parallel --ci --require-approval never --context env=${props.envName}`,
