@@ -98,6 +98,7 @@ const agentCoreStack = new AgentCoreStack(app, `${prefix}-AgentCoreStack`, {
   assetPrefix: createZipAssetStack.asset.s3ObjectKey,
   entryPoint: cfg.entryPoint,
   agentRuntimeName: cfg.agentRuntimeName,
+  embeddingModelId: cfg.embeddingModelId,
 });
 
 const chatAudioDurableStack = new ChatAudioDurableStack(

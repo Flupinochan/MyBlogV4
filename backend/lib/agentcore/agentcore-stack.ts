@@ -9,6 +9,7 @@ interface AgentCoreStackProps extends cdk.StackProps {
   assetPrefix: string;
   entryPoint: string[];
   agentRuntimeName: string;
+  embeddingModelId: string;
 }
 
 export class AgentCoreStack extends cdk.Stack {
@@ -102,6 +103,7 @@ export class AgentCoreStack extends cdk.Stack {
         },
         environmentVariables: {
           KNOWLEDGE_BASE_ID: props.kbid,
+          EMBEDDING_MODEL_ARN: `arn:aws:bedrock:${cdk.Aws.REGION}::foundation-model/${props.embeddingModelId}`,
         },
       },
     );
