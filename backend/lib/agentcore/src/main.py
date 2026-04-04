@@ -94,6 +94,7 @@ def invoke(request) -> str:  # noqa: ANN001
     collected_information = "\n".join(
         format_tool_result(tool_result) for tool_result in all_tools_result
     )
+    log.info("全ツールの実行完了, collected_information: %s", collected_information)
     final_prompt = (
         f"User Request: {user_input}\n\n"
         f"Collected Detailed Information:\n{collected_information}\n\n"
