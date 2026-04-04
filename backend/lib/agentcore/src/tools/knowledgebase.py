@@ -5,8 +5,9 @@ from strands import tool
 
 KNOWLEDGE_BASE_ID = os.environ["KNOWLEDGE_BASE_ID"]
 EMBEDDING_MODEL_ARN = os.environ["EMBEDDING_MODEL_ARN"]
+REGION = "ap-northeast-1"
 
-bedrock_agent_runtime_client = boto3.client("bedrock-agent-runtime")
+bedrock_agent_runtime_client = boto3.client("bedrock-agent-runtime", region_name=REGION)
 
 
 @tool
