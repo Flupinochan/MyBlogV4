@@ -34,7 +34,7 @@ def clean_response(text: str) -> str:
 
 
 @app.entrypoint
-def invoke(payload, _context):
+def invoke(payload, context):
     agent = get_or_create_agent(AGENT)
 
     # Execute and format response
