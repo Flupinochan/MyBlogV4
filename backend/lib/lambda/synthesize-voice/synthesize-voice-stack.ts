@@ -9,6 +9,7 @@ import { Construct } from "constructs";
 interface SynthesizeVoiceStackProps extends cdk.StackProps {
   functionName: string;
   repository: ecr.IRepository;
+  imageTagOrDigest: string;
 }
 
 export class SynthesizeVoiceStack extends cdk.Stack {
@@ -37,7 +38,7 @@ export class SynthesizeVoiceStack extends cdk.Stack {
     this.function = new lambda.DockerImageFunction(this, "function", {
       functionName: props.functionName,
       code: lambda.DockerImageCode.fromEcr(props.repository, {
-        tagOrDigest: "latest",
+        tagOrDigest: props.imageTagOrDigest,
       }),
       architecture: lambda.Architecture.X86_64,
       timeout: Duration.seconds(300),

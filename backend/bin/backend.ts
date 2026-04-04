@@ -33,9 +33,18 @@ const synthesizeVoiceEcrStack = new SynthesizeVoiceEcrStack(
   },
 );
 
+const synthesizeVoiceImageTagOrDigest =
+  process.env.SYNTHESIZE_VOICE_IMAGE_REF ??
+  app.node.tryGetContext("synthesizeVoiceImageRef");
+
+if (!synthesizeVoiceImageTagOrDigest) {
+  throw new Error("SYNTHESIZE_VOICE_IMAGE_REF is required");
+}
+
 new SynthesizeVoiceStack(app, `${prefix}-SynthesizeVoiceStack`, {
   functionName: cfg.synthesizeVoiceFunctionName,
   repository: synthesizeVoiceEcrStack.repository,
+  imageTagOrDigest: synthesizeVoiceImageTagOrDigest,
 });
 
 const hostingStack = new HostingStack(app, `${prefix}-HostingStack`, {

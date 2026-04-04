@@ -90,18 +90,19 @@ export class PipelineStack extends cdk.Stack {
           pre_build: {
             commands: [
               // build and push Docker image for synthesizeVoice Lambda
+              `export SYNTHESIZE_VOICE_IMAGE_REF=$(date -u +%Y%m%d%H%M%S)`,
               `export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)`,
               `export ECR_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${props.synthesizeVoiceRepositoryName}`,
               `aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com`,
-              `docker build -t ${props.synthesizeVoiceRepositoryName} backend/lib/lambda/synthesize-voice`,
-              `docker tag ${props.synthesizeVoiceRepositoryName}:latest $ECR_URI:latest`,
-              `docker push $ECR_URI:latest`,
+              `docker build -t ${props.synthesizeVoiceRepositoryName}:$SYNTHESIZE_VOICE_IMAGE_REF backend/lib/lambda/synthesize-voice`,
+              `docker tag ${props.synthesizeVoiceRepositoryName}:$SYNTHESIZE_VOICE_IMAGE_REF $ECR_URI:$SYNTHESIZE_VOICE_IMAGE_REF`,
+              `docker push $ECR_URI:$SYNTHESIZE_VOICE_IMAGE_REF`,
               "cd $CODEBUILD_SRC_DIR/backend",
               // install uv
               "pip install uv",
               // deploy backend
               `bun install --frozen-lockfile --ignore-scripts`,
-              `bun run cdk -- deploy --all --parallel --ci --require-approval never --context env=${props.envName}`,
+              `bun run cdk -- deploy --all --parallel --ci --require-approval never --context env=${props.envName} --context synthesizeVoiceImageRef=$SYNTHESIZE_VOICE_IMAGE_REF`,
             ],
           },
           // build frontend
