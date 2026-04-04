@@ -48,11 +48,11 @@ export const handler = withDurableExecution(
     });
 
     // 音声合成 (SynthesizeVoice) 呼び出し
-    const resut = await context.invoke("SynthesizeVoiceFunction", SYNTHESIZE_VOICE_FUNCTION_ARN, {
+    const result = await context.invoke("SynthesizeVoiceFunction", SYNTHESIZE_VOICE_FUNCTION_ARN, {
       message: textResponseOutput,
     });
 
-    logger.info("Durable function step completed", { result: textResponseOutput });
-    return textResponseOutput;
+    logger.info("Durable function step completed", { result});
+    return result;
   },
 );
