@@ -34,11 +34,11 @@ def clean_response(text: str) -> str:
 
 
 @app.entrypoint
-def invoke(payload, context):
+def invoke(request):
     agent = get_or_create_agent(AGENT)
 
     # Execute and format response
-    user_input = payload.get("prompt")
+    user_input = request.get("prompt")
     log.info("User input: %s", user_input)
     custom_input = user_input + " " + UNIFIED_PROMPT
 
