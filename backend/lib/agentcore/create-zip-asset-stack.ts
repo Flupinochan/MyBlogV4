@@ -37,11 +37,12 @@ function buildStaging(projectRoot: string, platform: string): string {
     ],
     {
       cwd: root,
-      stdio: 'inherit',
+      stdio: 'pipe',
     }
   );
 
   if (result.status !== 0) {
+    console.error('error:', result.error);
     throw new Error('uv pip install failed');
   }
 
