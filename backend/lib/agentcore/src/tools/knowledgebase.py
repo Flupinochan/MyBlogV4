@@ -1,3 +1,5 @@
+"""技術ブログの内容をKnowledgeBaseから取得するツール"""
+
 import os
 
 import boto3
@@ -20,7 +22,7 @@ def get_tech_blog_content(query: str) -> list[str]:
     Returns:
         list[str]: A list of technical blog articles matching the query.
 
-    """
+    """  # noqa: E501
     paginator = bedrock_agent_runtime_client.get_paginator("retrieve")
     response_iterator = paginator.paginate(
         knowledgeBaseId=KNOWLEDGE_BASE_ID,

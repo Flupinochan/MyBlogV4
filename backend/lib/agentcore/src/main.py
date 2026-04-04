@@ -1,12 +1,15 @@
+"""BedrockAgentCoreメインコード"""
+
+import inspect
 import re
+from typing import cast
 
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
+from pydantic import BaseModel, Field
 from strands import Agent
 from strands.models.bedrock import BedrockModel
 from tools.knowledgebase import get_tech_blog_content  # ty:ignore[unresolved-import]
 from tools.resume import get_resume_content  # ty:ignore[unresolved-import]
-from pydantic import BaseModel, Field
-import inspect
 
 # 環境変数
 MODEL_ID = "jp.amazon.nova-2-lite-v1:0"
@@ -34,20 +37,30 @@ def clean_response(text: str) -> str:
     """Remove <thinking> tags and their content using a regular expression"""
     return re.sub(r"<thinking>.*?</thinking>", "", text, flags=re.DOTALL).strip()
 
+
+def format_tool_result(tool_result: object) -> str:
+    """Convert tool outputs into a single string for the final prompt."""
+    if isinstance(tool_result, str):
+        return tool_result
+    if isinstance(tool_result, list):
+        return "\n".join(str(item) for item in tool_result)
+    return str(tool_result)
+
+
 class AgentResponse(BaseModel):
-    """
-    Definition for deciding whether to finalize the response based on current knowledge 
-    or to request more detailed information for further review.
-    """
+    """Definition for deciding whether to finalize the response based on current knowledge or to request more detailed information for further review."""  # noqa: E501
+
     answer: str = Field(
-        description="The final response to the user. Provide the answer if resolved, or describe the current status if unresolved."
+        description="The final response to the user. Provide the answer if resolved, or describe the current status if unresolved.",  # noqa: E501
     )
     requires_additional_info: bool = Field(
-        description="Set to True if current knowledge is insufficient and more detailed information is required to provide an accurate answer."
+        description="Set to True if current knowledge is insufficient and more detailed information is required to provide an accurate answer.",  # noqa: E501
     )
 
+
 @app.entrypoint
-def invoke(request):
+def invoke(request) -> str:  # noqa: ANN001
+    """Entry Point"""
     agent = get_or_create_agent(AGENT)
 
     user_input = request.get("prompt")
@@ -56,32 +69,39 @@ def invoke(request):
 
     # 1. まずはAgentにまかせて回答させる
     result = agent(custom_input, structured_output_model=AgentResponse)
-    agentResponse: AgentResponse = result.structured_output
-    log.info("Agent initial response: %s, requires_additional_info: %s", agentResponse.answer, agentResponse.requires_additional_info)
-    if not agentResponse.requires_additional_info:
-        return clean_response(agentResponse.answer)
+    agent_response = cast("AgentResponse", result.structured_output)
+    log.info(
+        "Agent initial response: %s, requires_additional_info: %s",
+        agent_response.answer,
+        agent_response.requires_additional_info,
+    )
+    if not agent_response.requires_additional_info:
+        return clean_response(agent_response.answer)
 
-    # 2. 分からなかった場合(requires_additional_info=True)は、全ツールを実行して収集した情報をもとにAgentに回答させる
+    # 2. 分からなかった場合(requires_additional_info=True)は、
+    #    全ツールを実行して収集した情報をもとにAgentに回答させる
     all_tools_result = []
     for tool in tools:
         try:
             sig = inspect.signature(tool)
-            if sig.parameters:
-                tool_result = tool(user_input)
-            else:
-                tool_result = tool()
+            tool_result = tool(user_input) if sig.parameters else tool()
             all_tools_result.append(tool_result)
-        except Exception:
+        except Exception:  # noqa: PERF203
             log.exception("Error executing tool %s", tool.__name__)
             continue
 
+    collected_information = "\n".join(
+        format_tool_result(tool_result) for tool_result in all_tools_result
+    )
     final_prompt = (
-            f"User Request: {user_input}\n\n"
-            f"Collected Detailed Information:\n" + "\n".join(all_tools_result) + "\n\n"
-            f"Finalize the answer based on the information above. {UNIFIED_PROMPT}"
+        f"User Request: {user_input}\n\n"
+        f"Collected Detailed Information:\n{collected_information}\n\n"
+        f"Finalize the answer based on the information above. {UNIFIED_PROMPT}"
     )
     final_result = agent(final_prompt, structured_output_model=AgentResponse)
-    return clean_response(final_result.structured_output.answer)
+    final_agent_response = cast("AgentResponse", final_result.structured_output)
+
+    return clean_response(final_agent_response.answer)
 
 
 if __name__ == "__main__":
