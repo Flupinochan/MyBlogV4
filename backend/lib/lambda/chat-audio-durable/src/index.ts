@@ -46,13 +46,15 @@ export const handler = withDurableExecution(
       const textResponse = await response.response?.transformToString();
       return textResponse;
     });
+    logger.info("AgentCore function invoked", { textResponseOutput });
 
     // 音声合成 (SynthesizeVoice) 呼び出し
     const result = await context.invoke("SynthesizeVoiceFunction", SYNTHESIZE_VOICE_FUNCTION_ARN, {
       message: textResponseOutput,
     });
+    logger.info("SynthesizeVoice function invoked", { result });
 
-    logger.info("Durable function step completed", { result});
+    logger.info("Durable function step completed");
     return result;
   },
 );

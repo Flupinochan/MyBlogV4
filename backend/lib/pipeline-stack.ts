@@ -54,6 +54,7 @@ export class PipelineStack extends cdk.Stack {
     this.codebuild = new codebuild.PipelineProject(this, "BuildProject", {
       environment: {
         buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
+        computeType: codebuild.ComputeType.SMALL,
         privileged: true,
       },
       environmentVariables: {

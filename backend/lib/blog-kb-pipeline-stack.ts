@@ -53,6 +53,7 @@ export class BlogKBPipelineStack extends cdk.Stack {
     this.codeBuild = new codebuild.PipelineProject(this, "CodeBuildProject", {
       environment: {
         buildImage: codebuild.LinuxBuildImage.STANDARD_7_0,
+        computeType: codebuild.ComputeType.SMALL,
         privileged: true,
       },
       logging: {
