@@ -54,7 +54,7 @@ class AgentResponse(BaseModel):
         description="The final response to the user. Provide the answer if resolved, or describe the current status if unresolved.",  # noqa: E501
     )
     requires_additional_info: bool = Field(
-        description="MUST be set to True if you cannot find the answer from the provided data, if current knowledge is insufficient, or if more detailed information is required to provide an accurate answer.",  # noqa: E501
+        description="MUST be set to True if the answer is not found within the provided data or if more detailed information is required to provide an accurate answer.",  # noqa: E501
     )
 
 
