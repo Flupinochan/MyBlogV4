@@ -37,8 +37,7 @@ def get_tech_blog_content(query: str) -> list[str]:
         },
     )
 
-    results = []
+    results: list[str] = []
     for page in response_iterator:
-        for result in page["retrievalResults"]:
-            results.extend(result["content"]["text"])
+        results.extend(result["content"]["text"] for result in page["retrievalResults"])
     return results
