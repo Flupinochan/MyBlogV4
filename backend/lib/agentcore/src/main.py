@@ -53,6 +53,10 @@ class AgentResponse(BaseModel):
     answer: str = Field(
         description="The final response to the user. Provide the answer if resolved, or describe the current status if unresolved.",  # noqa: E501
     )
+    s3_uri: str | None = Field(
+        default=None,
+        description="The S3 URI of the source document used to generate the answer. Set to null if no specific source is identified.",  # noqa: E501
+    )
     requires_additional_info: bool = Field(
         description="MUST be set to True if the answer is not found within the provided data or if more detailed information is required to provide an accurate answer.",  # noqa: E501
     )
@@ -71,8 +75,9 @@ def invoke(request) -> str:  # noqa: ANN001
     result = agent(custom_input, structured_output_model=AgentResponse)
     agent_response = cast("AgentResponse", result.structured_output)
     log.info(
-        "Agent initial response: %s, requires_additional_info: %s",
+        "Agent initial response: %s, S3 URI: %s, requires_additional_info: %s",
         agent_response.answer,
+        agent_response.s3_uri,
         agent_response.requires_additional_info,
     )
     if not agent_response.requires_additional_info:
@@ -103,8 +108,9 @@ def invoke(request) -> str:  # noqa: ANN001
     final_result = agent(final_prompt, structured_output_model=AgentResponse)
     final_agent_response = cast("AgentResponse", final_result.structured_output)
     log.info(
-        "Agent final response: %s, requires_additional_info: %s",
+        "Agent final response: %s, S3 URI: %s, requires_additional_info: %s",
         final_agent_response.answer,
+        final_agent_response.s3_uri,
         final_agent_response.requires_additional_info,
     )
 
