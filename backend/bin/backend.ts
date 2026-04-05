@@ -99,6 +99,7 @@ const agentCoreStack = new AgentCoreStack(app, `${prefix}-AgentCoreStack`, {
   entryPoint: cfg.entryPoint,
   agentRuntimeName: cfg.agentRuntimeName,
   embeddingModelId: cfg.embeddingModelId,
+  hostingBucketName: cfg.hostingBucketName,
 });
 
 const chatAudioDurableStack = new ChatAudioDurableStack(
