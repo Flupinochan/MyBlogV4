@@ -1,7 +1,9 @@
 """技術ブログの内容をKnowledgeBaseから取得するツール"""
 
+import logging
 import os
-from urllib.parse import urlparse
+import urllib
+import urllib.parse
 
 import boto3
 from pydantic import BaseModel
@@ -12,6 +14,8 @@ REGION = "ap-northeast-1"
 
 bedrock_agent_runtime_client = boto3.client("bedrock-agent-runtime", region_name=REGION)
 s3_client = boto3.client("s3", region_name=REGION)
+
+logger = logging.getLogger(__name__)
 
 
 class TechBlogContent(BaseModel):
@@ -57,10 +61,21 @@ def get_tech_blog_content(query: str) -> TechBlogContent:
         # results.extend(result["content"]["text"] for result in page["retrievalResults"])  # noqa: E501, ERA001
         for result in page["retrievalResults"]:
             s3_uri = result["location"]["s3Location"]["uri"]
-            parsed_url = urlparse(s3_uri)
-            bucket = parsed_url.netloc
-            key = parsed_url.path.lstrip("/")
+            bucket, key = s3_uri_parse(s3_uri)
             response = s3_client.get_object(Bucket=bucket, Key=key)
             content = response["Body"].read().decode("utf-8")
             return TechBlogContent(s3_uri=s3_uri, content=content)
     return TechBlogContent(s3_uri="", content="")
+
+
+def s3_uri_parse(s3_uri: str) -> tuple[str, str]:
+    """Parse the given S3 URI and extract the bucket name and key."""
+    try:
+        logger.info("Parsing S3 URI: %s", s3_uri)
+        parsed_uri = urllib.parse.urlparse(s3_uri)
+        bucket = parsed_uri.netloc
+        key = urllib.parse.unquote_plus(parsed_uri.path.lstrip("/"))
+    except Exception:
+        logger.exception("Failed to parse S3 URI: %s", s3_uri)
+        raise
+    return bucket, key

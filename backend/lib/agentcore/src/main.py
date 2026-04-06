@@ -1,6 +1,5 @@
 """BedrockAgentCoreメインコード"""
 
-import inspect
 import re
 from typing import cast
 
@@ -36,15 +35,6 @@ def get_or_create_agent(agent: Agent | None) -> Agent:
 def clean_response(text: str) -> str:
     """Remove <thinking> tags and their content using a regular expression"""
     return re.sub(r"<thinking>.*?</thinking>", "", text, flags=re.DOTALL).strip()
-
-
-def format_tool_result(tool_result: object) -> str:
-    """Convert tool outputs into a single string for the final prompt."""
-    if isinstance(tool_result, str):
-        return tool_result
-    if isinstance(tool_result, list):
-        return "\n".join(str(item) for item in tool_result)
-    return str(tool_result)
 
 
 class AgentResponse(BaseModel):
@@ -86,23 +76,14 @@ def invoke(request) -> str:  # noqa: ANN001
     # 2. 分からなかった場合(requires_additional_info=True)は、
     #    全ツールを実行して収集した情報をもとにAgentに回答させる
     log.info("全ツールの実行開始")
-    all_tools_result = []
-    for tool in tools:
-        try:
-            sig = inspect.signature(tool)
-            tool_result = tool(user_input) if sig.parameters else tool()
-            all_tools_result.append(tool_result)
-        except Exception:  # noqa: PERF203
-            log.exception("Error executing tool %s", tool.__name__)
-            continue
-
-    collected_information = "\n".join(
-        format_tool_result(tool_result) for tool_result in all_tools_result
+    all_tools_result = (
+        f"{get_resume_content()}\n{get_tech_blog_content(user_input).content}"
     )
-    log.info("全ツールの実行完了, collected_information: %s", collected_information)
+    log.info("全ツールの実行完了, collected_information: %s", all_tools_result)
+
     final_prompt = (
         f"User Request: {user_input}\n\n"
-        f"Collected Detailed Information:\n{collected_information}\n\n"
+        f"Collected Detailed Information:\n{all_tools_result}\n\n"
         f"Finalize the answer based on the information above. {UNIFIED_PROMPT}"
     )
     final_result = agent(final_prompt, structured_output_model=AgentResponse)
