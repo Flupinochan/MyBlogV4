@@ -10,7 +10,7 @@ interface AgentCoreStackProps extends cdk.StackProps {
   entryPoint: string[];
   agentRuntimeName: string;
   embeddingModelId: string;
-  hostingBucketName: string;
+  sourceBucketName: string;
 }
 
 export class AgentCoreStack extends cdk.Stack {
@@ -29,8 +29,8 @@ export class AgentCoreStack extends cdk.Stack {
         effect: iam.Effect.ALLOW,
         actions: ["s3:*"],
         resources: [
-          `arn:aws:s3:::${props.hostingBucketName}`,
-          `arn:aws:s3:::${props.hostingBucketName}/*`,
+          `arn:aws:s3:::${props.sourceBucketName}`,
+          `arn:aws:s3:::${props.sourceBucketName}/*`,
         ],
       }),
     );
