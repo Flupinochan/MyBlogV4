@@ -64,7 +64,6 @@ def get_tech_blog_content(query: str) -> TechBlogContent:
             bucket, key = s3_uri_parse(s3_uri)
             response = s3_client.get_object(Bucket=bucket, Key=key)
             content = response["Body"].read().decode("utf-8")
-            logger.info("Retrieved content from S3 URI: %s", s3_uri)
             return TechBlogContent(s3_uri=s3_uri, content=content)
     return TechBlogContent(s3_uri="", content="")
 

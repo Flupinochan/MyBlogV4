@@ -2,9 +2,12 @@
 
 from pathlib import Path
 
+from custom_logging import get_logger  # ty:ignore[unresolved-import]
 from strands import tool
 
 RESUME_FILE_NAME = "resume.md"
+
+logger = get_logger()
 
 
 @tool
@@ -19,9 +22,9 @@ def get_resume_content() -> str:
 
     try:
         return resume_path.read_text(encoding="utf-8")
-    except FileNotFoundError as error:
-        log_message = f"履歴書ファイルが見つかりません: {resume_path}"
-        raise RuntimeError(log_message) from error
-    except OSError as error:
-        log_message = f"履歴書ファイルの読み込み中にエラーが発生: {resume_path}"
-        raise RuntimeError(log_message) from error
+    except FileNotFoundError:
+        logger.exception("履歴書ファイルが見つかりません: %s", resume_path)
+        raise
+    except Exception:
+        logger.exception("履歴書の読み込み中にエラーが発生しました: %s", resume_path)
+        raise
