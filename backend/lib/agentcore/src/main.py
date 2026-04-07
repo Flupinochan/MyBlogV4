@@ -9,7 +9,9 @@ from custom_callback_handler import (  # ty:ignore[unresolved-import]
 )
 from pydantic import BaseModel, Field
 from strands import Agent
+from strands.agent.conversation_manager import SlidingWindowConversationManager
 from strands.models.bedrock import BedrockModel
+from strands.tools.executors import SequentialToolExecutor
 from tools.knowledgebase import get_tech_blog_content  # ty:ignore[unresolved-import]
 from tools.resume import get_resume_content  # ty:ignore[unresolved-import]
 
@@ -25,11 +27,16 @@ logger = app.logger
 def get_or_create_agent(agent: Agent | None) -> Agent:
     """Get or create an agent instance"""
     if agent is None:
+        conversation_manager = SlidingWindowConversationManager(
+            window_size=10,  # Maximum number of message pairs to keep
+        )
         agent = Agent(
             model=BedrockModel(model_id=MODEL_ID, max_tokens=256),
             system_prompt=UNIFIED_PROMPT,
             tools=[get_tech_blog_content, get_resume_content],
             callback_handler=CustomCallbackHandler(),
+            conversation_manager=conversation_manager,
+            tool_executor=SequentialToolExecutor(),
         )
     return agent
 
@@ -78,8 +85,8 @@ def invoke(request) -> str:  # noqa: ANN001
     # 2. 分からなかった場合(requires_additional_info=True)は、
     #    全ツールを実行して収集した情報をもとにAgentに回答させる
     logger.info("全ツールの実行開始")
-    agent.tool.get_tech_blog_content()
     agent.tool.get_resume_content()
+    agent.tool.get_tech_blog_content(query=user_input)
     logger.info("全ツールの実行完了")
 
     final_result = agent(custom_input, structured_output_model=AgentResponse)
