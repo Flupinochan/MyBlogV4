@@ -4,6 +4,9 @@ import re
 from typing import cast
 
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
+from custom_callback_handler import (  # ty:ignore[unresolved-import]
+    CustomCallbackHandler,
+)
 from pydantic import BaseModel, Field
 from strands import Agent
 from strands.models.bedrock import BedrockModel
@@ -16,7 +19,7 @@ UNIFIED_PROMPT = "質問に対する答えが分からない場合は全ての�
 AGENT: Agent | None = None
 
 app = BedrockAgentCoreApp()
-log = app.logger
+logger = app.logger
 tools = []
 tools.extend([get_tech_blog_content, get_resume_content])
 
@@ -28,6 +31,7 @@ def get_or_create_agent(agent: Agent | None) -> Agent:
             model=BedrockModel(model_id=MODEL_ID, max_tokens=256),
             system_prompt=UNIFIED_PROMPT,
             tools=tools,
+            callback_handler=CustomCallbackHandler(),
         )
     return agent
 
@@ -58,13 +62,13 @@ def invoke(request) -> str:  # noqa: ANN001
     agent = get_or_create_agent(AGENT)
 
     user_input = request.get("prompt")
-    log.info("User input: %s", user_input)
+    logger.info("User input: %s", user_input)
     custom_input = user_input + " " + UNIFIED_PROMPT
 
     # 1. まずはAgentにまかせて回答させる
     result = agent(custom_input, structured_output_model=AgentResponse)
     agent_response = cast("AgentResponse", result.structured_output)
-    log.info(
+    logger.info(
         "Agent initial response: %s, S3 URI: %s, requires_additional_info: %s",
         agent_response.answer,
         agent_response.s3_uri,
@@ -75,11 +79,11 @@ def invoke(request) -> str:  # noqa: ANN001
 
     # 2. 分からなかった場合(requires_additional_info=True)は、
     #    全ツールを実行して収集した情報をもとにAgentに回答させる
-    log.info("全ツールの実行開始")
+    logger.info("全ツールの実行開始")
     all_tools_result = (
         f"{get_resume_content()}\n{get_tech_blog_content(user_input).content}"
     )
-    log.info("全ツールの実行完了, collected_information: %s", all_tools_result)
+    logger.info("全ツールの実行完了, collected_information: %s", all_tools_result)
 
     final_prompt = (
         f"User Request: {user_input}\n\n"
@@ -88,7 +92,7 @@ def invoke(request) -> str:  # noqa: ANN001
     )
     final_result = agent(final_prompt, structured_output_model=AgentResponse)
     final_agent_response = cast("AgentResponse", final_result.structured_output)
-    log.info(
+    logger.info(
         "Agent final response: %s, S3 URI: %s, requires_additional_info: %s",
         final_agent_response.answer,
         final_agent_response.s3_uri,
