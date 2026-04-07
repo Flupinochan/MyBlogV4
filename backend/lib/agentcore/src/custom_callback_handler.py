@@ -27,15 +27,15 @@ class CustomCallbackHandler:
                 - event (dict): ModelStreamChunkEvent.
 
         """
-        reasoning_text = kwargs.get("reasoningText", "")
+        reasoning_text = kwargs.get("reasoningText", False)
         data = kwargs.get("data", "")
+        complete = kwargs.get("complete", False)
         tool_use = (
             kwargs.get("event", {})
             .get("contentBlockStart", {})
             .get("start", {})
             .get("toolUse")
         )
-        complete = kwargs.get("complete", False)
 
         if reasoning_text:
             self._reasoning_buffer += reasoning_text
@@ -51,8 +51,15 @@ class CustomCallbackHandler:
                 tool_name,
                 self.tool_count,
             )
+            if tool_name == "AgentResponse":
+                if self._reasoning_buffer:
+                    logger.debug("[ReasoningText]: %s", self._reasoning_buffer)
+                    self._reasoning_buffer = ""
+                if self._response_buffer:
+                    logger.debug("[ModelOutput]: %s", self._response_buffer)
+                    self._response_buffer = ""
 
-        if complete:
+        if complete and data:
             if self._reasoning_buffer:
                 logger.debug("[ReasoningText]: %s", self._reasoning_buffer)
                 self._reasoning_buffer = ""
