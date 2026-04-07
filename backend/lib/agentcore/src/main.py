@@ -23,9 +23,6 @@ AGENT: Agent | None = None
 app = BedrockAgentCoreApp()
 logger = app.logger
 
-tools = []
-tools.extend([get_tech_blog_content, get_resume_content])
-
 
 def get_or_create_agent(agent: Agent | None) -> Agent:
     """Get or create an agent instance"""
@@ -33,7 +30,7 @@ def get_or_create_agent(agent: Agent | None) -> Agent:
         agent = Agent(
             model=BedrockModel(model_id=MODEL_ID, max_tokens=256),
             system_prompt=UNIFIED_PROMPT,
-            tools=tools,
+            tools=[get_tech_blog_content, get_resume_content],
             callback_handler=CustomCallbackHandler(),
             conversation_manager=SlidingWindowConversationManager(window_size=10),
             tool_executor=SequentialToolExecutor(),
@@ -71,16 +68,16 @@ def invoke(request) -> str:  # noqa: ANN001
     custom_input = user_input + " " + UNIFIED_PROMPT
 
     # 1. まずはAgentにまかせて回答させる
-    result = agent(custom_input, structured_output_model=AgentResponse)
-    agent_response = cast("AgentResponse", result.structured_output)
+    first_result = agent(custom_input, structured_output_model=AgentResponse)
+    first_agent_response = cast("AgentResponse", first_result.structured_output)
     logger.info(
         "Agent initial response: %s, S3 URI: %s, requires_additional_info: %s",
-        agent_response.answer,
-        agent_response.s3_uri,
-        agent_response.requires_additional_info,
+        first_agent_response.answer,
+        first_agent_response.s3_uri,
+        first_agent_response.requires_additional_info,
     )
-    if not agent_response.requires_additional_info:
-        return clean_response(agent_response.answer)
+    if not first_agent_response.requires_additional_info:
+        return clean_response(first_agent_response.answer)
 
     # 2. 分からなかった場合(requires_additional_info=True)は、
     #    全ツールを実行して収集した情報をもとにAgentに回答させる
@@ -88,7 +85,7 @@ def invoke(request) -> str:  # noqa: ANN001
     all_tools_result = (
         f"{get_resume_content()}\n{get_tech_blog_content(user_input).content}"
     )
-    logger.info("全ツールの実行完了, collected_information: %s", all_tools_result)
+    logger.info("全ツールの実行完了: %s", all_tools_result)
 
     final_prompt = (
         f"User Request: {user_input}\n\n"
@@ -103,7 +100,6 @@ def invoke(request) -> str:  # noqa: ANN001
         final_agent_response.s3_uri,
         final_agent_response.requires_additional_info,
     )
-
     return clean_response(final_agent_response.answer)
 
 
