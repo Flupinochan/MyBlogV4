@@ -27,15 +27,12 @@ logger = app.logger
 def get_or_create_agent(agent: Agent | None) -> Agent:
     """Get or create an agent instance"""
     if agent is None:
-        conversation_manager = SlidingWindowConversationManager(
-            window_size=10,  # Maximum number of message pairs to keep
-        )
         agent = Agent(
             model=BedrockModel(model_id=MODEL_ID, max_tokens=256),
             system_prompt=UNIFIED_PROMPT,
             tools=[get_tech_blog_content, get_resume_content],
             callback_handler=CustomCallbackHandler(),
-            conversation_manager=conversation_manager,
+            conversation_manager=SlidingWindowConversationManager(window_size=10),
             tool_executor=SequentialToolExecutor(),
         )
     return agent
