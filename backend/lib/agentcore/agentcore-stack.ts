@@ -43,6 +43,8 @@ export class AgentCoreStack extends cdk.Stack {
         resources: [
           `arn:aws:s3:::${props.sourceBucketName}`,
           `arn:aws:s3:::${props.sourceBucketName}/*`,
+          this.sessionBucket.bucketArn,
+          `${this.sessionBucket.bucketArn}/*`,
         ],
       }),
     );
@@ -128,7 +130,7 @@ export class AgentCoreStack extends cdk.Stack {
         environmentVariables: {
           KNOWLEDGE_BASE_ID: props.kbid,
           EMBEDDING_MODEL_ARN: `arn:aws:bedrock:${cdk.Aws.REGION}::foundation-model/${props.embeddingModelId}`,
-          S3_SESSION_BUCKET: this.sessionBucket.bucketName,
+          S3_SESSION_BUCKET_NAME: this.sessionBucket.bucketName,
         },
       },
     );
