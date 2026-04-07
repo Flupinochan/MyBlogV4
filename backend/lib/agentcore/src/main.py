@@ -1,8 +1,13 @@
 """BedrockAgentCoreメインコード"""
 
+import datetime
+import os
 import re
+import uuid
 from typing import cast
+from zoneinfo import ZoneInfo
 
+from bedrock_agentcore import RequestContext
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from custom_callback_handler import (  # ty:ignore[unresolved-import]
     CustomCallbackHandler,
@@ -11,31 +16,23 @@ from pydantic import BaseModel, Field
 from strands import Agent
 from strands.agent.conversation_manager import SlidingWindowConversationManager
 from strands.models.bedrock import BedrockModel
+from strands.session.s3_session_manager import S3SessionManager
 from strands.tools.executors import SequentialToolExecutor
 from tools.knowledgebase import get_tech_blog_content  # ty:ignore[unresolved-import]
 from tools.resume import get_resume_content  # ty:ignore[unresolved-import]
 
-# 環境変数
-MODEL_ID = "apac.amazon.nova-micro-v1:0"
-UNIFIED_PROMPT = "質問に対する答えが分からない場合は全てのツールを利用してください。「提供された情報」や「コンテキスト」という言葉は使わず、自身の知識として自然に回答してください。Markdown、箇条書き、表、記号、特殊文字を使用せず、句読点を適切に用いた最大2文の文章を改行せず1行で出力してください。"  # noqa: E501
-AGENT: Agent | None = None
-
 app = BedrockAgentCoreApp()
 logger = app.logger
 
-
-def get_or_create_agent(agent: Agent | None) -> Agent:
-    """Get or create an agent instance"""
-    if agent is None:
-        agent = Agent(
-            model=BedrockModel(model_id=MODEL_ID, max_tokens=256),
-            system_prompt=UNIFIED_PROMPT,
-            tools=[get_tech_blog_content, get_resume_content],
-            callback_handler=CustomCallbackHandler(),
-            conversation_manager=SlidingWindowConversationManager(window_size=10),
-            tool_executor=SequentialToolExecutor(),
-        )
-    return agent
+# 環境変数
+try:
+    JST = ZoneInfo("Asia/Tokyo")
+    MODEL_ID = "apac.amazon.nova-micro-v1:0"
+    UNIFIED_PROMPT = "質問に対する答えが分からない場合は全てのツールを利用してください。「提供された情報」や「コンテキスト」という言葉は使わず、自身の知識として自然に回答してください。Markdown、箇条書き、表、記号、特殊文字を使用せず、句読点を適切に用いた最大2文の文章を改行せず1行で出力してください。"  # noqa: E501
+    S3_SESSION_BUCKET_NAME = os.environ["S3_SESSION_BUCKET_NAME"]
+except KeyError:
+    logger.exception("環境変数が設定されていません")
+    raise
 
 
 def clean_response(text: str) -> str:
@@ -59,15 +56,27 @@ class AgentResponse(BaseModel):
 
 
 @app.entrypoint
-def invoke(request) -> str:  # noqa: ANN001
+def invoke(payload, context: RequestContext) -> str:  # noqa: ANN001
     """Entry Point"""
-    agent = get_or_create_agent(AGENT)
-
-    user_input = request.get("prompt")
-    logger.info("User input: %s", user_input)
-    custom_input = user_input + " " + UNIFIED_PROMPT
+    session_id = context.session_id or f"default-{uuid.uuid4()}"
+    user_input = payload.get("prompt")
+    logger.info("Session ID: %s, User input: %s", session_id, user_input)
 
     # 1. まずはAgentにまかせて回答させる
+    agent = Agent(
+        model=BedrockModel(model_id=MODEL_ID, max_tokens=256),
+        system_prompt=UNIFIED_PROMPT,
+        tools=[get_tech_blog_content, get_resume_content],
+        callback_handler=CustomCallbackHandler(),
+        conversation_manager=SlidingWindowConversationManager(window_size=10),
+        tool_executor=SequentialToolExecutor(),
+        session_manager=S3SessionManager(
+            session_id=session_id,
+            bucket=S3_SESSION_BUCKET_NAME,
+            prefix=f"{datetime.datetime.now(JST):%Y/%m/%d}/",
+        ),
+    )
+    custom_input = user_input + " " + UNIFIED_PROMPT
     first_result = agent(custom_input, structured_output_model=AgentResponse)
     first_agent_response = cast("AgentResponse", first_result.structured_output)
     logger.info(

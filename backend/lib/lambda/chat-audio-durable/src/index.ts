@@ -2,6 +2,7 @@ import { Logger } from "@aws-lambda-powertools/logger";
 import {
   BedrockAgentCoreClient,
   InvokeAgentRuntimeCommand,
+  InvokeAgentRuntimeCommandInput,
 } from "@aws-sdk/client-bedrock-agentcore";
 import {
   DurableContext,
@@ -43,7 +44,7 @@ export const handler = withDurableExecution(
       async () => {
         const sessionId = context.executionContext.durableExecutionArn;
         const client = new BedrockAgentCoreClient();
-        const input = {
+        const input: InvokeAgentRuntimeCommandInput = {
           runtimeSessionId: sessionId,
           agentRuntimeArn: AGENT_RUNTIME_ARN,
           qualifier: "DEFAULT",
