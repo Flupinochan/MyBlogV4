@@ -13,6 +13,8 @@ class CustomCallbackHandler:
     def __init__(self) -> None:
         """Initialize handler."""
         self.tool_count = 0
+        self._reasoning_buffer = ""
+        self._response_buffer = ""
 
     def __call__(self, **kwargs: Any) -> None:  # noqa: ANN401
         """Stream text output and tool invocations to stdout.
@@ -25,7 +27,7 @@ class CustomCallbackHandler:
                 - event (dict): ModelStreamChunkEvent.
 
         """
-        reasoning_text = kwargs.get("reasoningText", False)
+        reasoning_text = kwargs.get("reasoningText", "")
         data = kwargs.get("data", "")
         tool_use = (
             kwargs.get("event", {})
@@ -33,12 +35,13 @@ class CustomCallbackHandler:
             .get("start", {})
             .get("toolUse")
         )
+        complete = kwargs.get("complete", False)
 
         if reasoning_text:
-            logger.debug("[Reasoning]: %s", reasoning_text)
+            self._reasoning_buffer += reasoning_text
 
         if data:
-            logger.debug("[Model Output]: %s", data)
+            self._response_buffer += data
 
         if tool_use:
             self.tool_count += 1
@@ -48,3 +51,11 @@ class CustomCallbackHandler:
                 tool_name,
                 self.tool_count,
             )
+
+        if complete:
+            if self._reasoning_buffer:
+                logger.debug("[ReasoningText]: %s", self._reasoning_buffer)
+                self._reasoning_buffer = ""
+            if self._response_buffer:
+                logger.debug("[ModelOutput]: %s", self._response_buffer)
+                self._response_buffer = ""
