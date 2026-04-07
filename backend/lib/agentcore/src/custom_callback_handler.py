@@ -3,9 +3,7 @@
 import logging
 from typing import Any
 
-from custom_logging import get_logger  # ty:ignore[unresolved-import]
-
-logger = get_logger(level=logging.DEBUG)
+logger = logging.getLogger(f"bedrock_agentcore.app.{__name__}")
 
 
 class CustomCallbackHandler:

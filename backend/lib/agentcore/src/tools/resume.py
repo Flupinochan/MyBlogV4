@@ -1,13 +1,13 @@
 """履歴書を取得するツール"""
 
+import logging
 from pathlib import Path
 
-from custom_logging import get_logger  # ty:ignore[unresolved-import]
 from strands import tool
 
-RESUME_FILE_NAME = "resume.md"
+logger = logging.getLogger(f"bedrock_agentcore.app.{__name__}")
 
-logger = get_logger()
+RESUME_FILE_NAME = "resume.md"
 
 
 @tool

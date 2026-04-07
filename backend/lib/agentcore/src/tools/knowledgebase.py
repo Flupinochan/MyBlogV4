@@ -1,21 +1,21 @@
 """技術ブログの内容をKnowledgeBaseから取得するツール"""
 
+import logging
 import os
 import urllib
 import urllib.parse
 
 import boto3
-from custom_logging import get_logger  # ty:ignore[unresolved-import]
 from pydantic import BaseModel
 from strands import tool
+
+logger = logging.getLogger(f"bedrock_agentcore.app.{__name__}")
 
 KNOWLEDGE_BASE_ID = os.environ["KNOWLEDGE_BASE_ID"]
 REGION = "ap-northeast-1"
 
 bedrock_agent_runtime_client = boto3.client("bedrock-agent-runtime", region_name=REGION)
 s3_client = boto3.client("s3", region_name=REGION)
-
-logger = get_logger()
 
 
 class TechBlogContent(BaseModel):
