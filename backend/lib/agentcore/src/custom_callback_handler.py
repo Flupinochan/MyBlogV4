@@ -4,6 +4,7 @@ import logging
 from typing import Any
 
 logger = logging.getLogger(f"bedrock_agentcore.app.{__name__}")
+logger.setLevel(logging.DEBUG)
 
 
 class CustomCallbackHandler:

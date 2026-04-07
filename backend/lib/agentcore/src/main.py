@@ -20,6 +20,7 @@ AGENT: Agent | None = None
 
 app = BedrockAgentCoreApp()
 logger = app.logger
+
 tools = []
 tools.extend([get_tech_blog_content, get_resume_content])
 
