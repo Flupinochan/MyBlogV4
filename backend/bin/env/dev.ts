@@ -22,5 +22,6 @@ export const config: EnvConfig = {
   blogBranchName: "master",
   entryPoint: ["opentelemetry-instrument", "main.py"],
   agentRuntimeName: "devMyblogv4AgentRuntime",
-  agentCorePlatform: 'aarch64-manylinux2014',
+  agentCorePlatform: "aarch64-manylinux2014",
+  sessionBucketName: "dev-myblogv4-chat-session",
 };

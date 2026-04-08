@@ -1,6 +1,5 @@
 """BedrockAgentCoreメインコード"""
 
-import datetime
 import os
 import re
 import uuid
@@ -70,10 +69,12 @@ def invoke(payload, context: RequestContext) -> str:  # noqa: ANN001
         callback_handler=CustomCallbackHandler(),
         conversation_manager=SlidingWindowConversationManager(window_size=10),
         tool_executor=SequentialToolExecutor(),
+        # list_messagesやread_messagesでメッセージは取得可能
+        # ※仮でuser-idをハードコーディング
         session_manager=S3SessionManager(
             session_id=session_id,
             bucket=S3_SESSION_BUCKET_NAME,
-            prefix=f"{datetime.datetime.now(JST):%Y/%m/%d}/",
+            prefix=f"user-id/{session_id}/",
         ),
     )
     custom_input = user_input + " " + UNIFIED_PROMPT

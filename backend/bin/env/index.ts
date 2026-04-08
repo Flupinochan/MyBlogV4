@@ -24,7 +24,11 @@ export interface EnvConfig {
   blogBranchName: string;
   entryPoint: string[];
   agentRuntimeName: string;
-  agentCorePlatform: 'aarch64-manylinux2014' | 'aarch64-manylinux_2_28' | 'aarch64-manylinux_2_34';
+  agentCorePlatform:
+    | "aarch64-manylinux2014"
+    | "aarch64-manylinux_2_28"
+    | "aarch64-manylinux_2_34";
+  sessionBucketName: string;
 }
 
 export function getEnvConfig(env: string): EnvConfig {

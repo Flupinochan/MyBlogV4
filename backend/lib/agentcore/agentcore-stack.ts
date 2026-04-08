@@ -1,8 +1,8 @@
 import * as cdk from "aws-cdk-lib";
 import * as bedrockagentcore from "aws-cdk-lib/aws-bedrockagentcore";
 import * as iam from "aws-cdk-lib/aws-iam";
-import { Construct } from "constructs";
 import * as s3 from "aws-cdk-lib/aws-s3";
+import { Construct } from "constructs";
 
 interface AgentCoreStackProps extends cdk.StackProps {
   kbid: string;
@@ -12,6 +12,7 @@ interface AgentCoreStackProps extends cdk.StackProps {
   agentRuntimeName: string;
   embeddingModelId: string;
   sourceBucketName: string;
+  sessionBucketName: string;
 }
 
 export class AgentCoreStack extends cdk.Stack {
@@ -23,6 +24,7 @@ export class AgentCoreStack extends cdk.Stack {
     super(scope, id, props);
 
     this.sessionBucket = new s3.Bucket(this, "SessionBucket", {
+      bucketName: props.sessionBucketName,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       autoDeleteObjects: true,
       lifecycleRules: [
@@ -130,7 +132,7 @@ export class AgentCoreStack extends cdk.Stack {
         environmentVariables: {
           KNOWLEDGE_BASE_ID: props.kbid,
           EMBEDDING_MODEL_ARN: `arn:aws:bedrock:${cdk.Aws.REGION}::foundation-model/${props.embeddingModelId}`,
-          S3_SESSION_BUCKET_NAME: this.sessionBucket.bucketName,
+          S3_SESSION_BUCKET_NAME: props.sessionBucketName,
         },
       },
     );
