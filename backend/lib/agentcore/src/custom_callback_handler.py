@@ -1,4 +1,7 @@
-"""Agent用カスタムコールバックハンドラー"""
+"""Agent用カスタムコールバックハンドラー
+
+Hooksを利用するため未使用
+"""
 
 import logging
 from typing import Any

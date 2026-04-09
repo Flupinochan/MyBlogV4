@@ -8,11 +8,9 @@ from zoneinfo import ZoneInfo
 
 from bedrock_agentcore import RequestContext
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
-from custom_callback_handler import (  # ty:ignore[unresolved-import]
-    CustomCallbackHandler,
-)
+from logging_hook_provider import LoggingHookProvider  # ty:ignore[unresolved-import]
 from pydantic import BaseModel, Field
-from strands import Agent
+from strands import Agent, ModelRetryStrategy
 from strands.agent.conversation_manager import SlidingWindowConversationManager
 from strands.models.bedrock import BedrockModel
 from strands.session.s3_session_manager import S3SessionManager
@@ -68,7 +66,8 @@ def invoke(payload, context: RequestContext) -> str:  # noqa: ANN001
         model=BedrockModel(model_id=MODEL_ID, max_tokens=256),
         system_prompt=UNIFIED_PROMPT,
         tools=[get_tech_blog_content, get_resume_content],
-        callback_handler=CustomCallbackHandler(),
+        callback_handler=None,
+        hooks=LoggingHookProvider(),
         conversation_manager=SlidingWindowConversationManager(window_size=10),
         tool_executor=SequentialToolExecutor(),
         # list_messagesやread_messagesでメッセージは取得可能
@@ -78,6 +77,7 @@ def invoke(payload, context: RequestContext) -> str:  # noqa: ANN001
             bucket=S3_SESSION_BUCKET_NAME,
             prefix=f"user-id/{session_id}/",
         ),
+        retry_strategy=ModelRetryStrategy(initial_delay=1, max_attempts=2, max_delay=3),
     )
     custom_input = user_input + " " + UNIFIED_PROMPT
     first_result = agent(custom_input, structured_output_model=AgentResponse)
