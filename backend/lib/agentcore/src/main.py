@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 from bedrock_agentcore import RequestContext
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
 from logging_hook_provider import LoggingHookProvider  # ty:ignore[unresolved-import]
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from strands import Agent, ModelRetryStrategy
 from strands.agent.conversation_manager import SlidingWindowConversationManager
 from strands.models.bedrock import BedrockModel
@@ -52,6 +52,18 @@ class AgentResponse(BaseModel):
         description="MUST be set to True if the answer is not found within the provided data or if more detailed information is required to provide an accurate answer.",  # noqa: E501
     )
 
+    @field_validator("s3_uri")
+    @classmethod
+    def validate_s3_uri(cls, value: str | None) -> str | None:
+        """Validate that the s3_uri, if provided, is in a valid S3 URI format."""
+        if value is None:
+            return value
+        s3_uri_pattern = re.compile(r"^s3://.+")
+        if not re.match(s3_uri_pattern, value):
+            log_message = f"Invalid S3 URI format: {value}. Expected format: s3://bucket-name/path/"
+            raise ValueError(log_message)
+        return value
+
 
 @app.entrypoint
 def invoke(payload, context: RequestContext) -> str:  # noqa: ANN001
@@ -67,7 +79,7 @@ def invoke(payload, context: RequestContext) -> str:  # noqa: ANN001
         system_prompt=UNIFIED_PROMPT,
         tools=[get_tech_blog_content, get_resume_content],
         callback_handler=None,
-        hooks=LoggingHookProvider(),
+        hooks=[LoggingHookProvider()],
         conversation_manager=SlidingWindowConversationManager(window_size=10),
         tool_executor=SequentialToolExecutor(),
         # list_messagesやread_messagesでメッセージは取得可能
