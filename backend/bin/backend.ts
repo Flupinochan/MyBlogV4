@@ -102,6 +102,7 @@ const agentCoreStack = new AgentCoreStack(app, `${prefix}-AgentCoreStack`, {
   embeddingModelId: cfg.embeddingModelId,
   sourceBucketName: cfg.sourceBucketName,
   sessionBucketName: cfg.sessionBucketName,
+  agentId: cfg.agentId,
 });
 
 new ChatAudioDurableStack(app, `${prefix}-ChatAudioDurableStack`, {
@@ -113,4 +114,5 @@ new ChatAudioDurableStack(app, `${prefix}-ChatAudioDurableStack`, {
 new ChatSessionStack(app, `${prefix}-ChatSessionStack`, {
   functionName: `${prefix}-ChatSessionFunction`,
   sessionBucketName: cfg.sessionBucketName,
+  agentId: cfg.agentId,
 });

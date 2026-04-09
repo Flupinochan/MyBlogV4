@@ -29,6 +29,7 @@ export interface EnvConfig {
     | "aarch64-manylinux_2_28"
     | "aarch64-manylinux_2_34";
   sessionBucketName: string;
+  agentId: string;
 }
 
 export function getEnvConfig(env: string): EnvConfig {

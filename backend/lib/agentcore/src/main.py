@@ -29,6 +29,7 @@ try:
     MODEL_ID = "apac.amazon.nova-micro-v1:0"
     UNIFIED_PROMPT = "質問に対する答えが分からない場合は全てのツールを利用してください。「提供された情報」や「コンテキスト」という言葉は使わず、自身の知識として自然に回答してください。Markdown、箇条書き、表、記号、特殊文字を使用せず、句読点を適切に用いた最大2文の文章を改行せず1行で出力してください。"  # noqa: E501
     S3_SESSION_BUCKET_NAME = os.environ["S3_SESSION_BUCKET_NAME"]
+    AGENT_ID = os.environ["AGENT_ID"]
 except KeyError:
     logger.exception("環境変数が設定されていません")
     raise
@@ -63,6 +64,7 @@ def invoke(payload, context: RequestContext) -> str:  # noqa: ANN001
 
     # 1. まずはAgentにまかせて回答させる
     agent = Agent(
+        agent_id=AGENT_ID,
         model=BedrockModel(model_id=MODEL_ID, max_tokens=256),
         system_prompt=UNIFIED_PROMPT,
         tools=[get_tech_blog_content, get_resume_content],

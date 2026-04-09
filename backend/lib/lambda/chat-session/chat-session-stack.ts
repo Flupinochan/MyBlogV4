@@ -9,6 +9,7 @@ import path from "path";
 interface ChatSessionStackProps extends cdk.StackProps {
   functionName: string;
   sessionBucketName: string;
+  agentId: string;
 }
 
 export class ChatSessionStack extends cdk.Stack {
@@ -70,6 +71,7 @@ export class ChatSessionStack extends cdk.Stack {
         TZ: "Asia/Tokyo",
         POWERTOOLS_LOGGER_LOG_EVENT: "true",
         S3_SESSION_BUCKET_NAME: props.sessionBucketName,
+        AGENT_ID: props.agentId,
       },
     });
   }

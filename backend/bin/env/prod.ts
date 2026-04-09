@@ -24,4 +24,5 @@ export const config: EnvConfig = {
   agentRuntimeName: "prodMyblogv4AgentRuntime",
   agentCorePlatform: "aarch64-manylinux2014",
   sessionBucketName: "prod-myblogv4-chat-session",
+  agentId: "prod-myblogv4-agent",
 };

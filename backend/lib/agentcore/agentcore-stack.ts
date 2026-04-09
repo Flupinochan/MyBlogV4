@@ -13,6 +13,7 @@ interface AgentCoreStackProps extends cdk.StackProps {
   embeddingModelId: string;
   sourceBucketName: string;
   sessionBucketName: string;
+  agentId: string;
 }
 
 export class AgentCoreStack extends cdk.Stack {
@@ -133,6 +134,7 @@ export class AgentCoreStack extends cdk.Stack {
           KNOWLEDGE_BASE_ID: props.kbid,
           EMBEDDING_MODEL_ARN: `arn:aws:bedrock:${cdk.Aws.REGION}::foundation-model/${props.embeddingModelId}`,
           S3_SESSION_BUCKET_NAME: props.sessionBucketName,
+          AGENT_ID: props.agentId,
         },
       },
     );
