@@ -22,6 +22,11 @@ from tools.resume import get_resume_content  # ty:ignore[unresolved-import]
 
 app = BedrockAgentCoreApp()
 
+# 外部ライブラリのログはWARNING以上
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.WARNING)
+
+# アプリケーションのログ設定
 logger = logging.getLogger("bedrock_agentcore.app")
 logger.handlers.clear()
 handler = logging.StreamHandler()
@@ -80,7 +85,10 @@ def invoke(payload, context: RequestContext) -> str:  # noqa: ANN001
     """Entry Point"""
     session_id = context.session_id or f"default-{uuid.uuid4()}"
     user_input = payload.get("prompt")
-    logger.info("Session ID: %s, User input: %s", session_id, user_input)
+    logger.info(
+        "Received user input",
+        extra={"user_input": user_input, "session_id": session_id},
+    )
 
     # 1. まずはAgentにまかせて回答させる
     agent = Agent(
@@ -105,10 +113,12 @@ def invoke(payload, context: RequestContext) -> str:  # noqa: ANN001
     first_result = agent(custom_input, structured_output_model=AgentResponse)
     first_agent_response = cast("AgentResponse", first_result.structured_output)
     logger.info(
-        "Agent initial response: %s, S3 URI: %s, requires_additional_info: %s",
-        first_agent_response.answer,
-        first_agent_response.s3_uri,
-        first_agent_response.requires_additional_info,
+        "Agent initial response",
+        extra={
+            "answer": first_agent_response.answer,
+            "s3_uri": first_agent_response.s3_uri,
+            "requires_additional_info": first_agent_response.requires_additional_info,
+        },
     )
     if not first_agent_response.requires_additional_info:
         return clean_response(first_agent_response.answer)
@@ -129,10 +139,12 @@ def invoke(payload, context: RequestContext) -> str:  # noqa: ANN001
     final_result = agent(final_prompt, structured_output_model=AgentResponse)
     final_agent_response = cast("AgentResponse", final_result.structured_output)
     logger.info(
-        "Agent final response: %s, S3 URI: %s, requires_additional_info: %s",
-        final_agent_response.answer,
-        final_agent_response.s3_uri,
-        final_agent_response.requires_additional_info,
+        "Agent final response",
+        extra={
+            "answer": final_agent_response.answer,
+            "s3_uri": final_agent_response.s3_uri,
+            "requires_additional_info": final_agent_response.requires_additional_info,
+        },
     )
     return clean_response(final_agent_response.answer)
 

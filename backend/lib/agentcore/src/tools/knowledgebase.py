@@ -64,6 +64,10 @@ def get_tech_blog_content(query: str) -> TechBlogContent:
             bucket, key = s3_uri_parse(s3_uri)
             response = s3_client.get_object(Bucket=bucket, Key=key)
             content = response["Body"].read().decode("utf-8")
+            logger.info(
+                "Successfully retrieved content from S3",
+                extra={"s3_uri": s3_uri, "content": content[:100]},
+            )
             return TechBlogContent(s3_uri=s3_uri, content=content)
     return TechBlogContent(s3_uri="", content="")
 
@@ -71,11 +75,15 @@ def get_tech_blog_content(query: str) -> TechBlogContent:
 def s3_uri_parse(s3_uri: str) -> tuple[str, str]:
     """Parse the given S3 URI and extract the bucket name and key."""
     try:
-        logger.info("Parsing S3 URI: %s", s3_uri)
+        logger.info("Parsing S3 URI", extra={"s3_uri": s3_uri})
         parsed_uri = urllib.parse.urlparse(s3_uri)
         bucket = parsed_uri.netloc
         key = urllib.parse.unquote_plus(parsed_uri.path.lstrip("/"))
+        logger.info(
+            "Parsed S3 URI successfully",
+            extra={"s3_uri": s3_uri, "bucket": bucket, "key": key},
+        )
     except Exception:
-        logger.exception("Failed to parse S3 URI: %s", s3_uri)
+        logger.exception("Failed to parse S3 URI", extra={"s3_uri": s3_uri})
         raise
     return bucket, key

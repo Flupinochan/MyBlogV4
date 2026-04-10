@@ -21,10 +21,25 @@ def get_resume_content() -> str:
     resume_path = Path(__file__).resolve().with_name(RESUME_FILE_NAME)
 
     try:
-        return resume_path.read_text(encoding="utf-8")
+        content = resume_path.read_text(encoding="utf-8")
+        logger.info(
+            "Successfully read resume content",
+            extra={
+                "resume_path": str(resume_path),
+                "content": content[:100],
+            },
+        )
     except FileNotFoundError:
-        logger.exception("履歴書ファイルが見つかりません: %s", resume_path)
+        logger.exception(
+            "履歴書ファイルが見つかりませんでした",
+            extra={"resume_path": str(resume_path)},
+        )
         raise
     except Exception:
-        logger.exception("履歴書の読み込み中にエラーが発生しました: %s", resume_path)
+        logger.exception(
+            "履歴書ファイルの読み込み中にエラーが発生しました",
+            extra={"resume_path": str(resume_path)},
+        )
         raise
+
+    return content
