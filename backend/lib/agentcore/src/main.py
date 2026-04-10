@@ -1,5 +1,6 @@
 """BedrockAgentCoreメインコード"""
 
+import logging
 import os
 import re
 import uuid
@@ -8,6 +9,7 @@ from zoneinfo import ZoneInfo
 
 from bedrock_agentcore import RequestContext
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
+from bedrock_agentcore.runtime.app import RequestContextFormatter
 from logging_hook_provider import LoggingHookProvider  # ty:ignore[unresolved-import]
 from pydantic import BaseModel, Field, field_validator
 from strands import Agent, ModelRetryStrategy
@@ -19,7 +21,15 @@ from tools.knowledgebase import get_tech_blog_content  # ty:ignore[unresolved-im
 from tools.resume import get_resume_content  # ty:ignore[unresolved-import]
 
 app = BedrockAgentCoreApp()
-logger = app.logger
+
+logger = logging.getLogger("bedrock_agentcore.app")
+logger.handlers.clear()
+handler = logging.StreamHandler()
+formatter = RequestContextFormatter()
+handler.setFormatter(formatter)
+logger.addHandler(handler)
+logger.setLevel(logging.INFO)
+logger.propagate = False
 
 # 環境変数
 try:
