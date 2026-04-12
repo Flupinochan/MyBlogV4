@@ -51,7 +51,7 @@ app.post(
   async (reqCtx): Promise<z.infer<typeof outboundSchema>> => {
     const { user_id, session_id } = reqCtx.params;
     const { message } = reqCtx.valid.req.body;
-    logger.info("Received request", { user_id, session_id, message });
+    logger.info("Received request", { user_id, session_id, input_prompt: message });
 
     // 生成AI (AgentCore) 呼び出し
     const input: InvokeAgentRuntimeCommandInput = {
