@@ -75,7 +75,7 @@ class LoggingFormatter(logging.Formatter):
         if exception_notes:
             log_entry["exception_notes"] = exception_notes  # ty:ignore[invalid-assignment]
 
-        return json.dumps(log_entry, default=str, indent=4, ensure_ascii=False)
+        return json.dumps(log_entry, default=str, indent=None, ensure_ascii=False)
 
     def _extract_log_exception(
         self,
