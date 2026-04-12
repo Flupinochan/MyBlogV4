@@ -9,6 +9,7 @@ interface ApiStackProps extends cdk.StackProps {
   apiPath: string;
   isProd: boolean;
   chatSessionLambda: lambda.Function;
+  chatAudioDurableLambda: lambda.Function;
 }
 
 export class ApiStack extends cdk.Stack {
@@ -79,11 +80,20 @@ export class ApiStack extends cdk.Stack {
     const v1 = this.api.root.addResource("v1");
     const users = v1.addResource("users");
     const user = users.addResource("{userId}");
-    const messages = user.addResource("messages");
+    const sessions = user.addResource("sessions");
+    const session = sessions.addResource("{sessionId}");
+    const messages = session.addResource("messages");
 
     messages.addMethod(
       "GET",
       new apigateway.LambdaIntegration(props.chatSessionLambda, {
+        proxy: true,
+      }),
+    );
+
+    messages.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(props.chatAudioDurableLambda, {
         proxy: true,
       }),
     );
