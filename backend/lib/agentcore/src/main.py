@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 
 from bedrock_agentcore import RequestContext
 from bedrock_agentcore.runtime import BedrockAgentCoreApp
-from bedrock_agentcore.runtime.app import RequestContextFormatter
+from logging_formatter import LoggingFormatter  # ty:ignore[unresolved-import]
 from logging_hook_provider import LoggingHookProvider  # ty:ignore[unresolved-import]
 from pydantic import BaseModel, Field, field_validator
 from strands import Agent, ModelRetryStrategy
@@ -30,7 +30,7 @@ root_logger.setLevel(logging.WARNING)
 logger = logging.getLogger("bedrock_agentcore.app")
 logger.handlers.clear()
 handler = logging.StreamHandler()
-formatter = RequestContextFormatter()
+formatter = LoggingFormatter()
 handler.setFormatter(formatter)
 logger.addHandler(handler)
 logger.setLevel(logging.INFO)
@@ -129,7 +129,10 @@ def invoke(payload, context: RequestContext) -> str:  # noqa: ANN001
     all_tools_result = (
         f"{get_resume_content()}\n{get_tech_blog_content(user_input).content}"
     )
-    logger.info("全ツールの実行完了: %s", all_tools_result)
+    logger.info(
+        "全ツールの実行完了",
+        extra={"all_tools_result": all_tools_result[:100]},
+    )
 
     final_prompt = (
         f"User Request: {user_input}\n\n"

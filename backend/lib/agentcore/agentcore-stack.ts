@@ -127,7 +127,7 @@ export class AgentCoreStack extends cdk.Stack {
           networkMode: "PUBLIC",
         },
         lifecycleConfiguration: {
-          maxLifetime: 1800,
+          maxLifetime: 900,
           idleRuntimeSessionTimeout: 900,
         },
         environmentVariables: {
