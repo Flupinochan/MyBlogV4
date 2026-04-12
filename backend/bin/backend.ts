@@ -82,6 +82,7 @@ const chatAudioStack = new ChatAudioStack(app, `${prefix}-ChatAudioStack`, {
   functionName: cfg.chatAudioFunctionName,
   agentCoreArn: agentCoreStack.agentCoreRuntime.attrAgentRuntimeArn,
   synthesizeVoiceFunctionName: cfg.synthesizeVoiceFunctionName,
+  domainName: cfg.domainName,
 });
 
 const chatSessionStack = new ChatSessionStack(

@@ -10,6 +10,7 @@ interface ChatAudioStackProps extends cdk.StackProps {
   functionName: string;
   agentCoreArn: string;
   synthesizeVoiceFunctionName: string;
+  domainName: string;
 }
 
 export class ChatAudioStack extends cdk.Stack {
@@ -77,6 +78,7 @@ export class ChatAudioStack extends cdk.Stack {
         POWERTOOLS_LOGGER_LOG_EVENT: "true",
         AGENT_RUNTIME_ARN: props.agentCoreArn,
         SYNTHESIZE_VOICE_FUNCTION_ARN: synthesizeVoiceFunctionArn,
+        DOMAIN_NAME: props.domainName,
       },
     });
   }
