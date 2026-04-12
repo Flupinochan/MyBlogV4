@@ -33,6 +33,10 @@ RESERVED_LOG_ATTRS = frozenset(
         "process",
         "message",
         "taskName",
+        "otelSpanID",
+        "otelTraceID",
+        "otelTraceSampled",
+        "otelServiceName",
     },
 )
 
