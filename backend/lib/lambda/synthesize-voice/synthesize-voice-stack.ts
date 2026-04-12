@@ -60,6 +60,7 @@ export class SynthesizeVoiceStack extends cdk.Stack {
       logGroup: this.logGroup,
       loggingFormat: lambda.LoggingFormat.JSON,
       role: this.role,
+      tracing: lambda.Tracing.ACTIVE,
       environment: {
         VOICE_OUTPUT_BUCKET_NAME: props.voiceOutputBucketName,
       },

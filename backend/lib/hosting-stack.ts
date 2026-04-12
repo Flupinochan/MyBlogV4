@@ -101,11 +101,9 @@ export class HostingStack extends cdk.Stack {
     const apiStack = props.apiStack;
     const apiPath = props.apiPath;
     if (apiStack && apiPath) {
-      const url = apiStack.api.url;
-      const domain = cdk.Fn.select(2, cdk.Fn.split("/", url));
-      const origin = new origins.HttpOrigin(domain, {
+      const origin = new origins.RestApiOrigin(apiStack.api, {
+        originPath: "",
         readTimeout: cdk.Duration.seconds(60),
-        protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
       });
       this.distribution.addBehavior(`/${apiPath}/*`, origin, {
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,

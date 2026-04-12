@@ -60,6 +60,7 @@ export class ChatSessionStack extends cdk.Stack {
       logGroup: this.logGroup,
       loggingFormat: lambda.LoggingFormat.JSON,
       role: this.role,
+      tracing: lambda.Tracing.ACTIVE,
       architecture: lambda.Architecture.X86_64,
       layers: [
         lambda.LayerVersion.fromLayerVersionArn(

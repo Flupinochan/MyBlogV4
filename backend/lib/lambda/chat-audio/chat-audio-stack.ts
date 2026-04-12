@@ -66,6 +66,7 @@ export class ChatAudioStack extends cdk.Stack {
       logGroup: this.logGroup,
       loggingFormat: lambda.LoggingFormat.JSON,
       role: this.role,
+      tracing: lambda.Tracing.ACTIVE,
       layers: [
         lambda.LayerVersion.fromLayerVersionArn(
           this,
