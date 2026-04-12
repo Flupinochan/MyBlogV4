@@ -84,10 +84,11 @@ class AgentResponse(BaseModel):
 def invoke(payload, context: RequestContext) -> str:  # noqa: ANN001
     """Entry Point"""
     session_id = context.session_id or f"default-{uuid.uuid4()}"
+    user_id = payload.get("user_id")
     user_input = payload.get("prompt")
     logger.info(
         "Received user input",
-        extra={"user_input": user_input},
+        extra={"user_id": user_id, "user_input": user_input},
     )
 
     # 1. まずはAgentにまかせて回答させる
@@ -105,7 +106,7 @@ def invoke(payload, context: RequestContext) -> str:  # noqa: ANN001
         session_manager=S3SessionManager(
             session_id=session_id,
             bucket=S3_SESSION_BUCKET_NAME,
-            prefix=f"user-id/{session_id}/",
+            prefix=f"{user_id}/{session_id}/",
         ),
         retry_strategy=ModelRetryStrategy(initial_delay=1, max_attempts=2, max_delay=3),
     )

@@ -9,7 +9,7 @@ export const config: EnvConfig = {
   githubConnectionArnParam: "github-connection-arn",
   hostingBucketName: "prod-myblogv4-bucket",
   buildAssetsBucketName: "prod-myblogv4-build-assets",
-  chatAudioDurableFunctionName: "prod-myblogv4-chat-audio-durable",
+  chatAudioFunctionName: "prod-myblogv4-chat-audio",
   synthesizeVoiceFunctionName: "prod-myblogv4-synthesize-voice",
   synthesizeVoiceRepositoryName: "prod-myblogv4-synthesize-voice",
   sourceBucketName: "prod-myblogv4-blog-kb-source",

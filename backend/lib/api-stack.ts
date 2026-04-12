@@ -9,7 +9,7 @@ interface ApiStackProps extends cdk.StackProps {
   apiPath: string;
   isProd: boolean;
   chatSessionLambda: lambda.Function;
-  chatAudioDurableLambda: lambda.Function;
+  chatAudioLambda: lambda.Function;
 }
 
 export class ApiStack extends cdk.Stack {
@@ -88,13 +88,15 @@ export class ApiStack extends cdk.Stack {
       "GET",
       new apigateway.LambdaIntegration(props.chatSessionLambda, {
         proxy: true,
+        timeout: cdk.Duration.seconds(60),
       }),
     );
 
     messages.addMethod(
       "POST",
-      new apigateway.LambdaIntegration(props.chatAudioDurableLambda, {
+      new apigateway.LambdaIntegration(props.chatAudioLambda, {
         proxy: true,
+        timeout: cdk.Duration.seconds(60),
       }),
     );
   }

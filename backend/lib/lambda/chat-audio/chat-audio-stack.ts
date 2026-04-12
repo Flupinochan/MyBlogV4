@@ -6,33 +6,33 @@ import * as logs from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 import path from "path";
 
-interface ChatAudioDurableStackProps extends cdk.StackProps {
+interface ChatAudioStackProps extends cdk.StackProps {
   functionName: string;
   agentCoreArn: string;
   synthesizeVoiceFunctionName: string;
 }
 
-export class ChatAudioDurableStack extends cdk.Stack {
+export class ChatAudioStack extends cdk.Stack {
   public readonly function: lambda.Function;
   public readonly logGroup: logs.LogGroup;
   public readonly role: iam.Role;
 
-  constructor(scope: Construct, id: string, props: ChatAudioDurableStackProps) {
+  constructor(scope: Construct, id: string, props: ChatAudioStackProps) {
     super(scope, id, props);
 
     const synthesizeVoiceFunctionArn = `arn:aws:lambda:${this.region}:${this.account}:function:${props.synthesizeVoiceFunctionName}`;
 
-    this.logGroup = new logs.LogGroup(this, "ChatAudioDurableLogGroup", {
+    this.logGroup = new logs.LogGroup(this, "ChatAudioLogGroup", {
       logGroupName: `/aws/lambda/${props.functionName}`,
       retention: logs.RetentionDays.ONE_DAY,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    this.role = new iam.Role(this, "ChatAudioDurableRole", {
+    this.role = new iam.Role(this, "ChatAudioRole", {
       assumedBy: new iam.ServicePrincipal("lambda.amazonaws.com"),
       managedPolicies: [
         iam.ManagedPolicy.fromAwsManagedPolicyName(
-          "service-role/AWSLambdaBasicDurableExecutionRolePolicy",
+          "service-role/AWSLambdaBasicExecutionRole",
         ),
       ],
       inlinePolicies: {
@@ -55,7 +55,7 @@ export class ChatAudioDurableStack extends cdk.Stack {
       },
     });
 
-    this.function = new NodejsFunction(this, "ChatAudioDurableFunction", {
+    this.function = new NodejsFunction(this, "ChatAudioFunction", {
       functionName: props.functionName,
       runtime: lambda.Runtime.NODEJS_24_X,
       handler: "index.handler",
@@ -77,10 +77,6 @@ export class ChatAudioDurableStack extends cdk.Stack {
         POWERTOOLS_LOGGER_LOG_EVENT: "true",
         AGENT_RUNTIME_ARN: props.agentCoreArn,
         SYNTHESIZE_VOICE_FUNCTION_ARN: synthesizeVoiceFunctionArn,
-      },
-      durableConfig: {
-        executionTimeout: cdk.Duration.minutes(15),
-        retentionPeriod: cdk.Duration.days(1),
       },
     });
   }

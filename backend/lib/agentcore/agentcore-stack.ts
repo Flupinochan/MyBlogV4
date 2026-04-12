@@ -2,27 +2,40 @@ import * as cdk from "aws-cdk-lib";
 import * as bedrockagentcore from "aws-cdk-lib/aws-bedrockagentcore";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as s3 from "aws-cdk-lib/aws-s3";
+import { Asset } from "aws-cdk-lib/aws-s3-assets";
 import { Construct } from "constructs";
+import { buildStaging } from "./build-agent";
 
 interface AgentCoreStackProps extends cdk.StackProps {
   kbid: string;
-  assetBucketName: string;
-  assetPrefix: string;
   entryPoint: string[];
   agentRuntimeName: string;
   embeddingModelId: string;
   sourceBucketName: string;
   sessionBucketName: string;
   agentId: string;
+  platform:
+    | "aarch64-manylinux2014"
+    | "aarch64-manylinux_2_28"
+    | "aarch64-manylinux_2_34";
 }
 
 export class AgentCoreStack extends cdk.Stack {
   public readonly agentCoreRole: iam.Role;
   public readonly agentCoreRuntime: bedrockagentcore.CfnRuntime;
   public readonly sessionBucket: s3.Bucket;
+  public readonly asset: Asset;
 
   constructor(scope: Construct, id: string, props: AgentCoreStackProps) {
     super(scope, id, props);
+
+    const stagingDir = buildStaging(props.platform);
+
+    this.asset = new Asset(this, "CodeAsset", {
+      path: stagingDir,
+    });
+    const assetBucketName = this.asset.s3BucketName;
+    const assetPrefix = this.asset.s3ObjectKey;
 
     this.sessionBucket = new s3.Bucket(this, "SessionBucket", {
       bucketName: props.sessionBucketName,
@@ -116,8 +129,8 @@ export class AgentCoreStack extends cdk.Stack {
             entryPoint: props.entryPoint,
             code: {
               s3: {
-                bucket: props.assetBucketName,
-                prefix: props.assetPrefix,
+                bucket: assetBucketName,
+                prefix: assetPrefix,
               },
             },
           },

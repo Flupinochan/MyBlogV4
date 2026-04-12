@@ -24,7 +24,7 @@ except KeyError:
 # Resolver初期化
 cors_config = CORSConfig(
     allow_origin=f"https://{DOMAIN_NAME}",
-    max_age=3600,
+    max_age=300,
 )
 app = APIGatewayRestResolver(enable_validation=True, cors=cors_config)
 

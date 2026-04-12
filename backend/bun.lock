@@ -7,6 +7,7 @@
       "dependencies": {
         "@aws-cdk/aws-bedrock-agentcore-alpha": "^2.247.0-alpha.0",
         "@aws-cdk/aws-lambda-python-alpha": "^2.248.0-alpha.0",
+        "@aws-lambda-powertools/event-handler": "^2.32.0",
         "@aws-lambda-powertools/parser": "^2.32.0",
         "@aws-sdk/client-bedrock-agentcore": "^3.1024.0",
         "@aws/durable-execution-sdk-js": "^1.1.0",
@@ -55,6 +56,8 @@
     "@aws-crypto/util": ["@aws-crypto/util@5.2.0", "", { "dependencies": { "@aws-sdk/types": "^3.222.0", "@smithy/util-utf8": "^2.0.0", "tslib": "^2.6.2" } }, "sha512-4RkU9EsI6ZpBve5fseQlGNUWKMa1RLPQ1dnjnQoe07ldfIzcsGb5hC5W0Dm7u423KWzawlrpbjXBrXCEv9zazQ=="],
 
     "@aws-lambda-powertools/commons": ["@aws-lambda-powertools/commons@2.32.0", "", { "dependencies": { "@aws/lambda-invoke-store": "0.2.4" } }, "sha512-vsdakJDZu/KkJ5+1WHkawQ5R06aCK0XYB3nc3tpcBfO1YmOHkn+QpuGiZtkmpzIykGPAO9lnBjK5joAeim2o4A=="],
+
+    "@aws-lambda-powertools/event-handler": ["@aws-lambda-powertools/event-handler@2.32.0", "", { "dependencies": { "@aws-lambda-powertools/commons": "2.32.0" }, "peerDependencies": { "@aws-lambda-powertools/tracer": ">=2.32.0", "@standard-schema/spec": "^1.0.0" }, "optionalPeers": ["@aws-lambda-powertools/tracer"] }, "sha512-dkcQEKVHxQwK6rwqPPloWxdyDo4LFZGxWQxP7HeQ18C9/p0R2BdLtfD9+Vae2Jqx/JKq2vTcUNB4oQZ5vEo9Dg=="],
 
     "@aws-lambda-powertools/jmespath": ["@aws-lambda-powertools/jmespath@2.32.0", "", { "dependencies": { "@aws-lambda-powertools/commons": "2.32.0" } }, "sha512-jHtETqs2hJbhNIM4hmGlVOxbEbgUwOxoVU6yBiekRd9UjHby3CsWjQUFluj93qeOFcK17iotczGzwTbVw4i6jg=="],
 

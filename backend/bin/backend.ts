@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib/core";
 import { AgentCoreStack } from "../lib/agentcore/agentcore-stack";
-import { CreateZipAssetStack } from "../lib/agentcore/create-zip-asset-stack";
 import { ApiStack } from "../lib/api-stack";
 import { BlogKBPipelineStack } from "../lib/blog-kb-pipeline-stack";
 import { BlogKBStack } from "../lib/blog-kb-stack";
 import { BuildAssetsStack } from "../lib/build-assets-stack";
 import { HostingStack } from "../lib/hosting-stack";
-import { ChatAudioDurableStack } from "../lib/lambda/chat-audio-durable/chat-audio-durable-stack";
+import { ChatAudioStack } from "../lib/lambda/chat-audio/chat-audio-stack";
 import { ChatSessionStack } from "../lib/lambda/chat-session/chat-session-stack";
 import { SynthesizeVoiceEcrStack } from "../lib/lambda/synthesize-voice/synthesize-voice-ecr-stack";
 import { SynthesizeVoiceStack } from "../lib/lambda/synthesize-voice/synthesize-voice-stack";
@@ -68,35 +67,22 @@ new BlogKBPipelineStack(app, `${prefix}-BlogKBPipelineStack`, {
   dataSourceId: blogKBStack.dataSource.attrDataSourceId,
 });
 
-const createZipAssetStack = new CreateZipAssetStack(
-  app,
-  `${prefix}-CreateZipAssetStack`,
-  {
-    platform: cfg.agentCorePlatform,
-  },
-);
-
 const agentCoreStack = new AgentCoreStack(app, `${prefix}-AgentCoreStack`, {
   kbid: blogKBStack.kb.attrKnowledgeBaseId,
-  assetBucketName: createZipAssetStack.asset.s3BucketName,
-  assetPrefix: createZipAssetStack.asset.s3ObjectKey,
   entryPoint: cfg.entryPoint,
   agentRuntimeName: cfg.agentRuntimeName,
   embeddingModelId: cfg.embeddingModelId,
   sourceBucketName: cfg.sourceBucketName,
   sessionBucketName: cfg.sessionBucketName,
   agentId: cfg.agentId,
+  platform: cfg.agentCorePlatform,
 });
 
-const chatAudioDurableStack = new ChatAudioDurableStack(
-  app,
-  `${prefix}-ChatAudioDurableStack`,
-  {
-    functionName: cfg.chatAudioDurableFunctionName,
-    agentCoreArn: agentCoreStack.agentCoreRuntime.attrAgentRuntimeArn,
-    synthesizeVoiceFunctionName: cfg.synthesizeVoiceFunctionName,
-  },
-);
+const chatAudioStack = new ChatAudioStack(app, `${prefix}-ChatAudioStack`, {
+  functionName: cfg.chatAudioFunctionName,
+  agentCoreArn: agentCoreStack.agentCoreRuntime.attrAgentRuntimeArn,
+  synthesizeVoiceFunctionName: cfg.synthesizeVoiceFunctionName,
+});
 
 const chatSessionStack = new ChatSessionStack(
   app,
@@ -115,7 +101,7 @@ const apiStack = new ApiStack(app, `${prefix}-ApiStack`, {
   apiPath,
   isProd: isProd(envName),
   chatSessionLambda: chatSessionStack.function,
-  chatAudioDurableLambda: chatAudioDurableStack.function,
+  chatAudioLambda: chatAudioStack.function,
 });
 
 const hostingStack = new HostingStack(app, `${prefix}-HostingStack`, {

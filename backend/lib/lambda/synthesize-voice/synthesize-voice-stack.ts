@@ -55,7 +55,7 @@ export class SynthesizeVoiceStack extends cdk.Stack {
         tagOrDigest: props.imageTagOrDigest,
       }),
       architecture: lambda.Architecture.X86_64,
-      timeout: Duration.seconds(300),
+      timeout: Duration.seconds(900),
       memorySize: 1024,
       logGroup: this.logGroup,
       loggingFormat: lambda.LoggingFormat.JSON,

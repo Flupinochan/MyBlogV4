@@ -11,7 +11,7 @@ export interface EnvConfig {
   // Stack間の依存関係を断つためにOutputは利用せず、事前にリソース名は定義しておく
   hostingBucketName: string;
   buildAssetsBucketName: string;
-  chatAudioDurableFunctionName: string;
+  chatAudioFunctionName: string;
   synthesizeVoiceFunctionName: string;
   synthesizeVoiceRepositoryName: string;
   sourceBucketName: string;
