@@ -119,6 +119,7 @@ const chatSessionStack = new ChatSessionStack(
     functionName: `${prefix}-ChatSessionFunction`,
     sessionBucketName: cfg.sessionBucketName,
     agentId: cfg.agentId,
+    domainName: cfg.domainName,
   },
 );
 

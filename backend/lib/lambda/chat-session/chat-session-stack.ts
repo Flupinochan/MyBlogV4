@@ -10,6 +10,7 @@ interface ChatSessionStackProps extends cdk.StackProps {
   functionName: string;
   sessionBucketName: string;
   agentId: string;
+  domainName: string;
 }
 
 export class ChatSessionStack extends cdk.Stack {
@@ -72,6 +73,7 @@ export class ChatSessionStack extends cdk.Stack {
         POWERTOOLS_LOGGER_LOG_EVENT: "true",
         S3_SESSION_BUCKET_NAME: props.sessionBucketName,
         AGENT_ID: props.agentId,
+        DOMAIN_NAME: props.domainName,
       },
     });
   }

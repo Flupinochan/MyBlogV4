@@ -25,7 +25,7 @@ export class ApiStack extends cdk.Stack {
     });
 
     this.api = new apigateway.RestApi(this, "Api", {
-      restApiName: `${props.domainName}-MyBlogV4`,
+      restApiName: `MyBlogV4-${props.domainName}`,
       cloudWatchRole: true,
       defaultCorsPreflightOptions: {
         allowOrigins: [
@@ -79,9 +79,9 @@ export class ApiStack extends cdk.Stack {
 
     const v1 = this.api.root.addResource("v1");
     const users = v1.addResource("users");
-    const user = users.addResource("{userId}");
+    const user = users.addResource("{user_id}");
     const sessions = user.addResource("sessions");
-    const session = sessions.addResource("{sessionId}");
+    const session = sessions.addResource("{session_id}");
     const messages = session.addResource("messages");
 
     messages.addMethod(
