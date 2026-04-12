@@ -71,7 +71,7 @@ def get_messages(user_id: str, session_id: str) -> ChatMessages:
     logger.info(
         "会話のメッセージ一覧を取得しました",
         extra={
-            "messages": chat_messages.model_dump_json(),
+            "messages": chat_messages.model_dump(),
         },
     )
 

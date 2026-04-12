@@ -50,24 +50,6 @@ new SynthesizeVoiceStack(app, `${prefix}-SynthesizeVoiceStack`, {
   voiceOutputBucketName: cfg.hostingBucketName,
 });
 
-const hostingStack = new HostingStack(app, `${prefix}-HostingStack`, {
-  envName,
-  bucketName: cfg.hostingBucketName,
-  domainName: cfg.domainName,
-  certificateArn: cfg.certificateArnParam,
-});
-
-new PipelineStack(app, `${prefix}-PipelineStack`, {
-  envName,
-  hostingBucketName: cfg.hostingBucketName,
-  buildAssetsBucketName: cfg.buildAssetsBucketName,
-  hostingDistributionId: hostingStack.distribution.distributionId,
-  githubConnectionArn: cfg.githubConnectionArnParam,
-  repoName: cfg.repoName,
-  branchName: cfg.branchName,
-  synthesizeVoiceRepositoryName: cfg.synthesizeVoiceRepositoryName,
-});
-
 const blogKBStack = new BlogKBStack(app, `${prefix}-BlogKBStack`, {
   sourceBucketName: cfg.sourceBucketName,
   vectorBucketName: cfg.vectorBucketName,
@@ -106,11 +88,15 @@ const agentCoreStack = new AgentCoreStack(app, `${prefix}-AgentCoreStack`, {
   agentId: cfg.agentId,
 });
 
-const chatAudioDurableStack = new ChatAudioDurableStack(app, `${prefix}-ChatAudioDurableStack`, {
-  functionName: cfg.chatAudioDurableFunctionName,
-  agentCoreArn: agentCoreStack.agentCoreRuntime.attrAgentRuntimeArn,
-  synthesizeVoiceFunctionName: cfg.synthesizeVoiceFunctionName,
-});
+const chatAudioDurableStack = new ChatAudioDurableStack(
+  app,
+  `${prefix}-ChatAudioDurableStack`,
+  {
+    functionName: cfg.chatAudioDurableFunctionName,
+    agentCoreArn: agentCoreStack.agentCoreRuntime.attrAgentRuntimeArn,
+    synthesizeVoiceFunctionName: cfg.synthesizeVoiceFunctionName,
+  },
+);
 
 const chatSessionStack = new ChatSessionStack(
   app,
@@ -123,10 +109,31 @@ const chatSessionStack = new ChatSessionStack(
   },
 );
 
+const apiPath = "api";
 const apiStack = new ApiStack(app, `${prefix}-ApiStack`, {
   domainName: cfg.domainName,
-  apiPath: "api",
+  apiPath,
   isProd: isProd(envName),
   chatSessionLambda: chatSessionStack.function,
   chatAudioDurableLambda: chatAudioDurableStack.function,
+});
+
+const hostingStack = new HostingStack(app, `${prefix}-HostingStack`, {
+  envName,
+  bucketName: cfg.hostingBucketName,
+  domainName: cfg.domainName,
+  certificateArn: cfg.certificateArnParam,
+  apiStack,
+  apiPath,
+});
+
+new PipelineStack(app, `${prefix}-PipelineStack`, {
+  envName,
+  hostingBucketName: cfg.hostingBucketName,
+  buildAssetsBucketName: cfg.buildAssetsBucketName,
+  hostingDistributionId: hostingStack.distribution.distributionId,
+  githubConnectionArn: cfg.githubConnectionArnParam,
+  repoName: cfg.repoName,
+  branchName: cfg.branchName,
+  synthesizeVoiceRepositoryName: cfg.synthesizeVoiceRepositoryName,
 });

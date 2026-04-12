@@ -6,12 +6,15 @@ import * as s3 from "aws-cdk-lib/aws-s3";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as cdk from "aws-cdk-lib/core";
 import { Construct } from "constructs";
+import { ApiStack } from "./api-stack";
 
 interface HostingStackProps extends cdk.StackProps {
   envName: string;
   bucketName: string;
   domainName: string;
   certificateArn: string;
+  apiStack?: ApiStack;
+  apiPath?: string;
 }
 
 export class HostingStack extends cdk.Stack {
@@ -94,5 +97,22 @@ export class HostingStack extends cdk.Stack {
         },
       ],
     });
+
+    const apiStack = props.apiStack;
+    const apiPath = props.apiPath;
+    if (apiStack && apiPath) {
+      const url = apiStack.api.url;
+      const domain = cdk.Fn.select(2, cdk.Fn.split("/", url));
+      const origin = new origins.HttpOrigin(domain, {
+        protocolPolicy: cloudfront.OriginProtocolPolicy.HTTPS_ONLY,
+      });
+      this.distribution.addBehavior(`/${apiPath}/*`, origin, {
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+        originRequestPolicy:
+          cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      });
+    }
   }
 }
