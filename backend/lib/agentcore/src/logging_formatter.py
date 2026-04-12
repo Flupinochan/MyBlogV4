@@ -9,7 +9,7 @@ from zoneinfo import ZoneInfo
 from bedrock_agentcore import BedrockAgentCoreContext
 
 JST = ZoneInfo("Asia/Tokyo")
-RESERVED_LOG_ATTRS = frozenset(
+RESERVED_OR_EXCLUDES_LOG_ATTRS = frozenset(
     {
         "name",
         "msg",
@@ -49,16 +49,18 @@ class LoggingFormatter(logging.Formatter):
         # Base log entry with standard attributes
         log_entry = {
             "level": record.levelname,
-            "location": f"{record.funcName}:{record.lineno}",
             "message": record.getMessage(),
             "timestamp": datetime.now(JST).strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3]
             + "+09:00",
+            "location": f"{record.funcName}:{record.lineno}",
             "logger": record.name,
         }
 
         # extra attributes
         extras = {
-            k: v for k, v in record.__dict__.items() if k not in RESERVED_LOG_ATTRS
+            k: v
+            for k, v in record.__dict__.items()
+            if k not in RESERVED_OR_EXCLUDES_LOG_ATTRS
         }
         log_entry.update(extras)
 
