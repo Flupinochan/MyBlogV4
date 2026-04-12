@@ -106,7 +106,7 @@ const agentCoreStack = new AgentCoreStack(app, `${prefix}-AgentCoreStack`, {
   agentId: cfg.agentId,
 });
 
-new ChatAudioDurableStack(app, `${prefix}-ChatAudioDurableStack`, {
+const chatAudioDurableStack = new ChatAudioDurableStack(app, `${prefix}-ChatAudioDurableStack`, {
   functionName: cfg.chatAudioDurableFunctionName,
   agentCoreArn: agentCoreStack.agentCoreRuntime.attrAgentRuntimeArn,
   synthesizeVoiceFunctionName: cfg.synthesizeVoiceFunctionName,
@@ -127,4 +127,5 @@ const apiStack = new ApiStack(app, `${prefix}-ApiStack`, {
   apiPath: "api",
   isProd: isProd(envName),
   chatSessionLambda: chatSessionStack.function,
+  chatAudioDurableLambda: chatAudioDurableStack.function,
 });
