@@ -46,7 +46,7 @@ def lambda_handler(event: dict, context: LambdaContext) -> dict:
     return app.resolve(event, context)
 
 
-@app.get("/v1/users/{userId}/sessions/{sessionId}/messages")
+@app.get("/v1/users/<userId>/sessions/<sessionId>/messages")
 def get_messages(userId: str, sessionId: str) -> Messages:  # noqa: N803
     """会話のメッセージ一覧を取得"""
     session_manager = S3SessionManager(

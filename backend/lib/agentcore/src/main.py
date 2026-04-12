@@ -87,7 +87,7 @@ def invoke(payload, context: RequestContext) -> str:  # noqa: ANN001
     user_input = payload.get("prompt")
     logger.info(
         "Received user input",
-        extra={"user_input": user_input, "session_id": session_id},
+        extra={"user_input": user_input},
     )
 
     # 1. まずはAgentにまかせて回答させる
