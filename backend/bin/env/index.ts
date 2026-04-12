@@ -42,3 +42,7 @@ export function getEnvConfig(env: string): EnvConfig {
       return devConfig;
   }
 }
+
+export function isProd(env: string): boolean {
+  return env === "prod";
+}

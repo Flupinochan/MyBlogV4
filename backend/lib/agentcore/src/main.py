@@ -40,7 +40,7 @@ logger.propagate = False
 try:
     JST = ZoneInfo("Asia/Tokyo")
     MODEL_ID = "apac.amazon.nova-micro-v1:0"
-    UNIFIED_PROMPT = "質問に対する答えが分からない場合は全てのツールを利用してください。「提供された情報」や「コンテキスト」という言葉は使わず、自身の知識として自然に回答してください。Markdown、箇条書き、表、記号、特殊文字を使用せず、句読点を適切に用いた最大2文の文章を改行せず1行で出力してください。"  # noqa: E501
+    SYSTEM_PROMPT = "質問に対する答えが分からない場合は全てのツールを利用してください。「提供された情報」や「コンテキスト」という言葉は使わず、自身の知識として自然に回答してください。Markdown、箇条書き、表、記号、特殊文字を使用せず、句読点を適切に用いた最大2文の文章を改行せず1行で出力してください。"  # noqa: E501
     S3_SESSION_BUCKET_NAME = os.environ["S3_SESSION_BUCKET_NAME"]
     AGENT_ID = os.environ["AGENT_ID"]
 except KeyError:
@@ -94,7 +94,7 @@ def invoke(payload, context: RequestContext) -> str:  # noqa: ANN001
     agent = Agent(
         agent_id=AGENT_ID,
         model=BedrockModel(model_id=MODEL_ID, max_tokens=256),
-        system_prompt=UNIFIED_PROMPT,
+        system_prompt=SYSTEM_PROMPT,
         tools=[get_tech_blog_content, get_resume_content],
         callback_handler=None,
         hooks=[LoggingHookProvider()],
@@ -109,8 +109,7 @@ def invoke(payload, context: RequestContext) -> str:  # noqa: ANN001
         ),
         retry_strategy=ModelRetryStrategy(initial_delay=1, max_attempts=2, max_delay=3),
     )
-    custom_input = user_input + " " + UNIFIED_PROMPT
-    first_result = agent(custom_input, structured_output_model=AgentResponse)
+    first_result = agent(user_input, structured_output_model=AgentResponse)
     first_agent_response = cast("AgentResponse", first_result.structured_output)
     logger.info(
         "Agent initial response",
@@ -137,7 +136,6 @@ def invoke(payload, context: RequestContext) -> str:  # noqa: ANN001
     final_prompt = (
         f"User Request: {user_input}\n\n"
         f"Collected Detailed Information:\n{all_tools_result}\n\n"
-        f"Finalize the answer based on the information above. {UNIFIED_PROMPT}"
     )
     final_result = agent(final_prompt, structured_output_model=AgentResponse)
     final_agent_response = cast("AgentResponse", final_result.structured_output)
