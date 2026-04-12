@@ -24,6 +24,7 @@ export class ApiStack extends cdk.Stack {
     });
 
     this.api = new apigateway.RestApi(this, "Api", {
+      restApiName: `${props.domainName}-MyBlogV4`,
       cloudWatchRole: true,
       defaultCorsPreflightOptions: {
         allowOrigins: [
