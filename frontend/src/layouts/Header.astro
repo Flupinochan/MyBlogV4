@@ -12,16 +12,16 @@ import Flex from "../components/layout/Flex.astro";
 >
   <nav>
     <ul class="flex">
-      <li class="p-4 textWrapper" data-cursor-color="cyan">
+      <li class="p-4 textWrapper" data-accent-color="cyan">
         <a href="#" class="backgroundImage">Profile</a>
       </li>
-      <li class="p-4 textWrapper" data-cursor-color="amber">
+      <li class="p-4 textWrapper" data-accent-color="amber">
         <a href="#" class="backgroundImage">Blog</a>
       </li>
-      <li class="p-4 textWrapper" data-cursor-color="rose">
+      <li class="p-4 textWrapper" data-accent-color="rose">
         <a href="#" class="backgroundImage">Tools</a>
       </li>
-      <li class="p-4 textWrapper" data-cursor-color="emerald">
+      <li class="p-4 textWrapper" data-accent-color="emerald">
         <a href="#" class="backgroundImage">GitHub</a>
       </li>
     </ul>
@@ -29,7 +29,7 @@ import Flex from "../components/layout/Flex.astro";
   <div
     style="font-family: var(--font-family-geist)"
     class="text-4xl textWrapper"
-    data-cursor-color="violet"
+    data-accent-color="violet"
   >
     <a href="#" class="backgroundImage"> METAL MENTAL </a>
   </div>
@@ -69,55 +69,18 @@ import Flex from "../components/layout/Flex.astro";
 </header>
 
 <script>
-  // header hover時のcolor effect
-  import {
-    getAccentColor,
-    isAccentColor,
-    type AccentColor,
-  } from "./ThemeColor";
-
-  const DEFAULT_ACCENT_COLOR: AccentColor = "violet";
-
   const header = document.querySelector("header");
   if (!header) throw new Error("Header element not found");
 
-  header.style.setProperty(
-    "--spotlight-color",
-    getAccentColor(DEFAULT_ACCENT_COLOR),
-  );
-
+  // マウスに追従して背景色が変化するエフェクト
   header.addEventListener("mousemove", (e) => {
     const rect = header.getBoundingClientRect();
     header.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`);
     header.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`);
   });
-
   header.addEventListener("mouseleave", () => {
     header.style.setProperty("--mouse-x", "-9999px");
     header.style.setProperty("--mouse-y", "-9999px");
-  });
-
-  header.querySelectorAll("li[data-cursor-color]").forEach((element) => {
-    const li = element as HTMLLIElement;
-    const colorName = li.getAttribute("data-cursor-color");
-    const resolvedColor =
-      colorName && isAccentColor(colorName) ? colorName : DEFAULT_ACCENT_COLOR;
-
-    li.style.setProperty("--underline-color", getAccentColor(resolvedColor));
-    li.style.setProperty("--text-fill-color", getAccentColor(resolvedColor));
-
-    li.addEventListener("mouseenter", () =>
-      header.style.setProperty(
-        "--spotlight-color",
-        getAccentColor(resolvedColor),
-      ),
-    );
-    li.addEventListener("mouseleave", () =>
-      header.style.setProperty(
-        "--spotlight-color",
-        getAccentColor(DEFAULT_ACCENT_COLOR),
-      ),
-    );
   });
 
   // ダークモード切替
@@ -164,9 +127,46 @@ import Flex from "../components/layout/Flex.astro";
       ),
       transparent 80%
     );
-
+    --spotlight-color: var(--color-violet-500);
     --mouse-x: -9999px;
     --mouse-y: -9999px;
+  }
+
+  header:has([data-accent-color="cyan"]:hover) {
+    --spotlight-color: var(--color-cyan-500);
+  }
+  header:has([data-accent-color="amber"]:hover) {
+    --spotlight-color: var(--color-amber-500);
+  }
+  header:has([data-accent-color="rose"]:hover) {
+    --spotlight-color: var(--color-rose-500);
+  }
+  header:has([data-accent-color="emerald"]:hover) {
+    --spotlight-color: var(--color-emerald-500);
+  }
+  header:has([data-accent-color="violet"]:hover) {
+    --spotlight-color: var(--color-violet-500);
+  }
+
+  [data-accent-color="cyan"] {
+    --underline-color: var(--color-cyan-500);
+    --text-fill-color: var(--color-cyan-500);
+  }
+  [data-accent-color="amber"] {
+    --underline-color: var(--color-amber-500);
+    --text-fill-color: var(--color-amber-500);
+  }
+  [data-accent-color="rose"] {
+    --underline-color: var(--color-rose-500);
+    --text-fill-color: var(--color-rose-500);
+  }
+  [data-accent-color="emerald"] {
+    --underline-color: var(--color-emerald-500);
+    --text-fill-color: var(--color-emerald-500);
+  }
+  [data-accent-color="violet"] {
+    --underline-color: var(--color-violet-500);
+    --text-fill-color: var(--color-violet-500);
   }
 
   /* 
@@ -204,7 +204,6 @@ import Flex from "../components/layout/Flex.astro";
     position: relative;
     display: inline-block;
     padding-bottom: 5px;
-
     color: inherit;
     background-image: linear-gradient(
       90deg,
@@ -220,13 +219,11 @@ import Flex from "../components/layout/Flex.astro";
       background-size 0.3s ease-out,
       color 0.3s ease-out;
   }
-
   .textWrapper:hover .backgroundImage {
     color: transparent;
     background-size: 100% 100%;
     font-weight: 700;
   }
-
   .backgroundImage::after {
     content: "";
     position: absolute;
@@ -237,11 +234,9 @@ import Flex from "../components/layout/Flex.astro";
     background-color: var(--underline-color, var(--color-violet-500));
     transition: width 0.3s ease-out;
   }
-
   .textWrapper:hover .backgroundImage {
     background-size: 100% 100%;
   }
-
   .textWrapper:hover .backgroundImage::after {
     width: 100%;
   }
