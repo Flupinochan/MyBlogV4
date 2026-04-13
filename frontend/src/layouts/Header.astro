@@ -1,9 +1,15 @@
 ---
+import Mail from "../components/icons/Mail.astro";
+import Zenn from "../components/icons/Zenn.astro";
 import Moon from "../components/icons/Moon.astro";
+import Octcat from "../components/icons/Octcat.astro";
 import Sun from "../components/icons/Sun.astro";
+import Flex from "../components/layout/Flex.astro";
 ---
 
-<header class="flex items-center justify-between h-16 pl-10">
+<header
+  class="relative flex items-center justify-between h-16 pl-10 overflow-hidden bg-slate-800/10 backdrop-blur-sm"
+>
   <nav>
     <ul class="flex">
       <li
@@ -36,26 +42,61 @@ import Sun from "../components/icons/Sun.astro";
       </li>
     </ul>
   </nav>
-  <button
-    class="toggle-dark-mode mr-10 transform active:scale-95 transition-transform duration-150"
-  >
-    <span class="dark:hidden">
-      <Moon class="size-6" />
-    </span>
-    <span class="hidden dark:block">
-      <Sun class="size-6" />
-    </span>
-  </button>
+  <p style="font-family: var(--font-family-geist)" class="text-4xl">
+    METAL MENTAL
+  </p>
+  <Flex class="relative z-10 gap-4 pr-10 items-center">
+    <button
+      class="toggle-dark-mode transform active:scale-95 transition-transform duration-150"
+    >
+      <span class="dark:hidden">
+        <Moon
+          class="size-5 hover:brightness-75 dark:hover:brightness-125 transition-all duration-300"
+        />
+      </span>
+      <span class="hidden dark:block">
+        <Sun
+          class="size-6 hover:brightness-75 dark:hover:brightness-125 transition-all duration-300"
+        />
+      </span>
+    </button>
+    <button class="transform active:scale-95 transition-transform duration-150">
+      <Octcat
+        width={24}
+        height={24}
+        class="hover:brightness-75 dark:hover:brightness-125 transition-all duration-300"
+      />
+    </button>
+    <button class="transform active:scale-95 transition-transform duration-150">
+      <Zenn
+        class="size-5 hover:brightness-75 dark:hover:brightness-125 transition-all duration-300"
+      />
+    </button>
+    <button class="transform active:scale-95 transition-transform duration-150">
+      <Mail
+        class="size-6 hover:brightness-75 dark:hover:brightness-125 transition-all duration-300"
+      />
+    </button>
+  </Flex>
 </header>
 
 <script>
   // header hover時のcolor effect
-  import { COLOR_MAP } from "./ThemeColor.js";
-  const COLORS = COLOR_MAP as Record<string, string>;
-  const DEFAULT_COLOR = `${COLOR_MAP["violet"]}30`;
+  import {
+    getTailwindColor,
+    isCursorColor,
+    type CursorColor,
+  } from "./ThemeColor";
+
+  const DEFAULT_COLOR: CursorColor = "violet";
 
   const header = document.querySelector("header");
   if (!header) throw new Error("Header element not found");
+
+  header.style.setProperty(
+    "--spotlight-color",
+    getTailwindColor(DEFAULT_COLOR),
+  );
 
   header.addEventListener("mousemove", (e) => {
     const rect = header.getBoundingClientRect();
@@ -70,19 +111,24 @@ import Sun from "../components/icons/Sun.astro";
 
   header.querySelectorAll("li[data-cursor-color]").forEach((element) => {
     const li = element as HTMLLIElement;
-    const hex = COLORS[li.getAttribute("data-cursor-color") ?? ""] ?? null;
-    const color = hex ? `${hex}30` : DEFAULT_COLOR;
-    const underlineColor = hex ?? COLOR_MAP["violet"];
+    const colorName = li.getAttribute("data-cursor-color");
+    const resolvedColor =
+      colorName && isCursorColor(colorName) ? colorName : DEFAULT_COLOR;
 
-    // data-cursor-color属性に基づいてCSS変数を設定
-    li.style.setProperty("--underline-color", underlineColor);
-    li.style.setProperty("--text-fill-color", underlineColor);
+    li.style.setProperty("--underline-color", getTailwindColor(resolvedColor));
+    li.style.setProperty("--text-fill-color", getTailwindColor(resolvedColor));
 
     li.addEventListener("mouseenter", () =>
-      header.style.setProperty("--spotlight-color", color),
+      header.style.setProperty(
+        "--spotlight-color",
+        getTailwindColor(resolvedColor),
+      ),
     );
     li.addEventListener("mouseleave", () =>
-      header.style.setProperty("--spotlight-color", DEFAULT_COLOR),
+      header.style.setProperty(
+        "--spotlight-color",
+        getTailwindColor(DEFAULT_COLOR),
+      ),
     );
   });
 
@@ -121,18 +167,18 @@ import Sun from "../components/icons/Sun.astro";
     transition:
       translate 0.25s,
       background 0.25s ease;
-    background:
-      radial-gradient(
-        circle 220px at var(--mouse-x) var(--mouse-y),
-        var(--spotlight-color),
-        transparent 80%
+    background: radial-gradient(
+      circle 220px at var(--mouse-x) var(--mouse-y),
+      color-mix(
+        in srgb,
+        var(--spotlight-color, var(--color-violet-500)) 12%,
+        transparent
       ),
-      rgb(31 41 55 / 10%);
-    backdrop-filter: blur(8px);
+      transparent 80%
+    );
 
     --mouse-x: -9999px;
     --mouse-y: -9999px;
-    --spotlight-color: rgba(255 255 255 / 0.08);
   }
 
   /* 
@@ -174,8 +220,8 @@ import Sun from "../components/icons/Sun.astro";
     color: inherit;
     background-image: linear-gradient(
       90deg,
-      var(--text-fill-color, #8b5cf6),
-      var(--text-fill-color, #8b5cf6)
+      var(--text-fill-color, var(--color-violet-500)),
+      var(--text-fill-color, var(--color-violet-500))
     );
     background-size: 0% 100%;
     background-position: left center;
@@ -200,7 +246,7 @@ import Sun from "../components/icons/Sun.astro";
     left: 0;
     width: 0;
     height: 2px;
-    background-color: var(--underline-color, #8b5cf6);
+    background-color: var(--underline-color, var(--color-violet-500));
     transition: width 0.3s ease-out;
   }
 

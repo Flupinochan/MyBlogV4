@@ -1,11 +1,86 @@
-@import "tailwindcss";
+/* 
+  - メインカラー: violet
+  - サブカラー: cyan, amber, rose, emerald
+  - ライト/ダークモード: white, gray, slate, indigo
+*/
 
+@import "tailwindcss";
 @custom-variant dark (&:where(.dark, .dark *));
+
+@font-face {
+  font-family: "GeistPixelSquare";
+  src: url("/geist-font-1.8.0/fonts/GeistPixel/webfonts/GeistPixel-Square.woff2")
+    format("woff2");
+  font-display: swap;
+}
+
+@theme {
+  --font-family-geist: "GeistPixelSquare", monospace;
+}
 
 @layer base {
   html {
     container-type: scroll-state;
     container-name: html-scroll-state;
-    cursor: none;
+    scroll-behavior: smooth;
+  }
+
+  @supports selector(::-webkit-scrollbar) {
+    html::-webkit-scrollbar {
+      width: 6px;
+    }
+    html::-webkit-scrollbar-button {
+      display: none;
+    }
+    html::-webkit-scrollbar-thumb {
+      background-color: var(--color-violet-500);
+      border-radius: 6px;
+    }
+    html::-webkit-scrollbar-track {
+      background-color: var(--color-indigo-950);
+    }
+    html::-webkit-scrollbar-thumb:hover {
+      background-color: var(--color-violet-400);
+    }
+    html::-webkit-scrollbar-thumb:active {
+      background-color: var(--color-violet-600);
+    }
+  }
+
+  @supports not selector(::-webkit-scrollbar) {
+    html {
+      scrollbar-color: var(--color-violet-500) var(--color-indigo-950);
+      scrollbar-width: thin;
+      scrollbar-gutter: stable;
+    }
+  }
+}
+
+@supports selector(::-webkit-scrollbar-button) {
+  html::-webkit-scrollbar-button {
+    display: none;
+  }
+}
+
+/* SVG Icon Animation */
+@layer components {
+  .svg-path {
+    stroke-dasharray: 300;
+    stroke-dashoffset: 0;
+    stroke-width: 1.5;
+    transition: stroke-width 0.3s;
+  }
+  .svg-button:hover .svg-path {
+    stroke-width: 2;
+    animation: draw 1s ease-in forwards;
+    stroke-dashoffset: 300;
+  }
+  @keyframes draw {
+    0% {
+      stroke-dashoffset: 300;
+    }
+    100% {
+      stroke-dashoffset: 0;
+    }
   }
 }

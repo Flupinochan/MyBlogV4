@@ -88,6 +88,12 @@ const bucket = s3.Bucket.fromBucketName(
 - **.astro**: <style> タグは極力使用せず、Tailwind CSS を使用すること
   - Tailwind CSS で実装できない場合は、astro <style> タグを使用してよい
 
+#### Tailwind CSS Color Palette
+
+- メインカラー: violet
+- サブカラー: cyan, amber, rose, emerald
+- ライト/ダークモード: white, gray, slate, indigo
+
 ### TypeScript Code Style
 
 - **any**: anyは利用せず、明示的に型を定義すること

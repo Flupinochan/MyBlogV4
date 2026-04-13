@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import {
-  COLOR_MAP,
+  getTailwindColor,
   type CursorColor,
   type CursorShape,
 } from "../../layouts/ThemeColor";
@@ -68,14 +68,17 @@ function CursorSVG({
   isHovering: boolean;
 }) {
   const size = isHovering ? 48 : 32;
-  const hex = COLOR_MAP[color];
+  const resolvedColor = getTailwindColor(color);
 
   return (
     <svg
       width={size}
       height={size}
       viewBox={`0 0 ${size} ${size}`}
-      style={{ color: hex, transition: "width 0.2s, height 0.2s, color 0.3s" }}
+      style={{
+        color: resolvedColor,
+        transition: "width 0.2s, height 0.2s, color 0.3s",
+      }}
       overflow="visible"
     >
       {shape === "circle" && (
@@ -230,7 +233,7 @@ export default function CustomCursor({
               whiteSpace: "nowrap",
               fontSize: "11px",
               fontFamily: "monospace",
-              color: COLOR_MAP[state.color],
+              color: getTailwindColor(state.color),
               opacity: 0.9,
               letterSpacing: "0.04em",
             }}
@@ -250,7 +253,7 @@ export default function CustomCursor({
           width: 4,
           height: 4,
           borderRadius: "50%",
-          backgroundColor: COLOR_MAP[state.color],
+          backgroundColor: getTailwindColor(state.color),
           transform: "translate(-50%, -50%)",
           pointerEvents: "none",
           zIndex: 10000,

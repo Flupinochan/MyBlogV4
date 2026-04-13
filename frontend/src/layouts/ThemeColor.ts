@@ -1,10 +1,18 @@
 export type CursorShape = "circle" | "square" | "star" | "diamond" | "cross";
 export type CursorColor = "violet" | "cyan" | "amber" | "rose" | "emerald";
 
-export const COLOR_MAP: Record<CursorColor, string> = {
-  violet: "#8b5cf6",
-  cyan: "#22d3ee",
-  amber: "#f59e0b",
-  rose: "#fb7185",
-  emerald: "#34d399",
+const CURSOR_COLOR_VARIABLES: Record<CursorColor, string> = {
+  violet: "--color-violet-500",
+  cyan: "--color-cyan-500",
+  amber: "--color-amber-500",
+  rose: "--color-rose-500",
+  emerald: "--color-emerald-500",
 };
+
+export function getTailwindColor(color: CursorColor): string {
+  return `var(${CURSOR_COLOR_VARIABLES[color]})`;
+}
+
+export function isCursorColor(value: string): value is CursorColor {
+  return value in CURSOR_COLOR_VARIABLES;
+}
