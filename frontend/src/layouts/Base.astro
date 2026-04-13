@@ -4,7 +4,6 @@ import Footer from "./Footer.astro";
 import Flex from "../components/layout/Flex.astro";
 import Avatar from "../components/avatar/Avatar.js";
 import "../styles/global.css";
-import CustomCursor from "../components/cursor/CustomCursor.js";
 import ScrollToTopButton from "./ScrollToTopButton.astro";
 import DarkModeGif from "./DarkModeGif.astro";
 import Loading from "./Loading.astro";
@@ -34,7 +33,6 @@ import Loading from "./Loading.astro";
     class="flex flex-col bg-no-repeat bg-center bg-cover dark:bg-slate-900 text-slate-500"
   >
     <Loading />
-    <!-- <CustomCursor client:load /> -->
     <DarkModeGif size={400} />
     <ScrollToTopButton />
     <Header />

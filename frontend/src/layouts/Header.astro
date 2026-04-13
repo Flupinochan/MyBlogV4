@@ -12,39 +12,27 @@ import Flex from "../components/layout/Flex.astro";
 >
   <nav>
     <ul class="flex">
-      <li
-        class="p-4 textWrapper"
-        data-cursor-color="cyan"
-        data-cursor-shape="circle"
-      >
+      <li class="p-4 textWrapper" data-cursor-color="cyan">
         <a href="#" class="backgroundImage">Profile</a>
       </li>
-      <li
-        class="p-4 textWrapper"
-        data-cursor-color="amber"
-        data-cursor-shape="square"
-      >
+      <li class="p-4 textWrapper" data-cursor-color="amber">
         <a href="#" class="backgroundImage">Blog</a>
       </li>
-      <li
-        class="p-4 textWrapper"
-        data-cursor-color="rose"
-        data-cursor-shape="star"
-      >
+      <li class="p-4 textWrapper" data-cursor-color="rose">
         <a href="#" class="backgroundImage">Tools</a>
       </li>
-      <li
-        class="p-4 textWrapper"
-        data-cursor-color="emerald"
-        data-cursor-shape="diamond"
-      >
+      <li class="p-4 textWrapper" data-cursor-color="emerald">
         <a href="#" class="backgroundImage">GitHub</a>
       </li>
     </ul>
   </nav>
-  <p style="font-family: var(--font-family-geist)" class="text-4xl">
-    METAL MENTAL
-  </p>
+  <div
+    style="font-family: var(--font-family-geist)"
+    class="text-4xl textWrapper"
+    data-cursor-color="violet"
+  >
+    <a href="#" class="backgroundImage"> METAL MENTAL </a>
+  </div>
   <Flex class="relative z-10 gap-4 pr-10 items-center">
     <button
       class="toggle-dark-mode transform active:scale-95 transition-transform duration-150"
@@ -83,19 +71,19 @@ import Flex from "../components/layout/Flex.astro";
 <script>
   // header hover時のcolor effect
   import {
-    getTailwindColor,
-    isCursorColor,
-    type CursorColor,
+    getAccentColor,
+    isAccentColor,
+    type AccentColor,
   } from "./ThemeColor";
 
-  const DEFAULT_COLOR: CursorColor = "violet";
+  const DEFAULT_ACCENT_COLOR: AccentColor = "violet";
 
   const header = document.querySelector("header");
   if (!header) throw new Error("Header element not found");
 
   header.style.setProperty(
     "--spotlight-color",
-    getTailwindColor(DEFAULT_COLOR),
+    getAccentColor(DEFAULT_ACCENT_COLOR),
   );
 
   header.addEventListener("mousemove", (e) => {
@@ -113,21 +101,21 @@ import Flex from "../components/layout/Flex.astro";
     const li = element as HTMLLIElement;
     const colorName = li.getAttribute("data-cursor-color");
     const resolvedColor =
-      colorName && isCursorColor(colorName) ? colorName : DEFAULT_COLOR;
+      colorName && isAccentColor(colorName) ? colorName : DEFAULT_ACCENT_COLOR;
 
-    li.style.setProperty("--underline-color", getTailwindColor(resolvedColor));
-    li.style.setProperty("--text-fill-color", getTailwindColor(resolvedColor));
+    li.style.setProperty("--underline-color", getAccentColor(resolvedColor));
+    li.style.setProperty("--text-fill-color", getAccentColor(resolvedColor));
 
     li.addEventListener("mouseenter", () =>
       header.style.setProperty(
         "--spotlight-color",
-        getTailwindColor(resolvedColor),
+        getAccentColor(resolvedColor),
       ),
     );
     li.addEventListener("mouseleave", () =>
       header.style.setProperty(
         "--spotlight-color",
-        getTailwindColor(DEFAULT_COLOR),
+        getAccentColor(DEFAULT_ACCENT_COLOR),
       ),
     );
   });
