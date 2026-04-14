@@ -1,113 +1,127 @@
 ---
-interface Word {
-  text: string;
-  color: string;
-}
 
-interface Props {
-  prefix: string;
-  suffix: string;
-  words: Word[];
-  typeSpeed?: number;
-  deleteSpeed?: number;
-  pauseMs?: number;
-}
-
-const {
-  prefix,
-  suffix,
-  words,
-  typeSpeed = 70,
-  deleteSpeed = 70,
-  pauseMs = 2000,
-} = Astro.props;
 ---
 
-<span id="tw-prefix"></span><span id="tw-cycle"></span><span id="tw-suffix"
-></span>
+<span data-home-title-prefix></span><br /><span data-home-title-cycle
+></span><span data-home-title-suffix></span>
 
-<script define:vars={{ prefix, suffix, words, typeSpeed, deleteSpeed, pauseMs }}
->
-  const prefixEl = document.getElementById("tw-prefix");
-  const cycleEl = document.getElementById("tw-cycle");
-  const suffixEl = document.getElementById("tw-suffix");
+<script>
+  import { gsap } from "gsap";
+  import { TextPlugin } from "gsap/TextPlugin";
 
-  let wordIdx = 0;
+  gsap.registerPlugin(TextPlugin);
 
-  function setCursor(el) {
-    [prefixEl, cycleEl, suffixEl].forEach((e) => e.classList.remove("typing"));
-    if (el) el.classList.add("typing");
-  }
+  type HomeWord = {
+    text: string;
+    color: string;
+  };
 
-  function applyColor(word) {
-    cycleEl.style.color = word.color;
-  }
+  const words: HomeWord[] = [
+    { text: "Infra", color: "var(--color-rose-500)" },
+    { text: "Frontend", color: "var(--color-cyan-500)" },
+    { text: "Backend", color: "var(--color-amber-500)" },
+    { text: "SRE", color: "var(--color-emerald-500)" },
+    { text: "Full-Stack", color: "var(--color-violet-500)" },
+  ];
+  const typeSpeed = 70;
+  const pauseMs = 2000;
+  const defaultColor = "var(--color-slate-500)";
 
-  function clearColor() {
-    cycleEl.style.color = "var(--color-slate-500)";
-  }
-
-  function typeText(el, text, cb) {
-    setCursor(el);
-    let i = 0;
-    function step() {
-      el.textContent = text.slice(0, ++i);
-      if (i < text.length) setTimeout(step, typeSpeed);
-      else if (cb) setTimeout(cb, 80);
-    }
-    setTimeout(step, typeSpeed);
-  }
-
-  function deleteText(el, cb) {
-    setCursor(el);
-    function step() {
-      const cur = el.textContent;
-      if (cur.length === 0) {
-        if (cb) setTimeout(cb, 80);
+  // 早期returnを可能にするためのIIFE
+  (() => {
+    function main(): void {
+      const prefixElement = document.querySelector("[data-home-title-prefix]");
+      const cycleElement = document.querySelector("[data-home-title-cycle]");
+      const suffixElement = document.querySelector("[data-home-title-suffix]");
+      if (!cycleElement || !prefixElement || !suffixElement) {
         return;
       }
-      el.textContent = cur.slice(0, -1);
-      setTimeout(step, deleteSpeed);
-    }
-    setTimeout(step, deleteSpeed);
-  }
 
-  function loopCycle() {
-    const word = words[wordIdx];
-    clearColor();
-    typeText(cycleEl, word.text, () => {
-      applyColor(word);
-      setCursor(null);
-      setTimeout(() => {
-        clearColor();
-        deleteText(cycleEl, () => {
-          wordIdx = (wordIdx + 1) % words.length;
-          setTimeout(loopCycle, 100);
-        });
-      }, pauseMs);
-    });
-  }
+      const prefixText = "MetalMental is a ";
+      const suffixText = " engineer";
+      const cycleWords = [words[1], words[2], words[3], words[4], words[0]];
+      let currentWordText = words[0].text;
+      let currentWordIndex = 0;
 
-  function phase1() {
-    typeText(prefixEl, prefix, () => {
-      const first = words[0];
-      typeText(cycleEl, first.text, () => {
-        applyColor(first);
-        typeText(suffixEl, suffix, () => {
-          setCursor(null);
-          setTimeout(() => {
-            clearColor();
-            deleteText(cycleEl, () => {
-              wordIdx = 1;
-              loopCycle();
-            });
-          }, pauseMs);
-        });
+      // 初回表示用
+      const tl = gsap.timeline();
+      // prefix type writer
+      tl.to(prefixElement, {
+        ease: "none",
+        duration: prefixText.length * (typeSpeed / 1000),
+        text: prefixText,
       });
-    });
-  }
+      // 1つ目のcycle type writer
+      tl.set(cycleElement, { color: words[0].color });
+      tl.to(cycleElement, {
+        ease: "none",
+        duration: words[0].text.length * (typeSpeed / 1000),
+        text: words[0].text,
+      });
+      // suffix type writer
+      tl.to(suffixElement, {
+        ease: "none",
+        duration: suffixText.length * (typeSpeed / 1000),
+        text: suffixText,
+      });
 
-  phase1();
+      // 以降2つ目のcycle type writerループ用
+      const playNextWord = (): void => {
+        const word = cycleWords[currentWordIndex];
+        currentWordIndex = (currentWordIndex + 1) % cycleWords.length;
+        const deleteWordText = currentWordText;
+        const deleteState = { progress: 0 };
+
+        gsap
+          .timeline({
+            onComplete: playNextWord,
+          })
+          .to({}, { duration: pauseMs / 1000 })
+          .to(deleteState, {
+            ease: "none",
+            duration: deleteWordText.length * (typeSpeed / 1000),
+            progress: 1,
+            onUpdate: () => {
+              const remainingLength = Math.max(
+                0,
+                Math.round(deleteWordText.length * (1 - deleteState.progress)),
+              );
+              cycleElement.textContent = deleteWordText.slice(
+                0,
+                remainingLength,
+              );
+            },
+          })
+          .set(cycleElement, { color: word.color })
+          .to(cycleElement, {
+            ease: "none",
+            duration: word.text.length * (typeSpeed / 1000),
+            text: word.text,
+          });
+
+        currentWordText = word.text;
+      };
+
+      tl.call(playNextWord);
+    }
+
+    const initialize = (): void => {
+      const loadingOverlay = document.getElementById("loading-overlay");
+      if (loadingOverlay && loadingOverlay.style.display !== "none") {
+        window.addEventListener("loading-overlay-hidden", () => main(), {
+          once: true,
+        });
+      } else {
+        main();
+      }
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initialize, { once: true });
+    } else {
+      initialize();
+    }
+  })();
 </script>
 
 <style>
@@ -118,9 +132,10 @@ const {
     height: 1em;
     background: currentColor;
     margin-left: 1px;
-    vertical-align: text-bottom;
+    vertical-align: top;
     animation: tw-blink 0.7s step-end infinite;
   }
+
   @keyframes tw-blink {
     0%,
     100% {
@@ -130,8 +145,14 @@ const {
       opacity: 0;
     }
   }
-  #tw-cycle {
-    color: var(--color-slate-500);
-    transition: color 0.4s ease;
+
+  [data-home-title-prefix],
+  [data-home-title-cycle],
+  [data-home-title-suffix] {
+    display: inline-block;
+    min-height: 1em;
+    line-height: 1;
+    vertical-align: top;
+    white-space: pre;
   }
 </style>

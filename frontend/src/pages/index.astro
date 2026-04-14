@@ -5,19 +5,9 @@ import { getAccentColor } from "../layouts/ThemeColor";
 ---
 
 <Layout>
-  <section class="text-center">
-    <h1 class="text-2xl font-bold">
-      <HomeTitle
-        prefix="MetalMental is a "
-        suffix=" engineer"
-        words={[
-          { text: "Infra", color: getAccentColor("rose") },
-          { text: "Frontend", color: getAccentColor("cyan") },
-          { text: "Backend", color: getAccentColor("amber") },
-          { text: "SRE", color: getAccentColor("emerald") },
-          { text: "Full-Stack", color: getAccentColor("violet") },
-        ]}
-      />
+  <section class="text-center pt-40">
+    <h1 class="text-7xl font-bold">
+      <HomeTitle />
     </h1>
     <a href="/used-tech">Used Tech</a>
     {

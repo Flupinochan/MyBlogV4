@@ -49,6 +49,7 @@ function Model() {
         // フェードアウト完了後にDOMからも消すようnoneにしておく
         setTimeout(() => {
           loading.style.display = "none";
+          window.dispatchEvent(new Event("loading-overlay-hidden"));
         }, 500);
       }
     }
