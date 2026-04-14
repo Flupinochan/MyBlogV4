@@ -1,0 +1,137 @@
+---
+interface Word {
+  text: string;
+  color: string;
+}
+
+interface Props {
+  prefix: string;
+  suffix: string;
+  words: Word[];
+  typeSpeed?: number;
+  deleteSpeed?: number;
+  pauseMs?: number;
+}
+
+const {
+  prefix,
+  suffix,
+  words,
+  typeSpeed = 70,
+  deleteSpeed = 70,
+  pauseMs = 2000,
+} = Astro.props;
+---
+
+<span id="tw-prefix"></span><span id="tw-cycle"></span><span id="tw-suffix"
+></span>
+
+<script define:vars={{ prefix, suffix, words, typeSpeed, deleteSpeed, pauseMs }}
+>
+  const prefixEl = document.getElementById("tw-prefix");
+  const cycleEl = document.getElementById("tw-cycle");
+  const suffixEl = document.getElementById("tw-suffix");
+
+  let wordIdx = 0;
+
+  function setCursor(el) {
+    [prefixEl, cycleEl, suffixEl].forEach((e) => e.classList.remove("typing"));
+    if (el) el.classList.add("typing");
+  }
+
+  function applyColor(word) {
+    cycleEl.style.color = word.color;
+  }
+
+  function clearColor() {
+    cycleEl.style.color = "var(--color-slate-500)";
+  }
+
+  function typeText(el, text, cb) {
+    setCursor(el);
+    let i = 0;
+    function step() {
+      el.textContent = text.slice(0, ++i);
+      if (i < text.length) setTimeout(step, typeSpeed);
+      else if (cb) setTimeout(cb, 80);
+    }
+    setTimeout(step, typeSpeed);
+  }
+
+  function deleteText(el, cb) {
+    setCursor(el);
+    function step() {
+      const cur = el.textContent;
+      if (cur.length === 0) {
+        if (cb) setTimeout(cb, 80);
+        return;
+      }
+      el.textContent = cur.slice(0, -1);
+      setTimeout(step, deleteSpeed);
+    }
+    setTimeout(step, deleteSpeed);
+  }
+
+  function loopCycle() {
+    const word = words[wordIdx];
+    clearColor();
+    typeText(cycleEl, word.text, () => {
+      applyColor(word);
+      setCursor(null);
+      setTimeout(() => {
+        clearColor();
+        deleteText(cycleEl, () => {
+          wordIdx = (wordIdx + 1) % words.length;
+          setTimeout(loopCycle, 100);
+        });
+      }, pauseMs);
+    });
+  }
+
+  function phase1() {
+    typeText(prefixEl, prefix, () => {
+      const first = words[0];
+      typeText(cycleEl, first.text, () => {
+        applyColor(first);
+        typeText(suffixEl, suffix, () => {
+          setCursor(null);
+          setTimeout(() => {
+            clearColor();
+            deleteText(cycleEl, () => {
+              wordIdx = 1;
+              loopCycle();
+            });
+          }, pauseMs);
+        });
+      });
+    });
+  }
+
+  phase1();
+</script>
+
+<style>
+  .typing::after {
+    content: "";
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: currentColor;
+    margin-left: 1px;
+    vertical-align: text-bottom;
+    animation: tw-blink 0.7s step-end infinite;
+  }
+  @keyframes tw-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+  #tw-cycle {
+    color: var(--color-slate-500);
+    transition: color 0.4s ease;
+  }
+</style>
