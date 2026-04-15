@@ -24,7 +24,7 @@
     { text: "Full-Stack", color: "var(--color-violet-500)" },
   ];
   const typeSpeed = 70;
-  const pauseMs = 2000;
+  const pauseMs = 2500;
   const defaultColor = "var(--color-slate-500)";
 
   // 早期returnを可能にするためのIIFE
@@ -43,15 +43,30 @@
       let currentWordText = words[0].text;
       let currentWordIndex = 0;
 
+      const setCursor = (el: Element, blink: boolean): void => {
+        el.classList.add(blink ? "typing-blink" : "typing");
+      };
+
+      const removeCursor = (): void => {
+        prefixElement.classList.remove("typing", "typing-blink");
+        cycleElement.classList.remove("typing", "typing-blink");
+        suffixElement.classList.remove("typing", "typing-blink");
+      };
+
       // 初回表示用
       const tl = gsap.timeline();
       // prefix type writer
+      tl.call(() => setCursor(prefixElement, false));
       tl.to(prefixElement, {
         ease: "none",
         duration: prefixText.length * (typeSpeed / 1000),
         text: prefixText,
       });
       // 1つ目のcycle type writer
+      tl.call(() => {
+        removeCursor();
+        setCursor(cycleElement, false);
+      });
       tl.set(cycleElement, { color: words[0].color });
       tl.to(cycleElement, {
         ease: "none",
@@ -59,10 +74,18 @@
         text: words[0].text,
       });
       // suffix type writer
+      tl.call(() => {
+        removeCursor();
+        setCursor(suffixElement, false);
+      });
       tl.to(suffixElement, {
         ease: "none",
         duration: suffixText.length * (typeSpeed / 1000),
         text: suffixText,
+      });
+      tl.call(() => {
+        removeCursor();
+        setCursor(suffixElement, true);
       });
 
       // 以降2つ目のcycle type writerループ用
@@ -77,6 +100,10 @@
             onComplete: playNextWord,
           })
           .to({}, { duration: pauseMs / 1000 })
+          .call(() => {
+            removeCursor();
+            setCursor(cycleElement, false);
+          })
           .to(deleteState, {
             ease: "none",
             duration: deleteWordText.length * (typeSpeed / 1000),
@@ -97,6 +124,10 @@
             ease: "none",
             duration: word.text.length * (typeSpeed / 1000),
             text: word.text,
+          })
+          .call(() => {
+            removeCursor();
+            setCursor(cycleElement, true);
           });
 
         currentWordText = word.text;
@@ -125,15 +156,19 @@
 </script>
 
 <style>
-  .typing::after {
+  .typing::after,
+  .typing-blink::after {
     content: "";
     display: inline-block;
-    width: 2px;
-    height: 1em;
+    width: 3px;
+    height: 0.9em;
     background: currentColor;
-    margin-left: 1px;
-    vertical-align: top;
-    animation: tw-blink 0.7s step-end infinite;
+    margin-left: 2px;
+    vertical-align: bottom;
+  }
+
+  .typing-blink::after {
+    animation: tw-blink 1s step-end infinite;
   }
 
   @keyframes tw-blink {
