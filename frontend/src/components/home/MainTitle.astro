@@ -1,0 +1,319 @@
+---
+import Flex from "../layout/Flex.astro";
+---
+
+<Flex class="flex-col gap-8">
+  <h1 class="text-7xl font-bold">
+    <span data-home-title-name></span><span data-home-title-prefix></span><br />
+    <span data-home-title-cycle></span><span data-home-title-suffix></span>
+  </h1>
+  <p class="text-xl font-bold">
+    <span data-home-title-description-lead></span><span
+      data-home-title-description-middle></span><span
+      data-home-title-description-tail></span>
+  </p>
+</Flex>
+
+<script>
+  import { gsap } from "gsap";
+  import { TextPlugin } from "gsap/TextPlugin";
+
+  gsap.registerPlugin(TextPlugin);
+
+  type HomeWord = {
+    text: string;
+    color: string;
+  };
+
+  const cycleText: HomeWord[] = [
+    { text: "Full-Stack", color: "var(--color-violet-500)" },
+    { text: "Infra", color: "var(--color-rose-500)" },
+    { text: "Frontend", color: "var(--color-cyan-500)" },
+    { text: "Backend", color: "var(--color-amber-500)" },
+    { text: "SRE", color: "var(--color-emerald-500)" },
+  ];
+  const nameText = "MetalMental";
+  const prefixText = " is a ";
+  const suffixText = " engineer";
+  const descriptionLeadText =
+    "フロントエンドからバックエンド、インフラまで手掛ける";
+  const descriptionMiddleText = "メタルなメンタル";
+  const descriptionTailText = "を持つエンジニアです";
+  const typeSpeed = 70;
+  const pauseMs = 2500;
+
+  // 早期returnを可能にするためのIIFE
+  (() => {
+    function main(): void {
+      const nameElement = document.querySelector("[data-home-title-name]");
+      const prefixElement = document.querySelector("[data-home-title-prefix]");
+      const cycleElement = document.querySelector("[data-home-title-cycle]");
+      const suffixElement = document.querySelector("[data-home-title-suffix]");
+      const descriptionLeadElement = document.querySelector(
+        "[data-home-title-description-lead]",
+      );
+      const descriptionMiddleElement = document.querySelector(
+        "[data-home-title-description-middle]",
+      );
+      const descriptionTailElement = document.querySelector(
+        "[data-home-title-description-tail]",
+      );
+      if (
+        !nameElement ||
+        !cycleElement ||
+        !prefixElement ||
+        !suffixElement ||
+        !descriptionLeadElement ||
+        !descriptionMiddleElement ||
+        !descriptionTailElement
+      ) {
+        return;
+      }
+
+      const cycleWords = [
+        cycleText[1],
+        cycleText[2],
+        cycleText[3],
+        cycleText[4],
+        cycleText[0],
+      ];
+      let currentWordText = cycleText[0].text;
+      let currentWordIndex = 0;
+
+      const setCursor = (el: Element, blink: boolean): void => {
+        el.classList.add(blink ? "typing-blink" : "typing");
+      };
+
+      const removeCursor = (): void => {
+        nameElement.classList.remove("typing", "typing-blink");
+        prefixElement.classList.remove("typing", "typing-blink");
+        cycleElement.classList.remove("typing", "typing-blink");
+        suffixElement.classList.remove("typing", "typing-blink");
+        descriptionLeadElement.classList.remove("typing", "typing-blink");
+        descriptionMiddleElement.classList.remove("typing", "typing-blink");
+        descriptionTailElement.classList.remove("typing", "typing-blink");
+      };
+
+      // 以降2つ目のcycle type writerループ用
+      const playNextWord = (): void => {
+        const word = cycleWords[currentWordIndex];
+        currentWordIndex = (currentWordIndex + 1) % cycleWords.length;
+        const deleteWordText = currentWordText;
+        const deleteState = { progress: 0 };
+
+        gsap
+          .timeline({
+            onComplete: playNextWord,
+          })
+          .to({}, { duration: pauseMs / 1000 })
+          .call(() => {
+            removeCursor();
+            setCursor(cycleElement, false);
+          })
+          .to(deleteState, {
+            ease: "none",
+            duration: deleteWordText.length * (typeSpeed / 1000),
+            progress: 1,
+            onUpdate: () => {
+              const remainingLength = Math.max(
+                0,
+                Math.round(deleteWordText.length * (1 - deleteState.progress)),
+              );
+              cycleElement.textContent = deleteWordText.slice(
+                0,
+                remainingLength,
+              );
+            },
+          })
+          .set(cycleElement, { color: word.color })
+          .to(cycleElement, {
+            ease: "none",
+            duration: word.text.length * (typeSpeed / 1000),
+            text: word.text,
+          })
+          .call(() => {
+            removeCursor();
+            setCursor(cycleElement, true);
+          });
+
+        currentWordText = word.text;
+      };
+
+      // 初回表示用timeline (OuterTimelineで動かすためpaused:trueで定義)
+      const innerTl = gsap.timeline({ paused: true });
+      // name type writer
+      innerTl.call(() => setCursor(nameElement, false));
+      innerTl.to(nameElement, {
+        ease: "none",
+        duration: nameText.length * (typeSpeed / 1000),
+        text: nameText,
+      });
+      // prefix type writer
+      innerTl.call(() => setCursor(prefixElement, false));
+      innerTl.to(prefixElement, {
+        ease: "none",
+        duration: prefixText.length * (typeSpeed / 1000),
+        text: prefixText,
+      });
+      // 1つ目のcycle type writer
+      innerTl.call(() => {
+        removeCursor();
+        setCursor(cycleElement, false);
+      });
+      innerTl.to(cycleElement, {
+        ease: "none",
+        duration: cycleText[0].text.length * (typeSpeed / 1000),
+        text: cycleText[0].text,
+      });
+      // suffix type writer
+      innerTl.call(() => {
+        removeCursor();
+        setCursor(suffixElement, false);
+      });
+      innerTl.to(suffixElement, {
+        ease: "none",
+        duration: suffixText.length * (typeSpeed / 1000),
+        text: suffixText,
+      });
+      innerTl.call(() => {
+        removeCursor();
+        setCursor(suffixElement, false);
+      });
+
+      const titleOuterTl = gsap.timeline();
+      titleOuterTl.to(innerTl, {
+        progress: 1,
+        ease: "power1.out",
+        duration:
+          (nameText.length +
+            prefixText.length +
+            cycleText[0].text.length +
+            suffixText.length) *
+          (typeSpeed / 1000),
+      });
+
+      // description用
+      const descriptionInnerTl = gsap.timeline({ paused: true });
+      descriptionInnerTl.call(() => {
+        removeCursor();
+        setCursor(descriptionLeadElement, false);
+      });
+      descriptionInnerTl.to(descriptionLeadElement, {
+        ease: "none",
+        duration: descriptionLeadText.length * (typeSpeed / 1000),
+        text: descriptionLeadText,
+      });
+      descriptionInnerTl.call(() => {
+        removeCursor();
+        setCursor(descriptionMiddleElement, false);
+      });
+      descriptionInnerTl.to(descriptionMiddleElement, {
+        ease: "none",
+        duration: descriptionMiddleText.length * (typeSpeed / 1000),
+        text: descriptionMiddleText,
+      });
+      descriptionInnerTl.call(() => {
+        removeCursor();
+        setCursor(descriptionTailElement, false);
+      });
+      descriptionInnerTl.to(descriptionTailElement, {
+        ease: "none",
+        duration: descriptionTailText.length * (typeSpeed / 1000),
+        text: descriptionTailText,
+      });
+      descriptionInnerTl.call(() => {
+        removeCursor();
+      });
+
+      const descriptionOuterTl = gsap.timeline();
+      descriptionOuterTl.to(descriptionInnerTl, {
+        progress: 1,
+        ease: "power1.out",
+        duration:
+          (descriptionLeadText.length +
+            descriptionMiddleText.length +
+            descriptionTailText.length) *
+          (typeSpeed / 1000),
+      });
+
+      // easeを全体にかけるための上書き用
+      const outerTl = gsap.timeline({
+        onComplete: playNextWord,
+      });
+      outerTl.add(titleOuterTl);
+      outerTl.add(descriptionOuterTl);
+      outerTl.to({}, { duration: 1.5 });
+      outerTl.set(nameElement, { color: cycleText[0].color });
+      outerTl.set(cycleElement, { color: cycleText[0].color });
+      outerTl.set(descriptionMiddleElement, { color: cycleText[0].color });
+      outerTl.to({}, { duration: 2 });
+    }
+
+    // 初期化
+    const initialize = (): void => {
+      const loadingOverlay = document.getElementById("loading-overlay");
+      if (loadingOverlay && loadingOverlay.style.display !== "none") {
+        window.addEventListener("loading-overlay-hidden", () => main(), {
+          once: true,
+        });
+      } else {
+        main();
+      }
+    };
+
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", initialize, { once: true });
+    } else {
+      initialize();
+    }
+  })();
+</script>
+
+<style>
+  h1 .typing::after,
+  h1 .typing-blink::after {
+    width: 3px;
+  }
+
+  p .typing::after,
+  p .typing-blink::after {
+    width: 1px;
+  }
+
+  .typing::after,
+  .typing-blink::after {
+    content: "";
+    display: inline-block;
+    height: 0.9em;
+    background: currentColor;
+    margin-left: 2px;
+    vertical-align: bottom;
+  }
+
+  .typing-blink::after {
+    animation: tw-blink 1s step-end infinite;
+  }
+
+  @keyframes tw-blink {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
+  }
+
+  [data-home-title-prefix],
+  [data-home-title-cycle],
+  [data-home-title-suffix],
+  [data-home-title-description-lead],
+  [data-home-title-description-middle],
+  [data-home-title-description-tail] {
+    display: inline-block;
+    min-height: 1em;
+    line-height: 1;
+    vertical-align: top;
+    white-space: pre;
+  }
+</style>

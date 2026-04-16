@@ -1,14 +1,11 @@
 ---
 import Layout from "../layouts/Base.astro";
-import HomeTitle from "../components/layout/HomeTitle.astro";
-import { getAccentColor } from "../layouts/ThemeColor";
+import MainTitle from "../components/home/MainTitle.astro";
 ---
 
 <Layout>
   <section class="text-center pt-40">
-    <h1 class="text-7xl font-bold">
-      <HomeTitle />
-    </h1>
+    <MainTitle />
     <a href="/used-tech">Used Tech</a>
     {
       Array.from({ length: 100 }, (_, i) => (
