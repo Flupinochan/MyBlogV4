@@ -2,10 +2,14 @@
 import Flex from "../layout/Flex.astro";
 ---
 
-<Flex class="flex-col gap-8">
-  <h1 class="text-7xl font-bold">
-    <span data-home-title-name></span><span data-home-title-prefix></span><br />
-    <span data-home-title-cycle></span><span data-home-title-suffix></span>
+<Flex class="flex-col gap-14">
+  <h1 class="flex flex-col items-center gap-4 text-7xl font-bold">
+    <div class="w-fit whitespace-nowrap">
+      <span data-home-title-name></span><span data-home-title-prefix></span>
+    </div>
+    <div class="w-fit whitespace-nowrap">
+      <span data-home-title-cycle></span><span data-home-title-suffix></span>
+    </div>
   </h1>
   <p class="text-xl font-bold">
     <span data-home-title-description-lead></span><span
@@ -273,21 +277,25 @@ import Flex from "../layout/Flex.astro";
   h1 .typing::after,
   h1 .typing-blink::after {
     width: 3px;
+    height: 0.8em;
+    vertical-align: bottom;
+    transform: translateY(-3px);
   }
 
   p .typing::after,
   p .typing-blink::after {
     width: 1px;
+    height: 1em;
+    vertical-align: middle;
+    transform: translateY(-2px);
   }
 
   .typing::after,
   .typing-blink::after {
     content: "";
     display: inline-block;
-    height: 0.9em;
     background: currentColor;
     margin-left: 2px;
-    vertical-align: bottom;
   }
 
   .typing-blink::after {
@@ -310,10 +318,6 @@ import Flex from "../layout/Flex.astro";
   [data-home-title-description-lead],
   [data-home-title-description-middle],
   [data-home-title-description-tail] {
-    display: inline-block;
-    min-height: 1em;
-    line-height: 1;
-    vertical-align: top;
     white-space: pre;
   }
 </style>
