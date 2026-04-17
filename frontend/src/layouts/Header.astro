@@ -86,27 +86,33 @@ import Flex from "../components/layout/Flex.astro";
   // ダークモード切替
   const toggleButton = header.querySelector("button.toggle-dark-mode");
   toggleButton?.addEventListener("click", async () => {
-    const overlay = document.getElementById("gif-overlay");
-    const gif = document.getElementById("theme-gif");
+    const enable =
+      "startViewTransition" in document &&
+      window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
 
-    // GIF表示
-    overlay?.classList.add("opacity-100");
-    // 1秒待機
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    if (!enable) {
+      document.documentElement.classList.toggle("dark");
+      return;
+    }
 
-    // GIF拡大
-    gif?.classList.add("expand");
-    await new Promise((resolve) => {
-      gif?.addEventListener("transitionend", resolve, { once: true });
-    });
+    const root = document.documentElement;
 
-    // ダークモード切替
-    const isDarkMode = document.documentElement.classList.toggle("dark");
-    localStorage.setItem("theme", isDarkMode ? "dark" : "light");
+    const last = localStorage.getItem("theme-switch");
+    if (last && !isNaN(+last)) {
+      const diff = Date.now() - +last;
 
-    // GIF非表示
-    overlay?.classList.remove("opacity-100");
-    gif?.classList.remove("expand");
+      if (diff > 3 * 60 * 1000) {
+        root.classList.remove("-animated");
+      } else {
+        root.classList.add("-animated");
+      }
+    }
+
+    localStorage.setItem("theme-switch", Date.now().toString());
+
+    await document.startViewTransition(() => {
+      root.classList.toggle("dark");
+    }).ready;
   });
 </script>
 

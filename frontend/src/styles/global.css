@@ -84,3 +84,59 @@
     }
   }
 }
+
+/* View Transition change dark mode gif animation*/
+:root {
+  --switch-duration: 1.75s;
+  --switch-name: scale;
+}
+
+.-animated {
+  --switch-duration: 1s;
+  --switch-name: scale-fast;
+}
+
+::view-transition-group(root) {
+  z-index: 100;
+}
+
+::view-transition-new(root) {
+  mask: url("/dark-mode.gif") center / 0 no-repeat;
+  animation: var(--switch-name) var(--switch-duration);
+  animation-fill-mode: both;
+}
+
+::view-transition-old(root) {
+  animation: var(--switch-name) var(--switch-duration);
+  animation-fill-mode: both;
+}
+
+@keyframes scale {
+  0% {
+    mask-size: 0;
+  }
+  10% {
+    mask-size: 25vmax;
+  }
+  90% {
+    mask-size: 25vmax;
+  }
+  100% {
+    mask-size: 750vmax;
+  }
+}
+
+@keyframes scale-fast {
+  0% {
+    mask-size: 0;
+  }
+  10% {
+    mask-size: 25vmax;
+  }
+  87.5% {
+    mask-size: 25vmax;
+  }
+  100% {
+    mask-size: 750vmax;
+  }
+}
