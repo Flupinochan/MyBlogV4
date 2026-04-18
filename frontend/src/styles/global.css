@@ -99,16 +99,12 @@
 ::view-transition-group(root) {
   z-index: 100;
 }
-
+::view-transition-new(root),
+::view-transition-old(root) {
+  animation: var(--switch-name) var(--switch-duration) both;
+}
 ::view-transition-new(root) {
   mask: url("/dark-mode.gif") center / 0 no-repeat;
-  animation: var(--switch-name) var(--switch-duration);
-  animation-fill-mode: both;
-}
-
-::view-transition-old(root) {
-  animation: var(--switch-name) var(--switch-duration);
-  animation-fill-mode: both;
 }
 
 @keyframes scale {

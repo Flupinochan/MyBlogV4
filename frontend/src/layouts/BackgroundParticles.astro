@@ -1,0 +1,91 @@
+---
+
+---
+
+<div id="tsparticles" aria-hidden="true"></div>
+
+<script>
+  import { initParticlesEngine } from "@tsparticles/astro";
+  import type { ISourceOptions } from "@tsparticles/engine";
+  import { tsParticles } from "@tsparticles/engine";
+  import { loadSlim } from "@tsparticles/slim";
+
+  const blurredParticleImage = "/particles.svg";
+
+  const root = document.getElementById("tsparticles");
+  if (!root) {
+    throw new Error("Particles root element not found.");
+  }
+
+  const commonParticles: NonNullable<ISourceOptions["particles"]> = {
+    paint: {
+      fill: {
+        enable: true,
+      },
+    },
+    shape: {
+      type: "image",
+      options: {
+        image: {
+          src: blurredParticleImage,
+          width: 64,
+          height: 64,
+          replaceColor: false,
+          gif: false,
+        },
+      },
+    },
+    number: {
+      value: 36,
+    },
+    opacity: {
+      value: {
+        min: 0.12,
+        max: 0.6,
+      },
+    },
+    move: {
+      enable: true,
+      speed: {
+        min: 0.02,
+        max: 0.25,
+      },
+    },
+    size: {
+      value: {
+        min: 6,
+        max: 18,
+      },
+    },
+    links: {
+      enable: false,
+    },
+  };
+
+  const buildOptions = (): ISourceOptions => ({
+    autoPlay: true,
+    fpsLimit: 60,
+    detectRetina: true,
+    pauseOnBlur: true,
+    pauseOnOutsideViewport: true,
+    fullScreen: {
+      enable: true,
+      zIndex: -1,
+    },
+    background: {
+      color: {
+        value: "transparent",
+      },
+    },
+    particles: commonParticles,
+  });
+
+  await initParticlesEngine(async (engine) => {
+    await Promise.all([loadSlim(engine)]);
+  });
+
+  await tsParticles.load({
+    id: "tsparticles",
+    options: buildOptions(),
+  });
+</script>

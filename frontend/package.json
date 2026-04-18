@@ -6,6 +6,8 @@
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@tailwindcss/vite": "^4.2.2",
+    "@tsparticles/astro": "4.0.0-beta.12",
+    "@tsparticles/slim": "4.0.0-beta.12",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.183.1",
@@ -23,7 +25,7 @@
   "name": "sleepy-shell",
   "scripts": {
     "astro": "astro",
-    "build": "astro build",
+    "build": "astro check && astro build",
     "dev": "astro dev",
     "prepare": "husky",
     "preview": "astro preview"
