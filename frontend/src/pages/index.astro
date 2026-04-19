@@ -1,19 +1,17 @@
 ---
 import Layout from "../layouts/Base.astro";
 import MainTitle from "../components/home/MainTitle.astro";
+import Skills from "../components/home/Skills.astro";
 ---
 
 <Layout>
   <section class="text-center pt-40">
     <MainTitle />
-    <a href="/used-tech">Used Tech</a>
-    {
-      Array.from({ length: 100 }, (_, i) => (
-        <p>
-          これはサンプルテキストです。番号: {i + 1}.
-          コンテンツを増やして、スクロールバー表示を確認します。
-        </p>
-      ))
-    }
   </section>
+  <button
+    class="mt-8 px-6 py-3 bg-violet-600 text-white rounded hover:bg-violet-700 transition"
+  >
+    Contact Me
+  </button>
+  <Skills />
 </Layout>

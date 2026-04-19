@@ -109,10 +109,16 @@ import Flex from "../components/layout/Flex.astro";
     }
 
     localStorage.setItem("theme-switch", Date.now().toString());
+    root.classList.add("is-theme-switching");
 
-    await document.startViewTransition(() => {
-      root.classList.toggle("dark");
-    }).finished;
+    try {
+      await document.startViewTransition(() => {
+        root.classList.toggle("dark");
+      }).finished;
+    } finally {
+      // view-transition-nameは実行時だけ付与して、完了後に削除すること!!
+      root.classList.remove("is-theme-switching");
+    }
   });
 </script>
 
@@ -245,5 +251,63 @@ import Flex from "../components/layout/Flex.astro";
   }
   .textWrapper:hover .backgroundImage::after {
     width: 100%;
+  }
+</style>
+
+<style is:global>
+  /* View Transition change dark mode gif animation*/
+  :root {
+    --switch-duration: 1.75s;
+    --switch-name: scale;
+  }
+
+  .-animated {
+    --switch-duration: 1s;
+    --switch-name: scale-fast;
+  }
+
+  .is-theme-switching {
+    view-transition-name: theme-switch;
+  }
+
+  ::view-transition-group(theme-switch) {
+    z-index: 100;
+  }
+  ::view-transition-new(theme-switch),
+  ::view-transition-old(theme-switch) {
+    animation: var(--switch-name) var(--switch-duration) both;
+  }
+  ::view-transition-new(theme-switch) {
+    mask: url("/dark-mode.gif") center / 0 no-repeat;
+  }
+
+  @keyframes scale {
+    0% {
+      mask-size: 0;
+    }
+    10% {
+      mask-size: 25vmax;
+    }
+    90% {
+      mask-size: 25vmax;
+    }
+    100% {
+      mask-size: 750vmax;
+    }
+  }
+
+  @keyframes scale-fast {
+    0% {
+      mask-size: 0;
+    }
+    10% {
+      mask-size: 25vmax;
+    }
+    87.5% {
+      mask-size: 25vmax;
+    }
+    100% {
+      mask-size: 750vmax;
+    }
   }
 </style>

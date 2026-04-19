@@ -1,0 +1,201 @@
+---
+import type { SvgComponent } from "astro/types";
+import type { SkillItem } from "./skill.types";
+import SkillContent from "./SkillContent.astro";
+
+interface Props extends SkillItem {
+  icon: SvgComponent;
+}
+
+const { icon: Icon, title, details, color, tooltips } = Astro.props as Props;
+const dialogId = `dialog-${title}`;
+
+const classes = {
+  surface:
+    "rounded-2xl border border-slate-200/80 dark:border-slate-700/80 bg-slate-50/95 dark:bg-slate-900/95",
+  card: "flex h-48 cursor-pointer flex-col p-6 transform-gpu transition duration-300 ease-out hover:-translate-y-1 hover:scale-[1.03] hover:border-[var(--skill-color)]",
+  dialogSurface: "w-[min(92vw,32rem)] p-6 shadow-2xl",
+};
+---
+
+<style is:global>
+  ::view-transition-group(*) {
+    animation-duration: 0.4s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* タイトルのクロスフェードを抑制し、移動をスムーズにする */
+  ::view-transition-old(skill-title),
+  ::view-transition-new(skill-title) {
+    mix-blend-mode: normal;
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+  }
+
+  /* テキストの歪みを防ぐ設定 */
+  ::view-transition-old(skill-desc),
+  ::view-transition-new(skill-desc) {
+    height: 100%;
+    object-fit: none;
+    object-position: top left;
+  }
+
+  /* カード側の説明文を1行に制限 */
+  [data-trigger] .skill-desc-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ダイアログ側の説明文は制限解除 */
+  [data-dialog-surface] .skill-desc-text {
+    display: block;
+  }
+</style>
+
+<skill-card>
+  <div
+    data-trigger
+    style={`--skill-color: ${color};`}
+    class={`${classes.card} ${classes.surface}`}
+  >
+    <div data-trigger-content>
+      <SkillContent
+        icon={Icon}
+        title={title}
+        color={color}
+        tooltips={tooltips}
+        description={details}
+      />
+    </div>
+  </div>
+
+  <div
+    id={dialogId}
+    class="hidden fixed inset-0 z-50 items-center justify-center bg-indigo-950/45 dark:bg-slate-950/70 backdrop-blur-sm"
+  >
+    <div
+      data-dialog-surface
+      style={`--skill-color: ${color}; border-color: var(--skill-color);`}
+      class={`${classes.dialogSurface} ${classes.surface} border`}
+    >
+      <div data-dialog-content>
+        <SkillContent
+          icon={Icon}
+          title={title}
+          color={color}
+          tooltips={tooltips}
+          description={details}
+        />
+      </div>
+      <div class="mt-6 flex justify-end">
+        <button
+          data-close
+          class="rounded-md bg-violet-600 px-4 py-2 text-sm font-medium text-white hover:bg-violet-500 transition focus:outline-none"
+        >
+          閉じる
+        </button>
+      </div>
+    </div>
+  </div>
+</skill-card>
+
+<script>
+  class SkillCard extends HTMLElement {
+    connectedCallback() {
+      const trigger = this.querySelector<HTMLElement>("[data-trigger]");
+      const triggerContent = this.querySelector<HTMLElement>(
+        "[data-trigger-content]",
+      );
+      const modal = this.querySelector<HTMLElement>('[id^="dialog-"]');
+      const dialogSurface = this.querySelector<HTMLElement>(
+        "[data-dialog-surface]",
+      );
+      const dialogContent = this.querySelector<HTMLElement>(
+        "[data-dialog-content]",
+      );
+      const closeBtn = this.querySelector<HTMLElement>("[data-close]");
+
+      const getParts = (parent: HTMLElement | null) => {
+        if (!parent)
+          return { title: null, icon: null, tooltips: [], desc: null };
+        return {
+          title: parent.querySelector<HTMLElement>("[data-skill-title]"),
+          icon: parent.querySelector<HTMLElement>("svg"),
+          tooltips: parent.querySelectorAll<HTMLElement>(
+            "[data-skill-tooltip]",
+          ),
+          desc: parent.querySelector<HTMLElement>("[data-skill-description]"),
+        };
+      };
+
+      const setVTNames = (isOpening: boolean, isInsideTransition: boolean) => {
+        // すべてのVT名をリセット
+        const all = this.querySelectorAll<HTMLElement>(
+          "[data-trigger], [data-dialog-surface], [data-skill-title], [data-skill-tooltip], [data-skill-description], svg",
+        );
+        all.forEach((el) => (el.style.viewTransitionName = "none"));
+
+        const currentIsDialog = isInsideTransition ? isOpening : !isOpening;
+        const box = currentIsDialog ? dialogSurface : trigger;
+        const content = currentIsDialog ? dialogContent : triggerContent;
+        const {
+          title: titleEl,
+          icon: iconEl,
+          tooltips: tooltipEls,
+          desc: descEl,
+        } = getParts(content);
+
+        if (box) box.style.viewTransitionName = "skill-container";
+        if (titleEl) titleEl.style.viewTransitionName = "skill-title";
+        if (iconEl) iconEl.style.viewTransitionName = "skill-icon";
+        if (descEl) descEl.style.viewTransitionName = "skill-desc";
+
+        tooltipEls.forEach((el) => {
+          const id = el.getAttribute("data-skill-tooltip");
+          el.style.viewTransitionName = `skill-tooltip-${id}`;
+        });
+      };
+
+      const toggle = (show: boolean) => {
+        if (!modal || !document.startViewTransition) {
+          modal?.classList.toggle("hidden", !show);
+          modal?.classList.toggle("flex", show);
+          document.body.style.overflow = show ? "hidden" : "";
+          return;
+        }
+
+        setVTNames(show, false);
+
+        const transition = document.startViewTransition(() => {
+          modal.classList.toggle("hidden", !show);
+          modal.classList.toggle("flex", show);
+          document.body.style.overflow = show ? "hidden" : "";
+          setVTNames(show, true);
+          // 背景のカードを消さないように調整（もし背後でガタつくなら opacity は 0 にしない方が綺麗です）
+          if (trigger) trigger.style.opacity = show ? "0" : "1";
+        });
+
+        transition.finished.finally(() => {
+          const all = this.querySelectorAll<HTMLElement>(
+            "[data-trigger], [data-dialog-surface], [data-skill-title], [data-skill-tooltip], [data-skill-description], svg",
+          );
+          all.forEach((el) => (el.style.viewTransitionName = "none"));
+        });
+      };
+
+      trigger?.addEventListener("click", () => toggle(true));
+      closeBtn?.addEventListener("click", () => toggle(false));
+      modal?.addEventListener(
+        "click",
+        (e) => e.target === modal && toggle(false),
+      );
+    }
+  }
+
+  if (!customElements.get("skill-card")) {
+    customElements.define("skill-card", SkillCard);
+  }
+</script>

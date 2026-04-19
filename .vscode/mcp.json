@@ -23,14 +23,24 @@
       "url": "https://api.githubcopilot.com/mcp/"
     },
     "microsoft/markitdown": {
-      "args": ["markitdown-mcp@0.0.1a4"],
+      "args": [
+        "markitdown-mcp@0.0.1a4"
+      ],
       "command": "uvx",
       "type": "stdio"
     },
     "microsoft/playwright-mcp": {
-      "args": ["@playwright/mcp@latest"],
+      "args": [
+        "@playwright/mcp@latest"
+      ],
       "command": "npx",
       "type": "stdio"
+    },
+    "strands-agents": {
+      "command": "uvx",
+      "args": [
+        "strands-agents-mcp-server"
+      ]
     }
   }
 }
