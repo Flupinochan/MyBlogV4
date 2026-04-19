@@ -49,3 +49,21 @@ const skills = [
 <div class="grid grid-cols-2 gap-4 p-4">
   {skills.map((skill) => <Skill {...skill} />)}
 </div>
+
+<script>
+  document.addEventListener(
+    "home-title-typing-complete",
+    async () => {
+      const { gsap } = await import("gsap");
+      gsap.to(".skill-card", {
+        duration: 1,
+        opacity: 1,
+        rotateY: 360,
+        transformOrigin: "center center",
+        ease: "power2.out",
+        stagger: 0.15,
+      });
+    },
+    { once: true },
+  );
+</script>

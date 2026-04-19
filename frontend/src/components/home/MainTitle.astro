@@ -242,7 +242,10 @@ import Flex from "../layout/Flex.astro";
 
       // easeを全体にかけるための上書き用
       const outerTl = gsap.timeline({
-        onComplete: playNextWord,
+        onComplete: () => {
+          document.dispatchEvent(new Event("home-title-typing-complete"));
+          playNextWord();
+        },
       });
       outerTl.add(titleOuterTl);
       outerTl.add(descriptionOuterTl);

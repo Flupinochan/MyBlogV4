@@ -18,48 +18,11 @@ const classes = {
 };
 ---
 
-<style is:global>
-  ::view-transition-group(*) {
-    animation-duration: 0.4s;
-    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  /* タイトルのクロスフェードを抑制し、移動をスムーズにする */
-  ::view-transition-old(skill-title),
-  ::view-transition-new(skill-title) {
-    mix-blend-mode: normal;
-    height: 100%;
-    width: auto;
-    object-fit: contain;
-  }
-
-  /* テキストの歪みを防ぐ設定 */
-  ::view-transition-old(skill-desc),
-  ::view-transition-new(skill-desc) {
-    height: 100%;
-    object-fit: none;
-    object-position: top left;
-  }
-
-  /* カード側の説明文を1行に制限 */
-  [data-trigger] .skill-desc-text {
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  /* ダイアログ側の説明文は制限解除 */
-  [data-dialog-surface] .skill-desc-text {
-    display: block;
-  }
-</style>
-
 <skill-card>
   <div
     data-trigger
     style={`--skill-color: ${color};`}
-    class={`${classes.card} ${classes.surface}`}
+    class={`${classes.card} ${classes.surface} opacity-0 skill-card`}
   >
     <div data-trigger-content>
       <SkillContent
@@ -103,6 +66,24 @@ const classes = {
 </skill-card>
 
 <script>
+  // 3D Tilt Effect
+  (() => {
+    document.querySelectorAll<HTMLElement>(".skill-card").forEach((card) => {
+      card.addEventListener("mousemove", function (e: MouseEvent) {
+        const rect = card.getBoundingClientRect();
+        const rotateX = (e.clientY - rect.top - rect.height / 2) / 10;
+        const rotateY = (rect.width / 2 - (e.clientX - rect.left)) / 10;
+
+        card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.05, 1.05, 1.05)`;
+      });
+
+      card.addEventListener("mouseleave", function () {
+        card.style.transform =
+          "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)";
+      });
+    });
+  })();
+
   class SkillCard extends HTMLElement {
     connectedCallback() {
       const trigger = this.querySelector<HTMLElement>("[data-trigger]");
@@ -199,3 +180,47 @@ const classes = {
     customElements.define("skill-card", SkillCard);
   }
 </script>
+
+<style>
+  .skill-card {
+    transition: transform 0.1s ease;
+    transform-style: preserve-3d;
+  }
+</style>
+
+<style is:global>
+  ::view-transition-group(*) {
+    animation-duration: 0.4s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* タイトルのクロスフェードを抑制し、移動をスムーズにする */
+  ::view-transition-old(skill-title),
+  ::view-transition-new(skill-title) {
+    mix-blend-mode: normal;
+    height: 100%;
+    width: auto;
+    object-fit: contain;
+  }
+
+  /* テキストの歪みを防ぐ設定 */
+  ::view-transition-old(skill-desc),
+  ::view-transition-new(skill-desc) {
+    height: 100%;
+    object-fit: none;
+    object-position: top left;
+  }
+
+  /* カード側の説明文を1行に制限 */
+  [data-trigger] .skill-desc-text {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* ダイアログ側の説明文は制限解除 */
+  [data-dialog-surface] .skill-desc-text {
+    display: block;
+  }
+</style>
