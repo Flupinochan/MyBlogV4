@@ -164,10 +164,18 @@ const classes = {
             "[data-trigger], [data-dialog-surface], [data-skill-title], [data-skill-tooltip], [data-skill-description], svg",
           );
           all.forEach((el) => (el.style.viewTransitionName = "none"));
+          if (trigger) trigger.style.borderColor = "";
         });
       };
 
-      trigger?.addEventListener("click", () => toggle(true));
+      trigger?.addEventListener("click", () => {
+        // hover時のborder colorのままview transitionするため
+        const skillColor = getComputedStyle(trigger)
+          .getPropertyValue("--skill-color")
+          .trim();
+        trigger.style.borderColor = skillColor;
+        toggle(true);
+      });
       closeBtn?.addEventListener("click", () => toggle(false));
       modal?.addEventListener(
         "click",
