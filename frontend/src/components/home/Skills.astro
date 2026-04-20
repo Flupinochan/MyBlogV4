@@ -62,6 +62,12 @@ const skills = [
         transformOrigin: "center center",
         ease: "power2.out",
         stagger: 0.15,
+        // アニメーション完了後にskill-cardのクリックを有効化
+        onComplete() {
+          document
+            .querySelectorAll<HTMLElement>(".skill-card")
+            .forEach((el) => el.classList.remove("pointer-events-none"));
+        },
       });
     },
     { once: true },

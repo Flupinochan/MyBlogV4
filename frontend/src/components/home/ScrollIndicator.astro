@@ -1,0 +1,43 @@
+---
+import Flex from "../layout/Flex.astro";
+---
+
+<Flex class="w-full items-center gap-8 mt-10">
+  <div class="h-px flex-1 bg-linear-to-l from-slate-500 to-transparent"></div>
+  <button
+    class="cursor-pointer bg-transparent p-2 flex flex-col items-center mt-4 transition-all duration-200 ease-out hover:scale-105 hover:text-violet-600 active:scale-95"
+  >
+    <Flex class="flex-col items-center mt-4">
+      {
+        [0, 1, 2].map((i) => (
+          <span
+            class="block size-3 rotate-45 border-b-[1.5px] border-r-[1.5px] opacity-0 animate-[arrow-fall_1.6s_infinite]"
+            style={`animation-delay: ${i * 0.22}s`}
+          />
+        ))
+      }
+      <p class="mt-4">SCROLL</p>
+    </Flex>
+  </button>
+  <button
+    class="cursor-pointer rounded-md border bg-transparent px-5 py-2 transition-all duration-200 ease-out hover:border-violet-600 hover:text-violet-600 hover:scale-105 active:scale-95"
+  >
+    Contact me
+  </button>
+  <div class="h-px flex-1 bg-linear-to-r from-slate-500 to-transparent"></div>
+</Flex>
+
+<style>
+  @keyframes arrow-fall {
+    0%,
+    100% {
+      opacity: 0;
+    }
+    35% {
+      opacity: 0.9;
+    }
+    75% {
+      opacity: 0;
+    }
+  }
+</style>

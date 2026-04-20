@@ -2,11 +2,15 @@
 import Layout from "../layouts/Base.astro";
 import MainTitle from "../components/home/MainTitle.astro";
 import Skills from "../components/home/Skills.astro";
+import Flex from "../components/layout/Flex.astro";
+import HeroActions from "../components/home/HeroActions.astro";
 ---
 
 <Layout>
-  <section class="text-center pt-40 h-120">
+  <!-- MainTitleとSkillsは画面の初期画面の中央に配置 -->
+  <Flex class="flex-col items-center justify-center min-h-[calc(100dvh-200px)]">
     <MainTitle />
-  </section>
-  <Skills />
+    <Skills />
+    <HeroActions />
+  </Flex>
 </Layout>
