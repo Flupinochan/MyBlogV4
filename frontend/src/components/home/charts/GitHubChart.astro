@@ -1,0 +1,320 @@
+---
+import {
+  getGitHubLanguageBytesStats,
+  getRepositoryCountByLanguage,
+  getGitHubCommitStats,
+} from "./githubStats";
+const languageStats = await getRepositoryCountByLanguage();
+const langBytesStats = await getGitHubLanguageBytesStats();
+const commitStats = await getGitHubCommitStats();
+---
+
+<div class="chart-wrapper">
+  <button id="toggle-btn" class="toggle-button">グラフを切り替える</button>
+  <div
+    id="unified-chart"
+    data-stats={JSON.stringify(languageStats)}
+    data-bytes={JSON.stringify(langBytesStats)}
+  >
+  </div>
+</div>
+<div id="stack-chart" data-commits={JSON.stringify(commitStats)}></div>
+
+<style>
+  .chart-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+  }
+  .toggle-button {
+    padding: 12px 24px;
+    cursor: pointer;
+    background: #2ea44f;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: bold;
+    transition: background 0.2s;
+  }
+  .toggle-button:hover {
+    background: #2c974b;
+  }
+  #unified-chart {
+    background: #f6f8fa;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+</style>
+
+<script>
+  import * as d3 from "d3";
+  import { gsap } from "gsap";
+  import { MorphSVGPlugin } from "gsap/MorphSVGPlugin";
+  import type {
+    LanguageRepositoryCount,
+    LanguageRepositoryBytes,
+  } from "../../../types/github";
+
+  interface MergedData {
+    name: string;
+    count: number;
+    bytes: number;
+    color: string;
+  }
+
+  gsap.registerPlugin(MorphSVGPlugin);
+
+  const container = document.getElementById("unified-chart");
+  if (!container) throw new Error("Container not found");
+
+  const rawStats: LanguageRepositoryCount[] = JSON.parse(
+    container.dataset.stats ?? "[]",
+  );
+  const rawBytes: LanguageRepositoryBytes[] = JSON.parse(
+    container.dataset.bytes ?? "[]",
+  );
+
+  const mergedData: MergedData[] = rawStats.map((stat) => {
+    const byteInfo = rawBytes.find((b) => b.name === stat.name);
+    return {
+      name: stat.name,
+      count: stat.count,
+      bytes: byteInfo ? byteInfo.bytes : 0,
+      color: stat.color,
+    };
+  });
+
+  const width = 600;
+  const height = 500;
+  const margin = 80;
+  const radius = Math.min(width, height) / 2 - 60;
+
+  const svg = d3
+    .select("#unified-chart")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+  const gMain = svg.append("g");
+
+  // スケール
+  const x = d3
+    .scaleBand()
+    .range([0, width - margin * 2])
+    .padding(0.3);
+  const y = d3.scaleLinear().range([height - margin * 2, 0]);
+  const pie = d3
+    .pie<MergedData>()
+    .value((d) => d.count)
+    .sort(null);
+  const arc = d3
+    .arc<d3.PieArcDatum<MergedData>>()
+    .innerRadius(0)
+    .outerRadius(radius);
+
+  // --- 初期状態の設定 (円グラフ: 大きい順) ---
+  mergedData.sort((a, b) => b.count - a.count);
+  const pieData = pie(mergedData);
+  y.domain([0, d3.max(mergedData, (d) => d.bytes) || 0]);
+
+  const getBarPath = (d: MergedData): string => {
+    const by = y(d.bytes) || 0;
+    const bw = x.bandwidth();
+    const bh = height - margin * 2 - by;
+    return `M 0,${by} L ${bw},${by} L ${bw},${by + bh} L 0,${by + bh} Z`;
+  };
+
+  const elements = gMain
+    .selectAll<SVGGElement, d3.PieArcDatum<MergedData>>("g.element")
+    .data(pieData, (d: any) => d.data.name)
+    .join("g")
+    .attr("class", "element")
+    .attr("transform", `translate(${width / 2}, ${height / 2})`);
+
+  elements
+    .append("path")
+    .attr("d", (d) => arc(d) || "")
+    .attr("fill", (d) => d.data.color)
+    .attr("stroke", "#fff");
+
+  elements
+    .append("text")
+    .style("text-anchor", "middle")
+    .style("fill", "#fff")
+    .style("font-size", "11px")
+    .style("font-weight", "bold")
+    .text((d) => d.data.name);
+
+  // ラベル位置の初期化
+  elements.each(function (d) {
+    const text = d3.select(this).select("text").node();
+    const pos = arc.centroid(d);
+    gsap.set(text, { x: pos[0], y: pos[1] });
+  });
+
+  let isPie = true;
+
+  const toggle = () => {
+    isPie = !isPie;
+    const tl = gsap.timeline();
+
+    // --- ソートロジックの切り替え ---
+    if (!isPie) {
+      // 棒グラフへ：バイト数の「小さい順（昇順）」にソート
+      mergedData.sort((a, b) => a.bytes - b.bytes);
+    } else {
+      // 円グラフへ：使用回数の「大きい順（降順）」に戻す
+      mergedData.sort((a, b) => b.count - a.count);
+    }
+    // X軸の並び順を更新したデータに基づいて上書き
+    x.domain(mergedData.map((d) => d.name));
+
+    elements.each(function (d) {
+      const g = this;
+      const pathNode = d3
+        .select(g)
+        .select("path")
+        .node() as SVGPathElement | null;
+      const textNode = d3
+        .select(g)
+        .select("text")
+        .node() as SVGTextElement | null;
+      if (!pathNode || !textNode) return;
+
+      if (!isPie) {
+        // --- Barへ変形 ---
+        tl.to(
+          g,
+          {
+            x: margin + (x(d.data.name) || 0),
+            y: margin,
+            duration: 0.8,
+            ease: "power2.inOut",
+          },
+          0,
+        );
+
+        tl.to(
+          pathNode,
+          {
+            morphSVG: getBarPath(d.data),
+            duration: 0.8,
+            ease: "power2.inOut",
+          },
+          0,
+        );
+
+        tl.to(
+          textNode,
+          {
+            x: x.bandwidth() / 2,
+            y: y(d.data.bytes) - 10,
+            fill: "#444",
+            duration: 0.8,
+            ease: "power2.inOut",
+          },
+          0,
+        );
+      } else {
+        // --- Pieへ変形 ---
+        tl.to(
+          g,
+          { x: width / 2, y: height / 2, duration: 0.8, ease: "power2.inOut" },
+          0,
+        );
+        tl.to(
+          pathNode,
+          { morphSVG: arc(d) || "", duration: 0.8, ease: "power2.inOut" },
+          0,
+        );
+
+        const pos = arc.centroid(d);
+        tl.to(
+          textNode,
+          {
+            x: pos[0],
+            y: pos[1],
+            fill: "#fff",
+            duration: 0.8,
+            ease: "power2.inOut",
+          },
+          0,
+        );
+      }
+    });
+  };
+
+  document.getElementById("toggle-btn")?.addEventListener("click", toggle);
+</script>
+
+<script>
+  import * as d3 from "d3";
+  import type { GitHubCommitCount } from "../../../types/github";
+
+  const stackContainer = document.getElementById("stack-chart");
+  if (!stackContainer) throw new Error("Stack chart container not found");
+
+  const commitCount: GitHubCommitCount[] = JSON.parse(
+    stackContainer.dataset.commits ?? "[]",
+  );
+
+  const width = 500;
+  const height = 500;
+  const margin = 60;
+
+  const svg = d3
+    .select("#stack-chart")
+    .append("svg")
+    .attr("width", width)
+    .attr("height", height);
+
+  // X Axis Year-Month
+  const x = d3
+    .scaleTime()
+    .domain(d3.extent(commitCount, (d) => new Date(d.date)) as [Date, Date])
+    .range([margin, width - margin]);
+
+  // Y Axis Total Commits
+  const totalCommits = commitCount[commitCount.length - 1]?.total || 0;
+  const y = d3
+    .scaleLinear()
+    .domain([0, totalCommits])
+    .nice()
+    .range([height - margin, margin]);
+
+  // X Axis Year-Month format
+  svg
+    .append("g")
+    .attr("transform", `translate(0, ${height - margin})`)
+    .call(
+      d3
+        .axisBottom(x)
+        .ticks(5)
+        .tickFormat(d3.timeFormat("%Y-%m") as any),
+    );
+
+  // Y Axis Total Commits format
+  svg
+    .append("g")
+    .attr("transform", `translate(${margin}, 0)`)
+    .call(d3.axisLeft(y).ticks(6).tickFormat(d3.format(",d")));
+
+  // Area generator
+  const area = d3
+    .area<GitHubCommitCount>()
+    .x((d) => x(new Date(d.date)))
+    .y0(y(0))
+    .y1((d) => y(d.total))
+    .curve(d3.curveMonotoneX);
+
+  svg
+    .append("path")
+    .datum(commitCount)
+    .attr("fill", "steelblue")
+    .attr("fill-opacity", 0.2)
+    .attr("stroke", "steelblue")
+    .attr("stroke-width", 2)
+    .attr("d", area);
+</script>
