@@ -1,10 +1,9 @@
 ---
 import Mail from "../components/icons/Mail.astro";
 import Zenn from "../components/icons/Zenn.astro";
-import Moon from "../components/icons/Moon.astro";
 import Octcat from "../components/icons/Octcat.astro";
-import Sun from "../components/icons/Sun.astro";
 import Flex from "../components/layout/Flex.astro";
+import SunMoon from "../components/icons/SunMoon.astro";
 ---
 
 <header
@@ -34,18 +33,11 @@ import Flex from "../components/layout/Flex.astro";
   </a>
   <Flex class="relative z-10 gap-4 pr-10 items-center">
     <button
-      class="toggle-dark-mode transform active:scale-95 transition-transform duration-150"
+      class="toggle-dark-mode group transform active:scale-95 transition-transform duration-150"
     >
-      <span class="dark:hidden">
-        <Moon
-          class="size-5 hover:brightness-75 dark:hover:brightness-125 transition-all duration-300"
-        />
-      </span>
-      <span class="hidden dark:block">
-        <Sun
-          class="size-6 hover:brightness-75 dark:hover:brightness-125 transition-all duration-300"
-        />
-      </span>
+      <SunMoon
+        class="size-6 transition-all duration-300 group-hover:stroke-[2px] hover:brightness-75 dark:hover:brightness-125"
+      />
     </button>
     <button class="transform active:scale-95 transition-transform duration-150">
       <Octcat
@@ -68,6 +60,8 @@ import Flex from "../components/layout/Flex.astro";
 </header>
 
 <script>
+  import { gsap } from "../components/lib/gsap";
+
   const header = document.querySelector("header");
   if (!header) throw new Error("Header element not found");
 
@@ -83,14 +77,18 @@ import Flex from "../components/layout/Flex.astro";
   });
 
   // ダークモード切替
+  let isAnimating = false;
   const toggleButton = header.querySelector("button.toggle-dark-mode");
   toggleButton?.addEventListener("click", async () => {
+    if (isAnimating) return;
+    isAnimating = true;
     const enable =
       "startViewTransition" in document &&
       window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
 
     if (!enable) {
       document.documentElement.classList.toggle("dark");
+      isAnimating = false;
       return;
     }
 
@@ -117,6 +115,17 @@ import Flex from "../components/layout/Flex.astro";
     } finally {
       // view-transition-nameは実行時だけ付与して、完了後に削除すること!!
       root.classList.remove("is-theme-switching");
+
+      const isTurningDark = !root.classList.contains("dark");
+      const targetShape = isTurningDark ? "#target-moon" : "#target-sun";
+      const activePath = document.getElementById("active-path");
+      gsap.to(activePath, {
+        morphSVG: targetShape,
+        duration: 0.8,
+        ease: "expo.inOut",
+        overwrite: true,
+      });
+      isAnimating = false;
     }
   });
 </script>
