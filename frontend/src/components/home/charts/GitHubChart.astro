@@ -87,8 +87,7 @@ const pastelColors = [
 
 <script>
   import * as d3 from "d3";
-  import { gsap } from "gsap";
-  import { MorphSVGPlugin } from "gsap/MorphSVGPlugin";
+  import { gsap } from "../../lib/gsap";
   import type {
     LanguageRepositoryCount,
     LanguageRepositoryBytes,
@@ -107,8 +106,6 @@ const pastelColors = [
     Bar = "bar",
     Stack = "stack",
   }
-
-  gsap.registerPlugin(MorphSVGPlugin);
 
   const container = document.getElementById("unified-chart");
   if (!container) throw new Error("Container not found");

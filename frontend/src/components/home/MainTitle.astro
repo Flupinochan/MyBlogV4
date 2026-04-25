@@ -19,10 +19,7 @@ import Flex from "../layout/Flex.astro";
 </Flex>
 
 <script>
-  import { gsap } from "gsap";
-  import { TextPlugin } from "gsap/TextPlugin";
-
-  gsap.registerPlugin(TextPlugin);
+  import { gsap } from "../lib/gsap";
 
   type HomeWord = {
     text: string;
