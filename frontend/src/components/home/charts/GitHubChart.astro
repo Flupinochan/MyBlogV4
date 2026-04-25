@@ -4,11 +4,22 @@ import {
   getRepositoryCountByLanguage,
   getGitHubCommitStats,
 } from "./githubStats";
-import CommitStackChart from "./CommitStackChart.astro";
 
 const langCount = await getRepositoryCountByLanguage();
 const langBytes = await getGitHubLanguageBytesStats();
 const commitStats = await getGitHubCommitStats();
+
+// Chart.jsのデフォルトを参考にしたパステルカラーパレット
+// 境界線（Border）として使用する不透明な色
+const pastelColors = [
+  "#A2D2FF", // Blue
+  "#FFB7CE", // Red
+  "#FFCCAC", // Orange
+  "#FFEEAD", // Yellow
+  "#9EEED1", // Green
+  "#D4B8FF", // Purple
+  "#D9D9D9", // Grey
+];
 ---
 
 <div class="chart-wrapper">
@@ -32,10 +43,9 @@ const commitStats = await getGitHubCommitStats();
     data-stats={JSON.stringify(langCount)}
     data-bytes={JSON.stringify(langBytes)}
     data-commits={JSON.stringify(commitStats)}
+    data-colors={JSON.stringify(pastelColors)}
   >
   </div>
-
-  <CommitStackChart />
 </div>
 
 <style>
@@ -49,7 +59,7 @@ const commitStats = await getGitHubCommitStats();
   #unified-chart {
     background: #ffffff;
     border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
   }
 
   .radio-group {
@@ -60,14 +70,14 @@ const commitStats = await getGitHubCommitStats();
   .radio-label {
     cursor: pointer;
     padding: 8px 16px;
-    background: #000000;
-    color: #ffffff;
+    background: #f0f0f0;
+    color: #555555;
     border-radius: 4px;
     font-size: 14px;
     transition: background 0.3s;
   }
   .radio-label:has(input:checked) {
-    background: #2ea44f;
+    background: #d4b8ff;
     color: white;
   }
   .radio-label input {
@@ -112,14 +122,15 @@ const commitStats = await getGitHubCommitStats();
   const commitData: GitHubCommitCount[] = JSON.parse(
     container.dataset.commits ?? "[]",
   );
+  const pastelColors: string[] = JSON.parse(container.dataset.colors ?? "[]");
 
-  const mergedData: MergedData[] = langCount.map((stat) => {
+  const mergedData: MergedData[] = langCount.map((stat, i) => {
     const byteInfo = langBytes.find((b) => b.name === stat.name);
     return {
       name: stat.name,
       count: stat.count,
       bytes: byteInfo ? byteInfo.bytes : 0,
-      color: stat.color,
+      color: pastelColors[i % pastelColors.length],
     };
   });
   const totalCount = d3.sum(mergedData, (d) => d.count);
@@ -137,10 +148,10 @@ const commitStats = await getGitHubCommitStats();
   const gMain = svg.append("g");
 
   const styleAxis = (selection: d3.Selection<SVGGElement, any, any, any>) => {
-    selection.selectAll("path, line").style("stroke", "#000000");
+    selection.selectAll("path, line").style("stroke", "#D0D0D0");
     selection
       .selectAll("text")
-      .style("fill", "#000000")
+      .style("fill", "#666666")
       .style("font-weight", "500");
   };
 
@@ -170,7 +181,6 @@ const commitStats = await getGitHubCommitStats();
     .domain(timeExtent)
     .range([margin, width - margin]);
 
-  // 【追加】境界線（Border）用パス
   const borderPath = svg
     .append("path")
     .attr(
@@ -182,7 +192,7 @@ const commitStats = await getGitHubCommitStats();
         .curve(d3.curveMonotoneX)(commitData),
     )
     .attr("fill", "none")
-    .attr("stroke", "#00a3ff")
+    .attr("stroke", "#D4B8FF")
     .attr("stroke-width", 2)
     .style("opacity", 0)
     .style("pointer-events", "none");
@@ -269,8 +279,10 @@ const commitStats = await getGitHubCommitStats();
     .sort((a, b) => b.count - a.count);
   const arc = d3
     .arc<d3.PieArcDatum<MergedData>>()
-    .innerRadius(0)
-    .outerRadius(radius);
+    .innerRadius(30)
+    .outerRadius(radius)
+    .padAngle(0.01)
+    .padRadius(radius);
   const pieData = pie(mergedData);
 
   const getBarPath = (d: MergedData): string => {
@@ -290,12 +302,15 @@ const commitStats = await getGitHubCommitStats();
   elements
     .append("path")
     .attr("d", (d) => arc(d) || "")
-    .attr("fill", (d) => d.data.color)
-    .attr("stroke", "#fff");
+    // 初期状態 (Pie): 面の色を60%透過、ボーダーを不透明に
+    .attr("fill", (d) => `${d.data.color}99`)
+    .attr("stroke", (d) => d.data.color)
+    .attr("stroke-width", 2);
+
   const labels = elements
     .append("text")
     .style("text-anchor", "middle")
-    .style("fill", "#fff")
+    .style("fill", "#666666")
     .style("font-size", "11px")
     .style("font-weight", "bold");
   labels
@@ -317,15 +332,34 @@ const commitStats = await getGitHubCommitStats();
     gsap.set(d3.select(this).select("text").node(), { x: pos[0], y: pos[1] });
   });
 
+  let isAnimating = false;
   const updateChart = (type: ChartType) => {
-    const masterTl = gsap.timeline();
+    if (isAnimating) return;
+    const inputs = document.querySelectorAll<HTMLInputElement>(
+      'input[name="chart-type"]',
+    );
+    const masterTl = gsap.timeline({
+      onStart: () => {
+        isAnimating = true;
+        inputs.forEach((i) => (i.disabled = true));
+        document
+          .querySelectorAll(".radio-label")
+          .forEach((el) => ((el as HTMLElement).style.opacity = "0.5"));
+      },
+      onComplete: () => {
+        isAnimating = false;
+        inputs.forEach((i) => (i.disabled = false));
+        document
+          .querySelectorAll(".radio-label")
+          .forEach((el) => ((el as HTMLElement).style.opacity = "1"));
+      },
+    });
     if (type === ChartType.Bar) mergedData.sort((a, b) => a.bytes - b.bytes);
     else if (type === ChartType.Pie)
       mergedData.sort((a, b) => b.count - a.count);
 
     x.domain(mergedData.map((d) => d.name));
 
-    // 順序制御1: Stack以外への変更時は、最初にBorderを消去
     if (type !== ChartType.Stack) {
       masterTl.to(borderPath.node(), {
         opacity: 0,
@@ -334,7 +368,6 @@ const commitStats = await getGitHubCommitStats();
       });
     }
 
-    // 各要素のアニメーションをまとめる
     const elementTl = gsap.timeline();
 
     elements.each(function (d) {
@@ -388,7 +421,8 @@ const commitStats = await getGitHubCommitStats();
           pathNode,
           {
             morphSVG: getBarPath(d.data),
-            attr: { fill: d.data.color, stroke: "#fff" },
+            // Bar: 面の色を少し薄くし、境界線を濃く
+            attr: { fill: `${d.data.color}99`, stroke: d.data.color },
             duration: 0.8,
             ease: "power2.inOut",
           },
@@ -399,7 +433,7 @@ const commitStats = await getGitHubCommitStats();
           {
             x: x.bandwidth() / 2,
             y: y(d.data.bytes) - 10,
-            fill: "#000000",
+            fill: "#666666",
             opacity: 1,
             duration: 0.8,
             ease: "power2.inOut",
@@ -432,7 +466,8 @@ const commitStats = await getGitHubCommitStats();
           pathNode,
           {
             morphSVG: arc(d) || "",
-            attr: { fill: d.data.color, stroke: "#fff" },
+            // Pie: 面の色を少し薄くし、境界線を濃く
+            attr: { fill: `${d.data.color}99`, stroke: d.data.color },
             duration: 0.8,
             ease: "power2.inOut",
           },
@@ -444,7 +479,7 @@ const commitStats = await getGitHubCommitStats();
           {
             x: pos[0],
             y: pos[1],
-            fill: "#fff",
+            fill: "#666666",
             opacity: 1,
             duration: 0.8,
             ease: "power2.inOut",
@@ -479,7 +514,7 @@ const commitStats = await getGitHubCommitStats();
           pathNode,
           {
             morphSVG: getStackPath(reversedIndex),
-            attr: { fill: "#c1e8ff99", stroke: "none" },
+            attr: { fill: "#D4B8FF88", stroke: "none" },
             duration: 0.8,
             ease: "power2.inOut",
           },
@@ -499,10 +534,8 @@ const commitStats = await getGitHubCommitStats();
       }
     });
 
-    // 順序制御2: メインタイムラインに要素の変形を追加
     masterTl.add(elementTl);
 
-    // 順序制御3: すべての変形が完了した後にBorderを表示
     if (type === ChartType.Stack) {
       masterTl.to(borderPath.node(), {
         opacity: 1,
@@ -514,6 +547,10 @@ const commitStats = await getGitHubCommitStats();
     .querySelectorAll<HTMLInputElement>('input[name="chart-type"]')
     .forEach((input) => {
       input.addEventListener("change", (e) => {
+        if (isAnimating) {
+          e.preventDefault();
+          return;
+        }
         updateChart((e.target as HTMLInputElement).value as ChartType);
       });
     });
