@@ -170,6 +170,23 @@ const commitStats = await getGitHubCommitStats();
     .domain(timeExtent)
     .range([margin, width - margin]);
 
+  // 【追加】境界線（Border）用パス
+  const borderPath = svg
+    .append("path")
+    .attr(
+      "d",
+      d3
+        .line<GitHubCommitCount>()
+        .x((d) => xStackTime(new Date(d.date)))
+        .y((d) => yStack(d.total))
+        .curve(d3.curveMonotoneX)(commitData),
+    )
+    .attr("fill", "none")
+    .attr("stroke", "#00a3ff")
+    .attr("stroke-width", 2)
+    .style("opacity", 0)
+    .style("pointer-events", "none");
+
   const gStackXAxis = svg
     .append("g")
     .attr("transform", `translate(0, ${height - margin})`)
@@ -301,12 +318,24 @@ const commitStats = await getGitHubCommitStats();
   });
 
   const updateChart = (type: ChartType) => {
-    const tl = gsap.timeline();
+    const masterTl = gsap.timeline();
     if (type === ChartType.Bar) mergedData.sort((a, b) => a.bytes - b.bytes);
     else if (type === ChartType.Pie)
       mergedData.sort((a, b) => b.count - a.count);
 
     x.domain(mergedData.map((d) => d.name));
+
+    // 順序制御1: Stack以外への変更時は、最初にBorderを消去
+    if (type !== ChartType.Stack) {
+      masterTl.to(borderPath.node(), {
+        opacity: 0,
+        duration: 0.2,
+        ease: "power2.in",
+      });
+    }
+
+    // 各要素のアニメーションをまとめる
+    const elementTl = gsap.timeline();
 
     elements.each(function (d) {
       const g = this;
@@ -316,7 +345,7 @@ const commitStats = await getGitHubCommitStats();
       const percentLabel = d3.select(textNode).select(".percent-label").node();
 
       if (type === ChartType.Bar) {
-        tl.to(
+        elementTl.to(
           [gStackXAxis.node(), gStackYAxis.node()],
           { opacity: 0, duration: 0.3 },
           0,
@@ -338,10 +367,14 @@ const commitStats = await getGitHubCommitStats();
               .tickSizeOuter(0),
           )
           .call(styleAxis);
-        tl.to([gXAxis.node(), gYAxis.node()], { opacity: 1, duration: 0.8 }, 0);
-        tl.to(percentLabel, { opacity: 0, duration: 0.4 }, 0);
-        tl.to(nameLabel, { attr: { dy: "0.35em" }, duration: 0.8 }, 0);
-        tl.to(
+        elementTl.to(
+          [gXAxis.node(), gYAxis.node()],
+          { opacity: 1, duration: 0.8 },
+          0,
+        );
+        elementTl.to(percentLabel, { opacity: 0, duration: 0.4 }, 0);
+        elementTl.to(nameLabel, { attr: { dy: "0.35em" }, duration: 0.8 }, 0);
+        elementTl.to(
           g,
           {
             x: margin + (x(d.data.name) || 0),
@@ -351,18 +384,17 @@ const commitStats = await getGitHubCommitStats();
           },
           0,
         );
-        tl.to(
+        elementTl.to(
           pathNode,
           {
             morphSVG: getBarPath(d.data),
-            fill: d.data.color,
-            attr: { stroke: "#fff" },
+            attr: { fill: d.data.color, stroke: "#fff" },
             duration: 0.8,
             ease: "power2.inOut",
           },
           0,
         );
-        tl.to(
+        elementTl.to(
           textNode,
           {
             x: x.bandwidth() / 2,
@@ -375,7 +407,7 @@ const commitStats = await getGitHubCommitStats();
           0,
         );
       } else if (type === ChartType.Pie) {
-        tl.to(
+        elementTl.to(
           [
             gStackXAxis.node(),
             gStackYAxis.node(),
@@ -385,26 +417,29 @@ const commitStats = await getGitHubCommitStats();
           { opacity: 0, duration: 0.3 },
           0,
         );
-        tl.to(percentLabel, { opacity: 1, duration: 0.4, delay: 0.4 }, 0);
-        tl.to(nameLabel, { attr: { dy: "-0.2em" }, duration: 0.8 }, 0);
-        tl.to(
+        elementTl.to(
+          percentLabel,
+          { opacity: 1, duration: 0.4, delay: 0.4 },
+          0,
+        );
+        elementTl.to(nameLabel, { attr: { dy: "-0.2em" }, duration: 0.8 }, 0);
+        elementTl.to(
           g,
           { x: width / 2, y: height / 2, duration: 0.8, ease: "power2.inOut" },
           0,
         );
-        tl.to(
+        elementTl.to(
           pathNode,
           {
             morphSVG: arc(d) || "",
-            fill: d.data.color,
-            attr: { stroke: "#fff" },
+            attr: { fill: d.data.color, stroke: "#fff" },
             duration: 0.8,
             ease: "power2.inOut",
           },
           0,
         );
         const pos = arc.centroid(d);
-        tl.to(
+        elementTl.to(
           textNode,
           {
             x: pos[0],
@@ -417,13 +452,16 @@ const commitStats = await getGitHubCommitStats();
           0,
         );
       } else if (type === ChartType.Stack) {
-        tl.to([gXAxis.node(), gYAxis.node()], { opacity: 0, duration: 0.3 }, 0);
-        tl.to(
+        elementTl.to(
+          [gXAxis.node(), gYAxis.node()],
+          { opacity: 0, duration: 0.3 },
+          0,
+        );
+        elementTl.to(
           [gStackXAxis.node(), gStackYAxis.node()],
           { opacity: 1, duration: 0.8 },
           0,
         );
-
         const sortedByImpact = [...mergedData].sort(
           (a, b) => b.bytes - a.bytes,
         );
@@ -431,29 +469,23 @@ const commitStats = await getGitHubCommitStats();
           (m) => m.name === d.data.name,
         );
         const reversedIndex = mergedData.length - 1 - stableIndex;
-
         const n = mergedData.length;
         const totalMs = timeExtent[1].getTime() - timeExtent[0].getTime();
         const midTime = new Date(
           timeExtent[0].getTime() + (totalMs * (reversedIndex + 0.5)) / n,
         );
-
-        // --- 修正の要：gは(0,0)に移動するため、textは純粋な絶対座標へ動かす ---
-        tl.to(g, { x: 0, y: 0, duration: 0.8, ease: "power2.inOut" }, 0);
-        tl.to(
+        elementTl.to(g, { x: 0, y: 0, duration: 0.8, ease: "power2.inOut" }, 0);
+        elementTl.to(
           pathNode,
           {
             morphSVG: getStackPath(reversedIndex),
-            fill: d.data.color,
-            attr: { stroke: "none" },
+            attr: { fill: "#c1e8ff99", stroke: "none" },
             duration: 0.8,
             ease: "power2.inOut",
           },
           0,
         );
-
-        // textNodeを opacity: 0 にしつつ、Stack上の正しい位置に収束させる
-        tl.to(
+        elementTl.to(
           textNode,
           {
             x: xStackTime(midTime),
@@ -466,6 +498,16 @@ const commitStats = await getGitHubCommitStats();
         );
       }
     });
+
+    // 順序制御2: メインタイムラインに要素の変形を追加
+    masterTl.add(elementTl);
+
+    // 順序制御3: すべての変形が完了した後にBorderを表示
+    if (type === ChartType.Stack) {
+      masterTl.to(borderPath.node(), {
+        opacity: 1,
+      });
+    }
   };
 
   document
