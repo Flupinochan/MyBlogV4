@@ -47,7 +47,7 @@ const commitStats = await getGitHubCommitStats();
     padding: 20px;
   }
   #unified-chart {
-    background: #f6f8fa;
+    background: #ffffff;
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   }
@@ -134,10 +134,16 @@ const commitStats = await getGitHubCommitStats();
     .append("svg")
     .attr("width", width)
     .attr("height", height);
-
   const gMain = svg.append("g");
 
-  // --- Axes ---
+  const styleAxis = (selection: d3.Selection<SVGGElement, any, any, any>) => {
+    selection.selectAll("path, line").style("stroke", "#000000");
+    selection
+      .selectAll("text")
+      .style("fill", "#000000")
+      .style("font-weight", "500");
+  };
+
   const gXAxis = svg
     .append("g")
     .attr("class", "x-axis")
@@ -173,12 +179,14 @@ const commitStats = await getGitHubCommitStats();
         .axisBottom(xStackTime)
         .ticks(5)
         .tickFormat(d3.timeFormat("%Y-%m") as any),
-    );
+    )
+    .call(styleAxis);
   const gStackYAxis = svg
     .append("g")
     .attr("transform", `translate(${margin}, 0)`)
     .style("opacity", 0)
-    .call(d3.axisLeft(yStack).ticks(5).tickFormat(d3.format(",d")));
+    .call(d3.axisLeft(yStack).ticks(5).tickFormat(d3.format(",d")))
+    .call(styleAxis);
 
   const bisectDate = d3.bisector(
     (d: GitHubCommitCount) => new Date(d.date),
@@ -220,7 +228,6 @@ const commitStats = await getGitHubCommitStats();
         total: interpolateCommitTotal(segEnd),
       },
     ];
-
     return (
       d3
         .area<GitHubCommitCount>()
@@ -256,7 +263,6 @@ const commitStats = await getGitHubCommitStats();
     return `M 0,${by} L ${bw},${by} L ${bw},${by + bh} L 0,${by + bh} Z`;
   };
 
-  // --- Initial Render ---
   const elements = gMain
     .selectAll<SVGGElement, d3.PieArcDatum<MergedData>>("g.element")
     .data(pieData, (d) => d.data.name)
@@ -269,7 +275,6 @@ const commitStats = await getGitHubCommitStats();
     .attr("d", (d) => arc(d) || "")
     .attr("fill", (d) => d.data.color)
     .attr("stroke", "#fff");
-
   const labels = elements
     .append("text")
     .style("text-anchor", "middle")
@@ -297,7 +302,6 @@ const commitStats = await getGitHubCommitStats();
 
   const updateChart = (type: ChartType) => {
     const tl = gsap.timeline();
-
     if (type === ChartType.Bar) mergedData.sort((a, b) => a.bytes - b.bytes);
     else if (type === ChartType.Pie)
       mergedData.sort((a, b) => b.count - a.count);
@@ -317,15 +321,23 @@ const commitStats = await getGitHubCommitStats();
           { opacity: 0, duration: 0.3 },
           0,
         );
-        gXAxis.call(
-          d3
-            .axisBottom(x)
-            .tickSize(0)
-            .tickFormat(() => ""),
-        );
-        gYAxis.call(
-          d3.axisLeft(y).ticks(5).tickFormat(d3.format(".2s")).tickSizeOuter(0),
-        );
+        gXAxis
+          .call(
+            d3
+              .axisBottom(x)
+              .tickSize(0)
+              .tickFormat(() => ""),
+          )
+          .call(styleAxis);
+        gYAxis
+          .call(
+            d3
+              .axisLeft(y)
+              .ticks(5)
+              .tickFormat(d3.format(".2s"))
+              .tickSizeOuter(0),
+          )
+          .call(styleAxis);
         tl.to([gXAxis.node(), gYAxis.node()], { opacity: 1, duration: 0.8 }, 0);
         tl.to(percentLabel, { opacity: 0, duration: 0.4 }, 0);
         tl.to(nameLabel, { attr: { dy: "0.35em" }, duration: 0.8 }, 0);
@@ -355,7 +367,7 @@ const commitStats = await getGitHubCommitStats();
           {
             x: x.bandwidth() / 2,
             y: y(d.data.bytes) - 10,
-            fill: "#444",
+            fill: "#000000",
             opacity: 1,
             duration: 0.8,
             ease: "power2.inOut",
@@ -411,7 +423,7 @@ const commitStats = await getGitHubCommitStats();
           { opacity: 1, duration: 0.8 },
           0,
         );
-        tl.to(textNode, { opacity: 0, duration: 0.3 }, 0);
+
         const sortedByImpact = [...mergedData].sort(
           (a, b) => b.bytes - a.bytes,
         );
@@ -419,13 +431,34 @@ const commitStats = await getGitHubCommitStats();
           (m) => m.name === d.data.name,
         );
         const reversedIndex = mergedData.length - 1 - stableIndex;
+
+        const n = mergedData.length;
+        const totalMs = timeExtent[1].getTime() - timeExtent[0].getTime();
+        const midTime = new Date(
+          timeExtent[0].getTime() + (totalMs * (reversedIndex + 0.5)) / n,
+        );
+
+        // --- 修正の要：gは(0,0)に移動するため、textは純粋な絶対座標へ動かす ---
         tl.to(g, { x: 0, y: 0, duration: 0.8, ease: "power2.inOut" }, 0);
         tl.to(
           pathNode,
           {
             morphSVG: getStackPath(reversedIndex),
-            fill: d.data.color, // 固定の青ではなく、元の色を維持
+            fill: d.data.color,
             attr: { stroke: "none" },
+            duration: 0.8,
+            ease: "power2.inOut",
+          },
+          0,
+        );
+
+        // textNodeを opacity: 0 にしつつ、Stack上の正しい位置に収束させる
+        tl.to(
+          textNode,
+          {
+            x: xStackTime(midTime),
+            y: yStack(interpolateCommitTotal(midTime)) - 10,
+            opacity: 0,
             duration: 0.8,
             ease: "power2.inOut",
           },
