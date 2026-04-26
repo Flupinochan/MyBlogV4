@@ -418,8 +418,12 @@ const pastelColors = [
         elementTl.to(
           pathNode,
           {
-            morphSVG: getBarPath(d.data),
-            // Bar: 面の色を少し薄くし、境界線を濃く
+            morphSVG: {
+              shape: getBarPath(d.data),
+              // -8～8の値でアニメーションのパス移動を制御可能
+              // グラフの形は動的なため手動で設定すべきではない
+              shapeIndex: "auto",
+            },
             attr: { fill: `${d.data.color}99`, stroke: d.data.color },
             duration: 0.8,
             ease: "power2.inOut",
