@@ -297,6 +297,38 @@ const pastelColors = [
     .attr("class", "element")
     .attr("transform", `translate(${width / 2}, ${height / 2})`);
 
+  const tooltip = d3
+    .select("body")
+    .append("div")
+    .style("position", "absolute")
+    .style("visibility", "hidden")
+    .style("background", "white")
+    .style("padding", "5px")
+    .style("border", "1px solid #D0D0D0")
+    .style("border-radius", "4px");
+  elements
+    .on("mouseover", (event, d) => {
+      // 現在のモードを確認
+      const mode = d3
+        .select('input[name="chart-type"]:checked')
+        .property("value");
+      if (mode === "bar") {
+        const kb = (d.data.bytes / 1024).toFixed(2);
+        tooltip
+          .style("visibility", "visible")
+          .text(`${d.data.name}: ${kb} KB`)
+          .style("color", d.data.color);
+      }
+    })
+    .on("mousemove", (event) => {
+      // D3のpointer機能でマウス位置を追跡
+      const [x, y] = d3.pointer(event, document.body);
+      tooltip.style("top", y - 10 + "px").style("left", x + 10 + "px");
+    })
+    .on("mouseleave", () => {
+      tooltip.style("visibility", "hidden");
+    });
+
   elements
     .append("path")
     .attr("d", (d) => arc(d) || "")
@@ -323,7 +355,7 @@ const pastelColors = [
     .attr("x", 0)
     .attr("dy", "1.2em")
     .style("font-weight", "normal")
-    .text((d) => `(${((d.data.count / totalCount) * 100).toFixed(1)}%)`);
+    .text((d) => `(${d.data.count})`);
 
   elements.each(function (d) {
     const pos = arc.centroid(d);
