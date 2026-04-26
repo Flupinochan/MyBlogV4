@@ -1,34 +1,26 @@
 ---
-import type { SvgComponent } from "astro/types";
-
-interface Props {
-  icon: SvgComponent;
-  title: string;
-  color: string;
-  tooltips: string[];
-  description: string;
-}
+import type { SkillItem } from "./skill.types";
 
 const {
   icon: Icon,
   title,
-  color,
+  textColor,
   tooltips,
   description,
-} = Astro.props as Props;
+} = Astro.props as SkillItem;
 ---
 
-<Icon color={color} />
+<Icon />
 <p
   data-skill-title
-  style={`color: ${color}; width: fit-content;`}
-  class="mt-3 text-lg font-semibold whitespace-nowrap"
+  style="width: fit-content;"
+  class={`mt-3 text-lg font-semibold whitespace-nowrap ${textColor}`}
 >
   {title}
 </p>
 {
   tooltips.length > 0 && (
-    <div style={`color: ${color}`} class="mt-2 flex flex-wrap gap-1.5">
+    <div class={`mt-2 flex flex-wrap gap-1.5 ${textColor}`}>
       {tooltips.map((item, index) => (
         <span
           data-skill-tooltip={index}

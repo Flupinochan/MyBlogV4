@@ -1,36 +1,36 @@
 ---
-import type { SvgComponent } from "astro/types";
 import type { SkillItem } from "./skill.types";
 import SkillContent from "./SkillContent.astro";
 
-interface Props extends SkillItem {
-  icon: SvgComponent;
-}
+const {
+  icon: Icon,
+  title,
+  textColor,
+  tooltips,
+  description,
+} = Astro.props as SkillItem;
 
-const { icon: Icon, title, details, color, tooltips } = Astro.props as Props;
 const dialogId = `dialog-${title}`;
 
 const classes = {
-  surface:
-    "rounded-2xl border border-slate-200/80 dark:border-slate-700/80 bg-slate-50/95 dark:bg-slate-900/95",
-  card: "flex h-48 cursor-pointer flex-col p-6 transform-gpu transition duration-300 ease-out hover:-translate-y-1 hover:scale-[1.03] hover:border-[var(--skill-color)]",
-  dialogSurface: "w-[min(92vw,32rem)] p-6 shadow-2xl",
+  base: `p-6 rounded-2xl border bg-slate-50/95 dark:bg-slate-900/95 ${textColor}`,
+  card: "flex flex-col h-48 cursor-pointer transform-gpu transition duration-300 ease-out hover:-translate-y-1 hover:scale-[1.03] hover:border-current border-slate-200/80 dark:border-slate-700/80",
+  dialog: "w-[min(92vw,32rem)] shadow-2xl",
 };
 ---
 
 <skill-card>
   <div
     data-trigger
-    style={`--skill-color: ${color};`}
-    class={`${classes.card} ${classes.surface} pointer-events-none opacity-0 skill-card`}
+    class={`${classes.base} ${classes.card} pointer-events-none opacity-0 skill-card`}
   >
     <div data-trigger-content>
       <SkillContent
         icon={Icon}
         title={title}
-        color={color}
+        textColor={textColor}
         tooltips={tooltips}
-        description={details}
+        description={description}
       />
     </div>
   </div>
@@ -39,18 +39,14 @@ const classes = {
     id={dialogId}
     class="hidden fixed inset-0 z-50 items-center justify-center bg-indigo-950/45 dark:bg-slate-950/70 backdrop-blur-sm"
   >
-    <div
-      data-dialog-surface
-      style={`--skill-color: ${color}; border-color: var(--skill-color);`}
-      class={`${classes.dialogSurface} ${classes.surface} border`}
-    >
+    <div data-dialog-surface class={`${classes.base} ${classes.dialog}`}>
       <div data-dialog-content>
         <SkillContent
           icon={Icon}
           title={title}
-          color={color}
+          textColor={textColor}
           tooltips={tooltips}
-          description={details}
+          description={description}
         />
       </div>
       <div class="mt-6 flex justify-end">
@@ -170,9 +166,7 @@ const classes = {
 
       trigger?.addEventListener("click", () => {
         // hover時のborder colorのままview transitionするため
-        const skillColor = getComputedStyle(trigger)
-          .getPropertyValue("--skill-color")
-          .trim();
+        const skillColor = getComputedStyle(trigger).color;
         trigger.style.borderColor = skillColor;
         toggle(true);
       });

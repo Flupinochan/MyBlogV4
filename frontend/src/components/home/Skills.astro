@@ -10,37 +10,33 @@ const skills = [
   {
     icon: Bracket,
     title: "Frontend",
-    summary: "Astroで軽くて見通しの良いUIを組み立てます。",
-    details:
+    description:
       "Astroのアイランドアーキテクチャを活かしながら、必要な箇所だけにインタラクションを載せる設計を行います。初期表示速度と保守性のバランスを重視し、コンポーネントの責務分離、アクセシビリティ、テーマ切り替え時の体験まで含めて、継続運用しやすいフロントエンドを実装します。",
-    color: "var(--color-cyan-500)",
+    textColor: "text-cyan-500",
     tooltips: ["React", "Vue", "Flutter", "WPF"],
   },
   {
     icon: Database,
     title: "Backend",
-    summary: "データの流れを整理して、安定した処理にします。",
-    details:
+    description:
       "バックエンドでは、API設計とデータモデリングを先に整え、変更に強い実装を優先します。入力検証やエラーハンドリングを明確化し、ログと監視の観点を最初から組み込むことで、障害時の切り分けと復旧を速くできる構成を目指します。",
-    color: "var(--color-amber-500)",
+    textColor: "text-amber-500",
     tooltips: ["SpringBoot", "ElysiaJS", "StrandsAgents", "DuckDB"],
   },
   {
     icon: Cloud,
     title: "Infrastructure",
-    summary: "クラウド前提で、運用しやすい構成を意識します。",
-    details:
+    description:
       "Infrastructureでは、環境差分を最小化するためにIaCを中心に据え、デプロイ手順の再現性を確保します。ネットワーク、権限、監査ログ、コストの見通しを早い段階から設計に含め、チームが安全に変更できる土台を整えます。",
-    color: "var(--color-rose-500)",
+    textColor: "text-rose-500",
     tooltips: ["AWS", "GCP", "Docker", "VMWare"],
   },
   {
     icon: Wrench,
     title: "SRE",
-    summary: "日々の開発を支える仕組みを整えます。",
-    details:
+    description:
       "SREでは、開発速度と信頼性の両立を目的に、監視指標の定義、アラート品質の改善、運用手順の標準化を進めます。障害対応のふりかえりを仕組みに反映し、CI/CDや運用自動化を通じて、継続的に改善が回る状態を作ります。",
-    color: "var(--color-emerald-500)",
+    textColor: "text-emerald-500",
     tooltips: ["OpenTelemetry", "Lighthouse", "k6", "Postman"],
   },
 ] as const satisfies readonly SkillItem[];
