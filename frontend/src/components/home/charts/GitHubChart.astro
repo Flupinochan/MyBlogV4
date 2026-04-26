@@ -276,7 +276,8 @@ const pastelColors = [
     .sort((a, b) => b.count - a.count);
   const arc = d3
     .arc<d3.PieArcDatum<MergedData>>()
-    .innerRadius(30)
+    // アニメーションで一部のパスが反転するためドーナツ型にはしない
+    .innerRadius(0)
     .outerRadius(radius)
     .padAngle(0.01)
     .padRadius(radius);
