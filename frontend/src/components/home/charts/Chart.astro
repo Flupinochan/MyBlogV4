@@ -1,18 +1,25 @@
 ---
 import Flex from "../../layout/Flex.astro";
-import {
+
+const isDev = import.meta.env.MODE === "development";
+
+const mod = isDev
+  ? await import("./githubStatsMock")
+  : await import("./githubStats");
+
+const {
   getGitHubLanguageBytesStats,
   getRepositoryCountByLanguage,
   getGitHubCommitStats,
-} from "./githubStats";
+} = mod;
 
 const langCount = await getRepositoryCountByLanguage();
 const langBytes = await getGitHubLanguageBytesStats();
 const commitStats = await getGitHubCommitStats();
 ---
 
-<Flex class="flex-col items-center">
-  <div class="radio-group">
+<Flex class="flex-row items-center">
+  <div class="flex flex-col radio-group">
     <label data-anchor="pie" class="radio-label [anchor-name:--pie]">
       <input
         type="radio"
@@ -37,7 +44,7 @@ const commitStats = await getGitHubCommitStats();
 
   <div
     id="unified-chart"
-    class="w-full max-w-2xl mx-auto"
+    class="w-full"
     data-stats={JSON.stringify(langCount)}
     data-bytes={JSON.stringify(langBytes)}
     data-commits={JSON.stringify(commitStats)}

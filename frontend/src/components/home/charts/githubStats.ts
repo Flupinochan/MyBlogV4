@@ -9,17 +9,24 @@ import type {
 
 const GITHUB_OWNER = "flupinochan";
 const TARGET_LANGUAGES = ["TypeScript", "Dart", "Python", "C#", "Rust"];
-if (!GITHUB_TOKEN) {
-  throw new Error("GITHUB_TOKEN is missing in .env file");
-}
 const DEFAULT_COLOR = "purple";
 
-const octokit = new Octokit({ auth: GITHUB_TOKEN });
+let octokit: Octokit | null = null;
+function getOctokit(): Octokit {
+  if (octokit) return octokit;
+
+  if (!GITHUB_TOKEN) {
+    throw new Error("GITHUB_TOKEN is missing in .env file");
+  }
+
+  octokit = new Octokit({ auth: GITHUB_TOKEN });
+  return octokit;
+}
 
 export async function getRepositoryCountByLanguage(): Promise<
   LanguageRepositoryCount[]
 > {
-  const response = await octokit.graphql<{ user: User | null }>(
+  const response = await getOctokit().graphql<{ user: User | null }>(
     `
     query getRepositoryCountByLanguage($owner: String!) {
       user(login: $owner) {
@@ -67,7 +74,7 @@ export async function getRepositoryCountByLanguage(): Promise<
 export async function getGitHubLanguageBytesStats(): Promise<
   LanguageRepositoryBytes[]
 > {
-  const response = await octokit.graphql<{ user: User | null }>(
+  const response = await getOctokit().graphql<{ user: User | null }>(
     `
     query getLanguageBytes($owner: String!) {
       user(login: $owner) {
@@ -126,7 +133,7 @@ export async function getGitHubLanguageBytesStats(): Promise<
 
 // アカウント作成日を取得
 async function getAccountCreateAt(): Promise<Date> {
-  const res = await octokit.graphql<{
+  const res = await getOctokit().graphql<{
     user: { createdAt: string } | null;
   }>(
     `
@@ -175,7 +182,7 @@ export async function getGitHubCommitStats(): Promise<GitHubCommitCount[]> {
     )
     .join("\n");
 
-  const res = await octokit.graphql<any>(
+  const res = await getOctokit().graphql<any>(
     `query ($owner: String!) { user(login: $owner) { ${fields} } }`,
     { owner: GITHUB_OWNER },
   );
