@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import type { MergedLangStats, StyleAxisFn } from "./index";
+import type { MergedLangStats, StyleAxisFn } from "./main";
 import type { Tooltip } from "./tooltip";
 
 export class BarChart {

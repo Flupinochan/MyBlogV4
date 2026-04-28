@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import type { MergedLangStats } from ".";
+import type { MergedLangStats } from "./main";
 
 export class Tooltip {
   private readonly el: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
@@ -39,8 +39,8 @@ export class Tooltip {
       .on("mouseleave", () => this.hide());
   }
 
-  removeEvent() {
-    this.el.on("mouseover", null).on("mousemove", null).on("mouseleave", null);
+  removeEvent(elements: d3.Selection<any, any, any, any>) {
+    elements.on("mouseover", null).on("mousemove", null).on("mouseleave", null);
   }
 
   show(html: string, event: MouseEvent) {
@@ -55,7 +55,6 @@ export class Tooltip {
 
   hide() {
     this.el.classed("invisible", true).classed("visible", false);
-    this.removeEvent();
   }
 
   move(event: MouseEvent) {

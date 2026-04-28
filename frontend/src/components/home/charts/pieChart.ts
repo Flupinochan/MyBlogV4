@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import type { MergedLangStats } from "./index";
+import type { MergedLangStats } from "./main";
 
 // PieChart用のデータを初期化、管理
 // 絵画はしない

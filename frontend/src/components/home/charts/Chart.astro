@@ -1,0 +1,106 @@
+---
+import Flex from "../../layout/Flex.astro";
+import {
+  getGitHubLanguageBytesStats,
+  getRepositoryCountByLanguage,
+  getGitHubCommitStats,
+} from "./githubStats";
+
+const langCount = await getRepositoryCountByLanguage();
+const langBytes = await getGitHubLanguageBytesStats();
+const commitStats = await getGitHubCommitStats();
+---
+
+<Flex class="flex-col items-center">
+  <div class="radio-group">
+    <label data-anchor="pie" class="radio-label [anchor-name:--pie]">
+      <input
+        type="radio"
+        name="chart-type"
+        value="pie"
+        class="hidden"
+        checked
+      />
+      <span class="radio-text">Language Count</span>
+    </label>
+
+    <label data-anchor="bar" class="radio-label [anchor-name:--bar]">
+      <input type="radio" name="chart-type" value="bar" class="hidden" />
+      <span class="radio-text">Language Bytes</span>
+    </label>
+
+    <label data-anchor="stack" class="radio-label [anchor-name:--stack]">
+      <input type="radio" name="chart-type" value="stack" class="hidden" />
+      <span class="radio-text">Commit Stack</span>
+    </label>
+  </div>
+
+  <div
+    id="unified-chart"
+    class="w-full max-w-2xl mx-auto"
+    data-stats={JSON.stringify(langCount)}
+    data-bytes={JSON.stringify(langBytes)}
+    data-commits={JSON.stringify(commitStats)}
+  >
+  </div>
+</Flex>
+
+<style is:global>
+  @reference "tailwindcss";
+
+  @layer components {
+    .radio-group {
+      @apply relative flex gap-2;
+    }
+
+    .radio-group::before {
+      content: "";
+      @apply absolute pointer-events-none z-0 rounded
+             transition-all duration-400
+             ease-[cubic-bezier(0.18,0.89,0.32,1.28)]
+             bg-violet-500/20 dark:bg-violet-800/50;
+
+      position-anchor: var(--active-anchor);
+      top: anchor(top);
+      left: anchor(left);
+      right: anchor(right);
+      bottom: anchor(bottom);
+    }
+
+    .radio-label {
+      @apply relative z-10 px-4 py-2 border border-violet-500 rounded cursor-pointer
+             transition-all duration-150
+             active:translate-y-0.5 active:scale-95;
+    }
+
+    .radio-text {
+      @apply text-violet-500 dark:text-slate-200;
+    }
+
+    /* checked */
+    .radio-group:has(input[value="pie"]:checked) {
+      --active-anchor: --pie;
+    }
+    .radio-group:has(input[value="bar"]:checked) {
+      --active-anchor: --bar;
+    }
+    .radio-group:has(input[value="stack"]:checked) {
+      --active-anchor: --stack;
+    }
+
+    /* hover */
+    .radio-group:has(label[data-anchor="pie"]:hover) {
+      --active-anchor: --pie;
+    }
+    .radio-group:has(label[data-anchor="bar"]:hover) {
+      --active-anchor: --bar;
+    }
+    .radio-group:has(label[data-anchor="stack"]:hover) {
+      --active-anchor: --stack;
+    }
+  }
+</style>
+
+<script>
+  import "./main";
+</script>

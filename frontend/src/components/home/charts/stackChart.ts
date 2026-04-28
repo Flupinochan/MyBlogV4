@@ -1,6 +1,6 @@
 import * as d3 from "d3";
 import type { GitHubCommitCount } from "../../../types/github";
-import type { MergedLangStats, StyleAxisFn } from "./index";
+import type { MergedLangStats, StyleAxisFn } from "./main";
 import type { Tooltip } from "./tooltip";
 
 // StackChartに関するデータとUIを管理

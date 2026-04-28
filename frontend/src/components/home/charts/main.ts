@@ -77,13 +77,13 @@ const showDuration = 0.8;
 const hideEase = "power2.in";
 const showEase = "power2.out";
 
-// 親要素svg/gタグ
+// 親要素svg
 const svgMain = d3
   .select("#unified-chart")
   .append("svg")
-  .attr("width", width)
-  .attr("height", height);
-const gMain = svgMain.append("g");
+  .attr("viewBox", `0 0 ${width} ${height}`)
+  .attr("preserveAspectRatio", "xMidYMid meet")
+  .attr("class", "w-full h-auto");
 
 // axis共通のcolor等のスタイル定義
 export type StyleAxisFn = (
@@ -123,6 +123,9 @@ const stackChart = new StackChart(
   tooltip,
   styleAxis,
 );
+
+// Graphのmain描画エリアg (Axisの後に定義して前面に表示)
+const gMain = svgMain.append("g");
 
 // 初期表示のPieChart描画
 const elements = gMain
@@ -256,6 +259,7 @@ const updateChart = (type: ChartType) => {
       radioLabels.forEach((el) => (el.style.opacity = "0.5"));
       // EventListener無効化&Tooltip非表示
       tooltip.hide();
+      tooltip.removeEvent(elements);
     },
     // アニメーション完了後処理
     onComplete: () => {
