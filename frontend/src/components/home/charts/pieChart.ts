@@ -8,13 +8,11 @@ export class PieChart {
   readonly pie: d3.Pie<any, MergedLangStats>;
   readonly pieData: d3.PieArcDatum<MergedLangStats>[];
 
-  constructor(
-    private readonly MergedLangStats: MergedLangStats[],
-    radius: number,
-  ) {
+  constructor(MergedLangStats: MergedLangStats[], radius: number) {
     this.arc = d3
       .arc<d3.PieArcDatum<MergedLangStats>>()
       // アニメーションで一部のパスが反転するためドーナツ型にはしない
+      // ドーナツ型にすると中央の穴のパスが悪影響する
       .innerRadius(0)
       .outerRadius(radius)
       .padAngle(0.01)
@@ -25,10 +23,10 @@ export class PieChart {
       .value((d) => d.repoCount)
       .sort((a, b) => b.repoCount - a.repoCount);
 
-    this.pieData = this.pie(this.MergedLangStats);
+    this.pieData = this.pie(MergedLangStats);
   }
 
-  // arcのpathと中心座標を返却
+  // arcのpathとラベルの座標を返却
   getTarget(d: d3.PieArcDatum<MergedLangStats>) {
     const pos = this.arc.centroid(d);
     return {

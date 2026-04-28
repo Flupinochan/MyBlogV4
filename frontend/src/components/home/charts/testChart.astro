@@ -8,15 +8,6 @@ import {
 const langCount = await getRepositoryCountByLanguage();
 const langBytes = await getGitHubLanguageBytesStats();
 const commitStats = await getGitHubCommitStats();
-
-const pastelColors = [
-  "#fb2c36", // RED
-  "#fe9a00", // AMBER
-  "#00bc7d", // EMERALD
-  "#00b8db", // CYAN
-  "#8e51ff", // VIOLET
-  "#f6339a", // PINK
-];
 ---
 
 <div class="chart-wrapper">
@@ -40,7 +31,6 @@ const pastelColors = [
     data-stats={JSON.stringify(langCount)}
     data-bytes={JSON.stringify(langBytes)}
     data-commits={JSON.stringify(commitStats)}
-    data-colors={JSON.stringify(pastelColors)}
   >
   </div>
 </div>

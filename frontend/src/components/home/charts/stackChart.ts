@@ -1,31 +1,35 @@
 import * as d3 from "d3";
 import type { GitHubCommitCount } from "../../../types/github";
-import type { MergedLangStats } from "./index";
+import type { MergedLangStats, StyleAxisFn } from "./index";
+import type { Tooltip } from "./tooltip";
 
-type StyleAxisFn = (
-  sel: d3.Selection<SVGGElement, unknown, HTMLElement, any>,
-) => void;
-
+// StackChartに関するデータとUIを管理
 export class StackChart {
-  readonly xStackTime: d3.ScaleTime<number, number>;
-  readonly yStack: d3.ScaleLinear<number, number>;
+  readonly fillColor: string = "#ad46ff"; // color-violet-500
+  readonly maxTotal: number;
+  // Scale
+  readonly xScale: d3.ScaleTime<number, number>;
+  readonly yScale: d3.ScaleLinear<number, number>;
+  // UIは初期表示では非表示
+  // Axis UI
+  readonly xAxis: d3.Selection<SVGGElement, unknown, HTMLElement, any>;
+  readonly yAxis: d3.Selection<SVGGElement, unknown, HTMLElement, any>;
+  // Border UI
   readonly borderPath: d3.Selection<SVGPathElement, unknown, HTMLElement, any>;
-  readonly gStackXAxis: d3.Selection<SVGGElement, unknown, HTMLElement, any>;
-  readonly gStackYAxis: d3.Selection<SVGGElement, unknown, HTMLElement, any>;
 
   private readonly timeExtent: [Date, Date];
   private readonly bisectDate: d3.Bisector<GitHubCommitCount, Date>["left"];
 
   constructor(
     svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>,
-    private readonly mergedData: MergedLangStats[],
     private readonly commitData: GitHubCommitCount[],
     private readonly width: number,
     private readonly height: number,
     private readonly margin: number,
+    private readonly tooltip: Tooltip,
     styleAxis: StyleAxisFn,
   ) {
-    const maxTotal = commitData[commitData.length - 1]?.total || 0;
+    this.maxTotal = commitData[commitData.length - 1]?.total || 0;
     this.timeExtent = d3.extent(commitData, (d) => new Date(d.date)) as [
       Date,
       Date,
@@ -34,16 +38,44 @@ export class StackChart {
       (d: GitHubCommitCount) => new Date(d.date),
     ).left;
 
-    this.yStack = d3
-      .scaleLinear()
-      .domain([0, maxTotal])
-      .nice()
-      .range([height - margin, margin]);
-
-    this.xStackTime = d3
+    this.xScale = d3
       .scaleTime()
       .domain(this.timeExtent)
-      .range([margin, width - margin]);
+      .range([margin, width - margin])
+      .nice();
+
+    this.yScale = d3
+      .scaleLinear()
+      .domain([0, this.maxTotal])
+      .range([height - margin, margin])
+      .nice();
+
+    const [yMin, yMax] = this.yScale.domain();
+    const yTickValues = d3.range(2).map((i) => yMin + ((yMax - yMin) / 1) * i);
+
+    this.xAxis = svg
+      .append("g")
+      .attr("transform", `translate(0, ${height - margin})`)
+      .attr("class", "opacity-0")
+      .call(
+        d3
+          .axisBottom(this.xScale)
+          .ticks(5)
+          .tickFormat(d3.timeFormat("%Y-%m") as never),
+      )
+      .call(styleAxis);
+
+    this.yAxis = svg
+      .append("g")
+      .attr("transform", `translate(${margin}, 0)`)
+      .attr("class", "opacity-0")
+      .call(
+        d3
+          .axisLeft(this.yScale)
+          .tickValues(yTickValues)
+          .tickFormat(d3.format(",d")),
+      )
+      .call(styleAxis);
 
     this.borderPath = svg
       .append("path")
@@ -51,8 +83,8 @@ export class StackChart {
         "d",
         d3
           .line<GitHubCommitCount>()
-          .x((d) => this.xStackTime(new Date(d.date)))
-          .y((d) => this.yStack(d.total))
+          .x((d) => this.xScale(new Date(d.date)))
+          .y((d) => this.yScale(d.total))
           .curve(d3.curveMonotoneX)(commitData) || "",
       )
       .attr("fill", "none")
@@ -60,25 +92,6 @@ export class StackChart {
         "class",
         "stroke-violet-400 dark:stroke-violet-300 stroke-2 opacity-0 pointer-events-none",
       );
-
-    this.gStackXAxis = svg
-      .append("g")
-      .attr("transform", `translate(0, ${height - margin})`)
-      .attr("class", "opacity-0")
-      .call(
-        d3
-          .axisBottom(this.xStackTime)
-          .ticks(5)
-          .tickFormat(d3.timeFormat("%Y-%m") as never),
-      )
-      .call(styleAxis);
-
-    this.gStackYAxis = svg
-      .append("g")
-      .attr("transform", `translate(${margin}, 0)`)
-      .attr("class", "opacity-0")
-      .call(d3.axisLeft(this.yStack).ticks(5).tickFormat(d3.format(",d")))
-      .call(styleAxis);
   }
 
   private get totalMs(): number {
@@ -103,8 +116,8 @@ export class StackChart {
     return d0.total + t * (d1.total - d0.total);
   }
 
-  getStackPath(index: number): string {
-    const n = this.mergedData.length;
+  getStackPath(mergedLangStats: MergedLangStats[], index: number): string {
+    const n = mergedLangStats.length;
     const segStart = this.getTimeAt(index / n);
     const segEnd = this.getTimeAt((index + 1) / n);
 
@@ -128,21 +141,40 @@ export class StackChart {
     return (
       d3
         .area<GitHubCommitCount>()
-        .x((d) => this.xStackTime(new Date(d.date)))
+        .x((d) => this.xScale(new Date(d.date)))
         .y0(this.height - this.margin)
-        .y1((d) => this.yStack(d.total))
+        .y1((d) => this.yScale(d.total))
         .curve(d3.curveMonotoneX)(segData) ?? ""
     );
   }
 
-  getTarget(d: d3.PieArcDatum<MergedLangStats>, stableIndex: number) {
-    const n = this.mergedData.length;
+  // アニメーション先のpathとlabel positionを返却
+  getTarget(mergedLangStats: MergedLangStats[], stableIndex: number) {
+    const n = mergedLangStats.length;
     const reversedIndex = n - 1 - stableIndex;
     const midTime = this.getTimeAt((reversedIndex + 0.5) / n);
     return {
-      path: this.getStackPath(reversedIndex),
-      labelX: this.xStackTime(midTime),
-      labelY: this.yStack(this.interpolateCommitTotal(midTime)) - 10,
+      path: this.getStackPath(mergedLangStats, reversedIndex),
+      labelX: this.xScale(midTime),
+      labelY: this.yScale(this.interpolateCommitTotal(midTime)) - 10,
     };
+  }
+
+  showAxis(tl: gsap.core.Timeline, duration: number, ease: string) {
+    tl.to(this.xAxis.node(), { opacity: 1, duration, ease }, 0);
+    tl.to(this.yAxis.node(), { opacity: 1, duration, ease }, 0);
+  }
+
+  hideAxis(tl: gsap.core.Timeline, duration: number, ease: string) {
+    tl.to(this.xAxis.node(), { opacity: 0, duration, ease }, 0);
+    tl.to(this.yAxis.node(), { opacity: 0, duration, ease }, 0);
+  }
+
+  showBorder(tl: gsap.core.Timeline, duration = 0.1, ease = "none") {
+    tl.to(this.borderPath.node(), { opacity: 1, duration, ease });
+  }
+
+  hideBorder(tl: gsap.core.Timeline, duration = 0.1, ease = "none") {
+    tl.to(this.borderPath.node(), { opacity: 0, duration, ease });
   }
 }
