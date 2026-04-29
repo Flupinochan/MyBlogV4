@@ -89,7 +89,7 @@ export class BarChart {
       elementX: this.margin + (this.xScale(data.langName) || 0),
       elementY: this.margin,
       labelX: this.xScale.bandwidth() / 2,
-      labelY: this.yScale(data.repoBytes) - 10,
+      labelY: this.yScale(data.repoBytes) - 15,
     };
   }
 }

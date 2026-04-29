@@ -1,4 +1,5 @@
 import * as d3 from "d3";
+import { atom } from "nanostores";
 import type {
   GitHubCommitCount,
   LanguageRepositoryBytes,
@@ -67,10 +68,10 @@ const stackOrder = [...mergedLangStats].sort(
 );
 
 // 定数
-const width = 600;
+const width = 500;
 const height = 500;
-const margin = 80;
-const radius = Math.min(width, height) / 2 - 60;
+const margin = 40;
+const radius = Math.min(width, height) / 2 - 40;
 // アニメーション
 const hideDuration = 0.3;
 const showDuration = 0.8;
@@ -99,7 +100,7 @@ const styleAxis: StyleAxisFn = (
     .attr("stroke-width", 1);
   selection
     .selectAll("text")
-    .attr("class", "fill-slate-700 dark:fill-slate-300 font-medium");
+    .attr("class", "fill-slate-700 dark:fill-slate-300 text-xs");
 };
 
 // Chart設定初期化
@@ -182,60 +183,56 @@ elements.each(function (d) {
   });
 });
 
-let isAnimating = false;
+export const isAnimating = atom(false);
 
 // 初期表示のアニメーション
-const innerTl = gsap.timeline({
-  onStart: () => {
-    isAnimating = true;
-  },
-  onComplete: () => {
-    isAnimating = false;
-  },
-});
-elements.each(function (data, index) {
-  const path = d3.select(this).select("path");
-  const label = d3.select(this).select("text");
-  const staggerStep = 0.15;
-  innerTl.to(
-    path.node(),
-    {
-      autoAlpha: 1,
-      duration: 0.1,
-    },
-    index * staggerStep,
-  );
-  innerTl.to(
-    { val: data.startAngle },
-    {
-      val: data.endAngle,
-      duration: 0.5,
-      ease: "power2.out",
-      onUpdate: function () {
-        path.attr(
-          "d",
-          d3.arc<any>().innerRadius(0).outerRadius(radius)({
-            ...data,
-            endAngle: this.targets()[0].val,
-          })!,
-        );
+export const initChartAnimation = () => {
+  const innerTl = gsap.timeline();
+  elements.each(function (data, index) {
+    const path = d3.select(this).select("path");
+    const label = d3.select(this).select("text");
+    const staggerStep = 0.15;
+    innerTl.to(
+      path.node(),
+      {
+        autoAlpha: 1,
+        duration: 0.1,
       },
-    },
-    index * staggerStep,
-  );
-  innerTl.to(
-    label.node(),
-    {
-      autoAlpha: 1,
-      duration: 0.3,
-    },
-    index * staggerStep + 0.3,
-  );
-});
+      index * staggerStep,
+    );
+    innerTl.to(
+      { val: data.startAngle },
+      {
+        val: data.endAngle,
+        duration: 0.5,
+        ease: "power2.out",
+        onUpdate: function () {
+          path.attr(
+            "d",
+            d3.arc<any>().innerRadius(0).outerRadius(radius)({
+              ...data,
+              endAngle: this.targets()[0].val,
+            })!,
+          );
+        },
+      },
+      index * staggerStep,
+    );
+    innerTl.to(
+      label.node(),
+      {
+        autoAlpha: 1,
+        duration: 0.3,
+      },
+      index * staggerStep + 0.3,
+    );
+  });
+  return innerTl;
+};
 
 // Graph切り替え時のGSAPアニメーション
 const updateChart = (type: ChartType) => {
-  if (isAnimating) return;
+  if (isAnimating.get()) return;
 
   const radioButtons = document.querySelectorAll<HTMLInputElement>(
     'input[name="chart-type"]',
@@ -253,7 +250,7 @@ const updateChart = (type: ChartType) => {
   const masterTl = gsap.timeline({
     // アニメーション開始前処理
     onStart: () => {
-      isAnimating = true;
+      isAnimating.set(true);
       // RadioButtonを無効化
       radioButtons.forEach((i) => (i.disabled = true));
       radioLabels.forEach((el) => (el.style.opacity = "0.5"));
@@ -263,7 +260,7 @@ const updateChart = (type: ChartType) => {
     },
     // アニメーション完了後処理
     onComplete: () => {
-      isAnimating = false;
+      isAnimating.set(false);
       // RadioButtonを有効化
       radioButtons.forEach((i) => (i.disabled = false));
       radioLabels.forEach((el) => (el.style.opacity = "1"));
@@ -481,7 +478,7 @@ document
   .querySelectorAll<HTMLInputElement>('input[name="chart-type"]')
   .forEach((input) => {
     input.addEventListener("change", (e) => {
-      if (isAnimating) {
+      if (isAnimating.get()) {
         e.preventDefault();
         return;
       }

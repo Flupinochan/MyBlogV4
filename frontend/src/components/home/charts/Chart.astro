@@ -1,5 +1,8 @@
 ---
 import Flex from "../../layout/Flex.astro";
+import PieChart from "../../icons/PieChart.astro";
+import BarChart from "../../icons/BarChart.astro";
+import TrendChart from "../../icons/TrendChart.astro";
 
 const isDev = import.meta.env.MODE === "development";
 
@@ -18,8 +21,15 @@ const langBytes = await getGitHubLanguageBytesStats();
 const commitStats = await getGitHubCommitStats();
 ---
 
-<Flex class="flex-row items-center">
-  <div class="flex flex-col radio-group">
+<h2
+  class="text-center text-6xl font-bold mt-20 text-violet-500"
+  data-chart-title
+>
+  See Me in Charts
+</h2>
+
+<Flex class="items-center gap-10 mt-5">
+  <div class="radio-group">
     <label data-anchor="pie" class="radio-label [anchor-name:--pie]">
       <input
         type="radio"
@@ -28,17 +38,35 @@ const commitStats = await getGitHubCommitStats();
         class="hidden"
         checked
       />
-      <span class="radio-text">Language Count</span>
+      <Flex class="gap-2">
+        <PieChart />
+        <p class="radio-title">Language Count</p>
+      </Flex>
+      <p class="radio-description">
+        各リポジトリのメイン言語を抽出し、多種多様な言語への対応力を可視化
+      </p>
     </label>
 
     <label data-anchor="bar" class="radio-label [anchor-name:--bar]">
       <input type="radio" name="chart-type" value="bar" class="hidden" />
-      <span class="radio-text">Language Bytes</span>
+      <Flex class="gap-2">
+        <BarChart />
+        <p class="radio-title">Language Bytes</p>
+      </Flex>
+      <p class="radio-description">
+        総コード記述量を言語別に集計し、技術的な習熟度をボリュームで表現
+      </p>
     </label>
 
     <label data-anchor="stack" class="radio-label [anchor-name:--stack]">
       <input type="radio" name="chart-type" value="stack" class="hidden" />
-      <span class="radio-text">Commit Stack</span>
+      <Flex class="gap-2">
+        <TrendChart />
+        <p class="radio-title">Total Commits</p>
+      </Flex>
+      <p class="radio-description">
+        全期間のコミット累計から読み取る開発の持続性
+      </p>
     </label>
   </div>
 
@@ -54,17 +82,18 @@ const commitStats = await getGitHubCommitStats();
 
 <style is:global>
   @reference "tailwindcss";
+  @variant dark (&:where(.dark, .dark *));
 
   @layer components {
+    /* group */
     .radio-group {
-      @apply relative flex gap-2;
+      @apply relative flex flex-col gap-8;
     }
-
     .radio-group::before {
       content: "";
       @apply absolute pointer-events-none z-0 rounded
              transition-all duration-400
-             ease-[cubic-bezier(0.18,0.89,0.32,1.28)]
+             ease-[cubic-bezier(0.34,1.56,0.64,1)]
              bg-violet-500/20 dark:bg-violet-800/50;
 
       position-anchor: var(--active-anchor);
@@ -74,17 +103,26 @@ const commitStats = await getGitHubCommitStats();
       bottom: anchor(bottom);
     }
 
+    /* normal */
     .radio-label {
-      @apply relative z-10 px-4 py-2 border border-violet-500 rounded cursor-pointer
+      @apply relative z-10 p-4
+             opacity-0 invisible
+             border-2 border-slate-500 dark:border-slate-400
+             rounded cursor-pointer
              transition-all duration-150
              active:translate-y-0.5 active:scale-95;
     }
-
-    .radio-text {
-      @apply text-violet-500 dark:text-slate-200;
+    .radio-title {
+      @apply text-slate-800 dark:text-slate-100 font-bold whitespace-nowrap;
+    }
+    .radio-description {
+      @apply text-sm mt-2 text-slate-700/80 dark:text-slate-300/80 leading-relaxed;
     }
 
     /* checked */
+    .radio-label:has(input:checked) {
+      @apply border-violet-600 dark:border-violet-400;
+    }
     .radio-group:has(input[value="pie"]:checked) {
       --active-anchor: --pie;
     }
@@ -109,5 +147,46 @@ const commitStats = await getGitHubCommitStats();
 </style>
 
 <script>
-  import "./main";
+  import { gsap } from "../../lib/gsap";
+  import { initChartAnimation, isAnimating } from "./main";
+  import { SplitText } from "gsap/SplitText";
+
+  const chartTitleEl = document.querySelector("[data-chart-title]");
+  if (!chartTitleEl) {
+    throw new Error("Chart title element not found");
+  }
+
+  const splitText = new SplitText(chartTitleEl, { type: "chars" });
+  gsap.set(splitText.chars, {
+    autoAlpha: 0,
+    filter: "blur(10px)",
+  });
+
+  const tl = gsap.timeline({
+    scrollTrigger: {
+      trigger: chartTitleEl,
+      start: "top 50%",
+      toggleActions: "play none none none",
+    },
+    onStart: () => isAnimating.set(true),
+    onComplete: () => isAnimating.set(false),
+  });
+
+  tl.to(splitText.chars, {
+    autoAlpha: 1,
+    filter: "blur(0px)",
+    duration: 0.25,
+    stagger: 0.02,
+    ease: "power2.out",
+  }).to(
+    ".radio-label",
+    {
+      autoAlpha: 1,
+      stagger: 0.1,
+      duration: 0.25,
+      ease: "power2.out",
+    },
+    "-=0.2",
+  );
+  tl.add(initChartAnimation(), "+=0.25");
 </script>

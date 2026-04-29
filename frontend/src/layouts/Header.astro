@@ -27,7 +27,7 @@ import SunMoon from "../components/icons/SunMoon.astro";
   </nav>
   <a
     href="#"
-    class="text-7xl text-transparent [-webkit-text-stroke:1px_var(--color-slate-800)] dark:[-webkit-text-stroke-color:var(--color-slate-200)]"
+    class="header-title text-6xl font-extrabold text-transparent [-webkit-text-stroke:1px_var(--color-slate-800)] dark:[-webkit-text-stroke-color:var(--color-slate-200)]"
   >
     METAL MENTAL
   </a>
@@ -131,6 +131,10 @@ import SunMoon from "../components/icons/SunMoon.astro";
 </script>
 
 <style>
+  .header-title {
+    text-box: trim-start cap alphabetic;
+  }
+
   header {
     position: fixed;
     z-index: 100;

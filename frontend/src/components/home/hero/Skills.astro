@@ -1,9 +1,9 @@
 ---
 import Skill from "./Skill.astro";
-import Bracket from "../icons/Bracket.astro";
-import Database from "../icons/Database.astro";
-import Cloud from "../icons/Cloud.astro";
-import Wrench from "../icons/Wrench.astro";
+import Bracket from "../../icons/Bracket.astro";
+import Database from "../../icons/Database.astro";
+import Cloud from "../../icons/Cloud.astro";
+import Wrench from "../../icons/Wrench.astro";
 import type { SkillItem } from "./skill.types";
 
 const skills = [
@@ -42,12 +42,12 @@ const skills = [
 ] as const satisfies readonly SkillItem[];
 ---
 
-<div class="grid grid-cols-2 gap-4 p-4">
+<div class="grid grid-cols-2 gap-4">
   {skills.map((skill) => <Skill {...skill} />)}
 </div>
 
 <script>
-  import { gsap } from "../lib/gsap";
+  import { gsap } from "../../lib/gsap";
 
   document.addEventListener(
     "home-title-typing-complete",

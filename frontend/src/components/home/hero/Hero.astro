@@ -1,0 +1,15 @@
+---
+import Flex from "../../layout/Flex.astro";
+import MainTitle from "./MainTitle.astro";
+import Skills from "./Skills.astro";
+import HeroActions from "./HeroActions.astro";
+---
+
+<!-- Heroセクションは初期画面の中央に配置 -->
+<Flex
+  class="flex-col items-center justify-center min-h-[calc(100dvh-200px)] gap-20"
+>
+  <MainTitle />
+  <Skills />
+  <HeroActions />
+</Flex>
