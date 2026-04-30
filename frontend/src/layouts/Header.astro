@@ -27,35 +27,53 @@ import SunMoon from "../components/icons/SunMoon.astro";
   </nav>
   <a
     href="#"
-    class="header-title text-6xl font-extrabold text-transparent [-webkit-text-stroke:1px_var(--color-slate-800)] dark:[-webkit-text-stroke-color:var(--color-slate-200)]"
+    class="text-6xl font-extrabold text-transparent [-webkit-text-stroke:1px_var(--color-slate-800)] dark:[-webkit-text-stroke-color:var(--color-slate-200)]"
+    style="text-box: trim-start cap alphabetic"
   >
     METAL MENTAL
   </a>
   <Flex class="relative z-10 gap-4 pr-10 items-center">
     <button
+      aria-label="ダークモードに切り替える"
       class="toggle-dark-mode group transform active:scale-95 transition-transform duration-150"
     >
       <SunMoon
         class="size-6 transition-all duration-300 group-hover:stroke-[2px] hover:brightness-75 dark:hover:brightness-125"
       />
     </button>
-    <button class="transform active:scale-95 transition-transform duration-150">
+    <a
+      aria-label="GitHubのプロフィールを新しいタブで開く"
+      href="https://github.com/Flupinochan"
+      target="_blank"
+      rel="noopener"
+      class="transform active:scale-95 transition-transform duration-150"
+    >
       <Octcat
         width={24}
         height={24}
         class="hover:brightness-75 dark:hover:brightness-125 transition-all duration-300"
       />
-    </button>
-    <button class="transform active:scale-95 transition-transform duration-150">
+    </a>
+    <a
+      aria-label="Zennブログのプロフィールを新しいタブで開く"
+      href="https://zenn.dev/metalmental"
+      target="_blank"
+      rel="noopener"
+      class="transform active:scale-95 transition-transform duration-150"
+    >
       <Zenn
         class="size-5 hover:brightness-75 dark:hover:brightness-125 transition-all duration-300"
       />
-    </button>
-    <button class="transform active:scale-95 transition-transform duration-150">
+    </a>
+    <a
+      aria-label="メールを送信する"
+      href="mailto:flupino@metalmental.net"
+      class="transform active:scale-95 transition-transform duration-150"
+    >
       <Mail
         class="size-6 hover:brightness-75 dark:hover:brightness-125 transition-all duration-300"
       />
-    </button>
+    </a>
   </Flex>
 </header>
 
@@ -131,10 +149,6 @@ import SunMoon from "../components/icons/SunMoon.astro";
 </script>
 
 <style>
-  .header-title {
-    text-box: trim-start cap alphabetic;
-  }
-
   header {
     position: fixed;
     z-index: 100;
