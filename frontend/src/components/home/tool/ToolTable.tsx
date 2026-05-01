@@ -1,12 +1,15 @@
+import "./ToolTable.css";
+import { flushSync } from "react-dom";
 import { FaReact } from "react-icons/fa";
 import {
   useReactTable,
   getCoreRowModel,
   flexRender,
+  getSortedRowModel,
   createColumnHelper,
 } from "@tanstack/react-table";
 import { toolData } from "./tableData";
-import { useRef } from "react";
+import { Fragment, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { TbBrandTypescript } from "react-icons/tb";
 import { AiOutlinePython } from "react-icons/ai";
@@ -95,7 +98,9 @@ const defaultColumns = [
     header: "Skills",
     cell: (info) => (
       <div className="flex flex-wrap gap-1">
-        {info.getValue().map((skill) => SKILL_SVG_MAP[skill as Skill])}
+        {info.getValue().map((skill) => (
+          <Fragment key={skill}>{SKILL_SVG_MAP[skill as Skill]}</Fragment>
+        ))}
       </div>
     ),
   }),
@@ -126,11 +131,16 @@ const defaultColumns = [
 ];
 
 export default function ToolTable() {
+  const [data, setData] = useState(() => [...toolData]);
+  const [rowUpdating, setRowUpdating] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   // Tanstack Table Hook
   const table = useReactTable({
     columns: defaultColumns,
-    data: toolData,
+    data: data,
     getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
     initialState: {
       columnVisibility: {
         createdAt: false, // invisible by default
@@ -138,14 +148,38 @@ export default function ToolTable() {
     },
   });
 
+  // random sort
+  const handleRandomSort = async () => {
+    const shuffled = [...data].sort(() => Math.random() - 0.5);
+    const container = scrollContainerRef.current;
+
+    if (!container?.startViewTransition) {
+      setData(shuffled);
+      return;
+    }
+
+    try {
+      // view-transition-name付与
+      setRowUpdating(true);
+      await container.startViewTransition(() => {
+        flushSync(() => {
+          // view-transition対象のDOM更新
+          setData(shuffled);
+        });
+      }).finished;
+    } finally {
+      // view-transition-name削除
+      setRowUpdating(false);
+    }
+  };
+
   // Tanstack Virtual Table
   const { rows } = table.getRowModel();
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const virtualizer = useVirtualizer({
     getScrollElement: () => scrollContainerRef.current,
     count: rows.length,
     estimateSize: () => 50, // height: `${virtualRow.size}px` で各行の高さとして参照される
-    overscan: 5,
+    overscan: 1,
     gap: 0,
     useFlushSync: false,
     horizontal: false,
@@ -157,6 +191,15 @@ export default function ToolTable() {
       role="table"
       aria-label="作成したツール一覧"
     >
+      <div className="mb-4 flex justify-end">
+        <button
+          onClick={handleRandomSort}
+          className="px-4 py-2 bg-slate-800 text-white text-sm rounded-lg hover:bg-slate-700 transition-colors flex items-center gap-2"
+        >
+          🔀 ランダムに並び替え
+        </button>
+      </div>
+
       {/* header */}
       <div
         className="pr-2 flex w-full border-b border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/60"
@@ -202,6 +245,11 @@ export default function ToolTable() {
                 style={{
                   height: `${virtualRow.size}px`,
                   transform: `translateY(${virtualRow.start}px)`,
+                  // rowUpdating=trueの時のみ動的にview-transition-nameを付与
+                  viewTransitionClass: rowUpdating ? "row-item" : "none",
+                  viewTransitionName: rowUpdating
+                    ? `row-${row.original.id}`
+                    : "none",
                 }}
                 role="row"
               >

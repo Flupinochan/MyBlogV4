@@ -159,7 +159,7 @@ const classes = {
           const all = this.querySelectorAll<HTMLElement>(
             "[data-trigger], [data-dialog-surface], [data-skill-title], [data-skill-tooltip], [data-skill-description], svg",
           );
-          all.forEach((el) => (el.style.viewTransitionName = "none"));
+          all.forEach((el) => el.style.removeProperty("view-transition-name"));
           if (trigger) trigger.style.borderColor = "";
         });
       };
@@ -191,7 +191,7 @@ const classes = {
 </style>
 
 <style is:global>
-  ::view-transition-group(*) {
+  ::view-transition-group(skill-title) {
     animation-duration: 0.4s;
     animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   }

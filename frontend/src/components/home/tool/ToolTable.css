@@ -1,0 +1,38 @@
+/* 移動 */
+::view-transition-group(.row-item) {
+  animation-duration: 1s;
+  animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+/* old/newで個別に制御するため無効化 */
+::view-transition-image-pair(.row-item) {
+  animation: none;
+}
+
+/* フェードアウト */
+::view-transition-old(.row-item) {
+  animation: fade-out 1s ease forwards;
+}
+
+/* フェードイン */
+::view-transition-new(.row-item) {
+  animation: fade-in 1s ease forwards;
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
