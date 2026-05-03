@@ -27,7 +27,8 @@
 
 @layer base {
   html,
-  .custom-scrollbar {
+  .custom-scrollbar,
+  select::picker(select) {
     container-type: scroll-state;
     container-name: html-scroll-state;
     scroll-behavior: smooth;
@@ -42,35 +43,42 @@
 
   @supports selector(::-webkit-scrollbar) {
     html::-webkit-scrollbar,
-    .custom-scrollbar::-webkit-scrollbar {
+    .custom-scrollbar::-webkit-scrollbar,
+    select::picker(select)::-webkit-scrollbar {
       width: 6px;
     }
     html::-webkit-scrollbar-button,
-    .custom-scrollbar::-webkit-scrollbar-button {
+    .custom-scrollbar::-webkit-scrollbar-button,
+    select::picker(select)::-webkit-scrollbar-button {
       display: none;
     }
     html::-webkit-scrollbar-thumb,
-    .custom-scrollbar::-webkit-scrollbar-thumb {
+    .custom-scrollbar::-webkit-scrollbar-thumb,
+    select::picker(select)::-webkit-scrollbar-thumb {
       background-color: var(--color-violet-500);
       border-radius: 6px;
     }
     html::-webkit-scrollbar-track,
-    .custom-scrollbar::-webkit-scrollbar-track {
+    .custom-scrollbar::-webkit-scrollbar-track,
+    select::picker(select)::-webkit-scrollbar-track {
       background-color: var(--scrollbar-track-bg);
     }
     html::-webkit-scrollbar-thumb:hover,
-    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover,
+    select::picker(select)::-webkit-scrollbar-thumb:hover {
       background-color: var(--color-violet-400);
     }
     html::-webkit-scrollbar-thumb:active,
-    .custom-scrollbar::-webkit-scrollbar-thumb:active {
+    .custom-scrollbar::-webkit-scrollbar-thumb:active,
+    select::picker(select)::-webkit-scrollbar-thumb:active {
       background-color: var(--color-violet-600);
     }
   }
 
   @supports not selector(::-webkit-scrollbar) {
     html,
-    .custom-scrollbar {
+    .custom-scrollbar,
+    select::picker(select) {
       scrollbar-color: var(--color-violet-500) var(--scrollbar-track-bg);
       scrollbar-width: thin;
       scrollbar-gutter: stable;
@@ -80,7 +88,8 @@
 
 @supports selector(::-webkit-scrollbar-button) {
   html::-webkit-scrollbar-button,
-  .custom-scrollbar::-webkit-scrollbar-button {
+  .custom-scrollbar::-webkit-scrollbar-button,
+  select::picker(select)::-webkit-scrollbar-button {
     display: none;
   }
 }

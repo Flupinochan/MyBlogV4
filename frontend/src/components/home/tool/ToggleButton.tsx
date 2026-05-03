@@ -13,11 +13,7 @@ export const ToggleButton = ({
     <button
       onClick={onClick}
       className={`px-2 py-1.5 text-left transition-all text-sm
-          ${
-            isActive
-              ? "text-slate-900 dark:text-slate-100 bg-violet-500/35 hover:bg-violet-500/80"
-              : "text-slate-100 dark:text-slate-900 bg-slate-950/50 dark:bg-white/50 hover:bg-slate-950/80 dark:hover:bg-white/80"
-          }`}
+          ${isActive ? "bg-violet-500/35 hover:bg-violet-500/80" : "hover:bg-slate-100/80 dark:hover:bg-slate-800/80"}`}
     >
       <span className="uppercase">{label}</span>
     </button>

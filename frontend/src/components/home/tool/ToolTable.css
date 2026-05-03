@@ -38,6 +38,8 @@
 }
 
 /* <select>タグのスタイル */
+/* 以下を参考 */
+/* https://una.im/select-updates/ */
 .filter-select {
   width: 200px;
   transition: 0.4s;
@@ -50,20 +52,21 @@
 
   /* option全体設定 */
   &::picker(select) {
+    /* 初期化 */
+    background: none;
+    border: none;
     /* 下方向へoption一覧を表示 */
     position-try-fallbacks: none;
 
-    width: anchor-size(self-inline);
-    background-color: color-mix(
-      in srgb,
-      var(--color-slate-500) 35%,
-      transparent
-    );
-    backdrop-filter: blur(8px);
-    border: none;
-    color: white;
+    margin-top: 5px;
   }
 
+  & > div {
+    min-inline-size: anchor-size(self-inline);
+    width: 100%;
+  }
+
+  /* デフォルトのpickerアイコンを削除 */
   &::picker-icon {
     display: none;
   }
@@ -71,6 +74,7 @@
   & option {
     padding: 4px 12px;
 
+    /* デフォルトのチェックマークを削除 */
     &::checkmark {
       display: none;
     }
@@ -81,7 +85,6 @@
         var(--color-violet-500) 35%,
         transparent
       );
-      color: white;
     }
   }
 
@@ -93,8 +96,6 @@
   }
 
   & button {
-    width: 100%;
-
     & div {
       width: 100%;
       display: flex;
@@ -102,18 +103,19 @@
       align-items: center;
     }
 
-    & svg {
+    & svg.select-arrow {
       inline-size: 2ch;
       transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
     }
   }
 
-  &:open > button svg {
+  /* picker押下して開いた際のsvg回転アニメーション */
+  &:open > button svg.select-arrow {
     transform: rotate(0.5turn);
   }
 }
 
-/* 現状は動作していない */
+/* 現状は動作していない (理想は選択したoption名が下から上にフェードインしてpickerに表示される) */
 @starting-style {
   .filter-select selectedcontent > * {
     opacity: 0;

@@ -18,7 +18,7 @@ import type {
   SortingState,
   VisibilityState,
 } from "@tanstack/react-table";
-import { Fragment, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { TbBrandTypescript } from "react-icons/tb";
 import { AiOutlinePython } from "react-icons/ai";
@@ -33,14 +33,16 @@ import toolRowJson from "./tool.json";
 import { ToggleButton } from "./ToggleButton";
 
 type Status = "Active" | "Inactive";
-type Platform =
-  | "Web"
-  | "Android"
-  | "iOS"
-  | "Windows"
-  | "Mac"
-  | "Chrome Extension"
-  | "VSCode Extension";
+const PLATFORMS = [
+  "Web",
+  "Android",
+  "iOS",
+  "Windows",
+  "Mac",
+  "Chrome Extension",
+  "VSCode Extension",
+] as const;
+type Platform = (typeof PLATFORMS)[number];
 type Skill =
   | "TypeScript"
   | "Python"
@@ -52,13 +54,24 @@ type Skill =
   | "Chrome Extension"
   | "VSCode Extension";
 
-const filterOperators = [
+const stringFilterOperators = [
   "includesString",
   "includesStringSensitive",
   "equalsString",
   "equalsStringSensitive",
 ];
-type FilterOperator = (typeof filterOperators)[number];
+type StringFilterOperator = (typeof stringFilterOperators)[number];
+type StringFilterValue = {
+  operator: StringFilterOperator;
+  value: string;
+};
+
+const dateFilterOperators = ["beforeDate", "afterDate"];
+type DateFilterOperator = (typeof dateFilterOperators)[number];
+type DateFilterValue = {
+  operator: DateFilterOperator;
+  value: string;
+};
 
 interface Tool {
   id: string;
@@ -93,55 +106,91 @@ const SKILL_SVG_MAP: Record<Skill, React.ReactNode> = {
 
 const toolData = toolRowJson as Tool[];
 
-type filterValue = {
-  operator: FilterOperator;
-  value: string;
-};
-
 // string用カスタムフィルタ関数 (falseの場合に対象の行が除外される)
 const stringFilter: FilterFn<Tool> = (
   row,
   columnId,
-  filterValue: filterValue,
+  filterValue: StringFilterValue,
+) => {
+  const cellString = String(row.getValue(columnId) ?? "").trim();
+  const inputString = String(filterValue.value ?? "").trim();
+  // filterValueが空の場合は表示
+  if (!inputString) return true;
+
+  switch (filterValue.operator as StringFilterOperator) {
+    case "includesString":
+      return cellString.toLowerCase().includes(inputString.toLowerCase());
+    case "includesStringSensitive":
+      return cellString.includes(inputString);
+    case "equalsString":
+      return cellString.toLowerCase() === inputString.toLowerCase();
+    case "equalsStringSensitive":
+      return cellString === inputString;
+    default:
+      return true;
+  }
+};
+
+// platform用カスタムフィルタ関数
+const platformFilter: FilterFn<Tool> = (
+  row,
+  columnId,
+  filterValue: Platform,
+) => {
+  if (!filterValue) return true;
+  const cellValue = row.getValue(columnId) as Platform;
+  return cellValue === filterValue;
+};
+
+// skills用カスタムフィルタ関数
+const skillsFilter: FilterFn<Tool> = (row, columnId, filterValue: Skill) => {
+  if (!filterValue) return true;
+  const cellValue = row.getValue(columnId) as Skill[];
+  return cellValue.some(
+    (skill) => skill.toLowerCase() === filterValue.toLowerCase(),
+  );
+};
+
+// status用カスタムフィルタ関数
+const statusFilter: FilterFn<Tool> = (row, columnId, filterValue: Status) => {
+  if (!filterValue) return true;
+  const cellValue = row.getValue(columnId) as Status;
+  return cellValue === filterValue;
+};
+
+// createdAt用カスタムフィルタ関数
+const dateFilter: FilterFn<Tool> = (
+  row,
+  columnId,
+  filterValue: DateFilterValue,
 ) => {
   if (!filterValue || !filterValue.value) return true;
 
   const cellValue = row.getValue(columnId);
-  const cellString = String(cellValue ?? "").trim();
-  const inputString = String(filterValue.value ?? "").trim();
+  if (!cellValue) return false;
 
-  // filterValueが空の場合は全ての行を表示
-  if (!inputString) return true;
+  const cellDate = new Date(String(cellValue).trim().replaceAll("/", "-"));
+  const inputDate = new Date(filterValue.value.trim().replaceAll("/", "-"));
 
-  switch (filterValue.operator as FilterOperator) {
-    case "includesString":
-      console.log("Comparing:", {
-        cellString,
-        inputString,
-        result: cellString.toLowerCase().includes(inputString.toLowerCase()),
-      });
-      return cellString.toLowerCase().includes(inputString.toLowerCase());
-    case "includesStringSensitive":
-      console.log("Comparing (case-sensitive):", {
-        cellString,
-        inputString,
-        result: cellString.includes(inputString),
-      });
-      return cellString.includes(inputString);
-    case "equalsString":
-      console.log("Comparing (equals):", {
-        cellString,
-        inputString,
-        result: cellString.toLowerCase() === inputString.toLowerCase(),
-      });
-      return cellString.toLowerCase() === inputString.toLowerCase();
-    case "equalsStringSensitive":
-      console.log("Comparing (equals, case-sensitive):", {
-        cellString,
-        inputString,
-        result: cellString === inputString,
-      });
-      return cellString === inputString;
+  // 無効な日付データの場合は表示
+  if (isNaN(cellDate.getTime()) || isNaN(inputDate.getTime())) return true;
+
+  const cellTime = new Date(
+    cellDate.getFullYear(),
+    cellDate.getMonth(),
+    cellDate.getDate(),
+  ).getTime();
+  const inputTime = new Date(
+    inputDate.getFullYear(),
+    inputDate.getMonth(),
+    inputDate.getDate(),
+  ).getTime();
+
+  switch (filterValue.operator) {
+    case "beforeDate":
+      return cellTime <= inputTime;
+    case "afterDate":
+      return cellTime >= inputTime;
     default:
       return true;
   }
@@ -170,12 +219,20 @@ const defaultColumns = [
   }),
   columnHelper.accessor("platform", {
     header: "Platform",
-    filterFn: stringFilter,
-    cell: (info) => info.getValue(),
+    filterFn: platformFilter,
+    cell: (info) => {
+      return (
+        <span
+          className={`rounded-md border border-current/30 bg-current/10 px-2 py-0.5 text-[11px] font-medium leading-none`}
+        >
+          {info.getValue()}
+        </span>
+      );
+    },
   }),
   columnHelper.accessor("skills", {
     header: "Skills",
-    filterFn: stringFilter,
+    filterFn: skillsFilter,
     // 昇順/降順の判定を逆転
     invertSorting: true,
     // 配列の1要素目でソート
@@ -196,7 +253,7 @@ const defaultColumns = [
   }),
   columnHelper.accessor("status", {
     header: "Status",
-    filterFn: stringFilter,
+    filterFn: statusFilter,
     cell: (info) => {
       return (
         <span
@@ -210,7 +267,7 @@ const defaultColumns = [
   }),
   columnHelper.accessor("createdAt", {
     header: "Created At",
-    filterFn: stringFilter,
+    filterFn: dateFilter,
     sortDescFirst: true,
     cell: (info) => {
       const date = new Date(info.getValue());
@@ -253,10 +310,10 @@ export default function ToolTable() {
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [selectedColumnId, setSelectedColumnId] = useState<ToolColumn>("name");
   const [selectedOperator, setSelectedOperator] =
-    useState<FilterOperator>("includesString");
+    useState<StringFilterOperator>("includesString");
   const [filterValue, setFilterValue] = useState<string>("");
 
-  // sort
+  // sort change with view transition
   const handleSortingChange: OnChangeFn<SortingState> = (updaterOrValue) => {
     const container = scrollContainerRef.current;
 
@@ -277,7 +334,7 @@ export default function ToolTable() {
       });
   };
 
-  // column visibility
+  // column visibility change with view transition
   const handleVisibilityChange: OnChangeFn<VisibilityState> = (
     updaterOrValue,
   ) => {
@@ -300,20 +357,79 @@ export default function ToolTable() {
       });
   };
 
+  // filter change with view transition
+  const handleFilterChange: OnChangeFn<ColumnFiltersState> = (
+    updaterOrValue,
+  ) => {
+    const container = scrollContainerRef.current;
+
+    if (!container?.startViewTransition) {
+      setColumnFilters(updaterOrValue);
+      return;
+    }
+
+    setRowUpdating(true);
+    container
+      .startViewTransition(() => {
+        flushSync(() => {
+          setColumnFilters(updaterOrValue);
+        });
+      })
+      .finished.finally(() => {
+        setRowUpdating(false);
+      });
+  };
+
   // filter
   const applyFilter = (
     columnId: string,
-    operator: FilterOperator,
+    operator: StringFilterOperator,
     value: string,
   ) => {
-    const column = table.getColumn(columnId);
-    if (!column) return;
-    // filterValueにoperatorとvalueをまとめて渡す
-    column.setFilterValue({
-      operator: operator,
-      value: value,
-    } as filterValue);
+    // 変更前も変更後のFilterValueが空の場合は何もしない
+    // DOMに変更がないのにView Transitionするとエラーが発生するため
+    const currentFilters = table.getState().columnFilters;
+    if (!value && currentFilters.length === 0) return;
+
+    const nextFilters: ColumnFiltersState = value
+      ? [
+          {
+            id: columnId,
+            value:
+              columnId === "skills" ||
+              columnId === "status" ||
+              columnId === "platform"
+                ? value
+                : { operator, value },
+          },
+        ]
+      : [];
+
+    table.setColumnFilters(nextFilters);
   };
+
+  // 300msのdebounceでフィルタを適用
+  useEffect(() => {
+    const isDateCol = selectedColumnId === "createdAt";
+    const isSpecialCol =
+      selectedColumnId === "skills" ||
+      selectedColumnId === "status" ||
+      selectedColumnId === "platform";
+
+    // 選択されているoperatorが対象のcolumnで利用可能か判定
+    const isCompatible = isSpecialCol
+      ? true
+      : isDateCol
+        ? dateFilterOperators.includes(selectedOperator)
+        : stringFilterOperators.includes(selectedOperator);
+
+    if (isCompatible) {
+      const timer = setTimeout(() => {
+        applyFilter(selectedColumnId, selectedOperator, filterValue);
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [filterValue, selectedColumnId, selectedOperator]);
 
   // Tanstack Table Hook
   const table = useReactTable({
@@ -329,7 +445,7 @@ export default function ToolTable() {
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: handleSortingChange,
     onColumnVisibilityChange: handleVisibilityChange,
-    onColumnFiltersChange: setColumnFilters,
+    onColumnFiltersChange: handleFilterChange,
   });
 
   // Tanstack Virtual Table
@@ -352,7 +468,8 @@ export default function ToolTable() {
         popover="auto"
         style={{ positionAnchor: "--header-area" }}
         className="z-2 fixed inset-auto min-w-50
-                   bg-transparent backdrop-blur-sm
+                   bg-slate-400/35 backdrop-blur-md
+                   text-slate-700 dark:text-slate-100
                    top-[anchor(bottom)] right-[anchor(right)]"
       >
         <div className="flex flex-col">
@@ -361,7 +478,6 @@ export default function ToolTable() {
             isActive={table.getAllColumns().every((col) => col.getIsVisible())}
             onClick={() => table.toggleAllColumnsVisible()}
           />
-          <div className="h-px bg-slate-200" />
           {table.getAllLeafColumns().map((column) => (
             <ToggleButton
               key={column.id}
@@ -378,9 +494,10 @@ export default function ToolTable() {
         <div
           id="filter-columns-menu"
           style={{ positionAnchor: "--header-area" }}
-          className="flex flex-row gap-8 p-2 pb-3
+          className="flex flex-row gap-8 p-2
                    z-2 fixed inset-auto min-w-50
-                   bg-slate-500/35 backdrop-blur-sm text-white
+                   bg-slate-400/35 backdrop-blur-md
+                   text-slate-700 dark:text-slate-100
                    top-[anchor(bottom)] right-[anchor(right)]"
         >
           {/* Columns */}
@@ -391,69 +508,205 @@ export default function ToolTable() {
               className="filter-select"
               value={selectedColumnId}
               onChange={(e) => {
+                setFilterValue("");
                 const nextColumnId = e.target.value as ToolColumn;
                 setSelectedColumnId(nextColumnId);
-                applyFilter(nextColumnId, selectedOperator, filterValue);
               }}
             >
               <button>
                 <div>
-                  <selectedcontent></selectedcontent>
-                  <svg width="24" height="24" viewBox="0 0 24 24">
+                  <selectedcontent className="text-slate-700 dark:text-slate-100"></selectedcontent>
+                  <svg className="select-arrow size-6" viewBox="0 0 24 24">
                     <path fill="currentColor" d="m7 10l5 5l5-5z" />
                   </svg>
                 </div>
               </button>
 
-              {table.getAllLeafColumns().map((column) => (
-                <option key={column.id} value={column.id}>
-                  <span>{column.id}</span>
-                </option>
-              ))}
+              <optgroup className="bg-slate-400/35 backdrop-blur-md">
+                {table.getAllLeafColumns().map((column) => (
+                  <option
+                    key={column.id}
+                    value={column.id}
+                    className="text-slate-700 dark:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/80"
+                  >
+                    <span>{column.id}</span>
+                  </option>
+                ))}
+              </optgroup>
             </select>
           </div>
 
           {/* Operators */}
           <div className="flex flex-col gap-1">
             <label className="text-xs text-slate-500">Operators</label>
-            <select
-              id="operator-select"
-              className="filter-select"
-              value={selectedOperator}
-              onChange={(e) => {
-                const nextOperation = e.target.value as FilterOperator;
-                setSelectedOperator(nextOperation);
-                applyFilter(selectedColumnId, nextOperation, filterValue);
-              }}
-            >
-              <button>
-                <div>
-                  <selectedcontent></selectedcontent>
-                  <svg width="24" height="24" viewBox="0 0 24 24">
-                    <path fill="currentColor" d="m7 10l5 5l5-5z" />
-                  </svg>
-                </div>
-              </button>
+            {selectedColumnId === "skills" ||
+            selectedColumnId === "status" ||
+            selectedColumnId === "platform" ? (
+              <div className="text-sm text-slate-400 filter-select">Equals</div>
+            ) : (
+              <select
+                id="operator-select"
+                className="filter-select"
+                value={selectedOperator}
+                onChange={(e) => setSelectedOperator(e.target.value)}
+              >
+                <button>
+                  <div>
+                    <selectedcontent className="text-slate-700 dark:text-slate-100"></selectedcontent>
+                    <svg className="select-arrow size-6" viewBox="0 0 24 24">
+                      <path fill="currentColor" d="m7 10l5 5l5-5z" />
+                    </svg>
+                  </div>
+                </button>
 
-              {filterOperators.map((operator) => (
-                <option key={operator} value={operator}>
-                  <span>{operator}</span>
-                </option>
-              ))}
-            </select>
+                <optgroup className="bg-slate-400/35 backdrop-blur-md">
+                  {(selectedColumnId === "createdAt"
+                    ? dateFilterOperators
+                    : stringFilterOperators
+                  ).map((operator) => (
+                    <option
+                      key={operator}
+                      value={operator}
+                      className="text-slate-700 dark:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/80"
+                    >
+                      <span>{operator}</span>
+                    </option>
+                  ))}
+                </optgroup>
+              </select>
+            )}
           </div>
 
           {/* Value */}
           <div className="flex flex-col gap-1">
             <label className="text-xs text-slate-500">Value</label>
-            <input
-              className="border-b border-slate-500 transition-colors duration-200 focus:border-violet-500"
-              onChange={(e) => {
-                const nextValue = e.target.value;
-                setFilterValue(nextValue);
-                applyFilter(selectedColumnId, selectedOperator, nextValue);
-              }}
-            />
+            {selectedColumnId === "skills" ? (
+              <select
+                id="skill-value-select"
+                className="filter-select"
+                value={filterValue}
+                onChange={(e) => setFilterValue(e.target.value)}
+              >
+                <button>
+                  <div>
+                    <selectedcontent className="text-slate-700 dark:text-slate-100"></selectedcontent>
+                    <svg className="select-arrow size-6" viewBox="0 0 24 24">
+                      <path fill="currentColor" d="m7 10l5 5l5-5z" />
+                    </svg>
+                  </div>
+                </button>
+
+                <div className="custom-scrollbar">
+                  <optgroup className="bg-slate-400/35 backdrop-blur-md">
+                    <option
+                      value=""
+                      className="text-slate-700 dark:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/80"
+                    >
+                      <span>All</span>
+                    </option>
+                    {Object.entries(SKILL_SVG_MAP).map(([skill, icon]) => (
+                      <option
+                        key={skill}
+                        value={skill}
+                        className="text-slate-700 dark:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/80"
+                      >
+                        {icon}
+                      </option>
+                    ))}
+                  </optgroup>
+                </div>
+              </select>
+            ) : selectedColumnId === "status" ? (
+              <select
+                id="status-value-select"
+                className="filter-select"
+                value={filterValue}
+                onChange={(e) => setFilterValue(e.target.value)}
+              >
+                <button>
+                  <div>
+                    <selectedcontent className="text-slate-700 dark:text-slate-100"></selectedcontent>
+                    <svg className="select-arrow size-6" viewBox="0 0 24 24">
+                      <path fill="currentColor" d="m7 10l5 5l5-5z" />
+                    </svg>
+                  </div>
+                </button>
+
+                <div className="custom-scrollbar">
+                  <optgroup className="bg-slate-400/35 backdrop-blur-md">
+                    <option
+                      value=""
+                      className="text-slate-700 dark:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/80"
+                    >
+                      <span>All</span>
+                    </option>
+                    {Object.entries(STATUS_COLOR_MAP).map(([status, color]) => (
+                      <option
+                        key={status}
+                        value={status}
+                        className="text-slate-700 dark:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/80"
+                      >
+                        <span
+                          className={`rounded-md border border-current/30 bg-current/10 px-2 py-0.5 text-[11px] font-medium leading-none`}
+                          style={{ color: color }}
+                        >
+                          {status}
+                        </span>
+                      </option>
+                    ))}
+                  </optgroup>
+                </div>
+              </select>
+            ) : selectedColumnId === "platform" ? (
+              <select
+                id="platform-value-select"
+                className="filter-select"
+                value={filterValue}
+                onChange={(e) => setFilterValue(e.target.value)}
+              >
+                <button>
+                  <div>
+                    <selectedcontent className="text-slate-700 dark:text-slate-100"></selectedcontent>
+                    <svg className="select-arrow size-6" viewBox="0 0 24 24">
+                      <path fill="currentColor" d="m7 10l5 5l5-5z" />
+                    </svg>
+                  </div>
+                </button>
+
+                <div className="custom-scrollbar">
+                  <optgroup className="bg-slate-400/35 backdrop-blur-md">
+                    <option
+                      value=""
+                      className="text-slate-700 dark:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/80"
+                    >
+                      <span>All</span>
+                    </option>
+                    {PLATFORMS.map((platform) => (
+                      <option
+                        key={platform}
+                        value={platform}
+                        className="text-slate-700 dark:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/80"
+                      >
+                        <span
+                          className={`rounded-md border border-current/30 bg-current/10 px-2 py-0.5 text-[11px] font-medium leading-none`}
+                        >
+                          {platform}
+                        </span>
+                      </option>
+                    ))}
+                  </optgroup>
+                </div>
+              </select>
+            ) : (
+              <input
+                className="text-slate-700 dark:text-slate-100 border-b border-slate-400 transition-colors duration-200 focus:border-violet-500 filter-select"
+                value={filterValue}
+                onChange={(e) => {
+                  const nextValue = e.target.value;
+                  setFilterValue(nextValue);
+                }}
+              />
+            )}
           </div>
         </div>
       )}
@@ -542,6 +795,7 @@ export default function ToolTable() {
           <div
             style={{
               height: `${virtualizer.getTotalSize()}px`,
+              minHeight: "500px",
               position: "relative",
             }}
           >
