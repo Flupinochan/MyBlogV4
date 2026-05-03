@@ -52,7 +52,7 @@ const skills = [
   document.addEventListener(
     "home-title-typing-complete",
     async () => {
-      gsap.to(".skill-card", {
+      gsap.to("[data-skill-card]", {
         duration: 1,
         opacity: 1,
         rotateY: 360,
@@ -62,8 +62,11 @@ const skills = [
         // アニメーション完了後にskill-cardのクリックを有効化
         onComplete() {
           document
-            .querySelectorAll<HTMLElement>(".skill-card")
-            .forEach((el) => el.classList.remove("pointer-events-none"));
+            .querySelectorAll<HTMLElement>("[data-skill-card]")
+            .forEach((el) => {
+              el.classList.remove("pointer-events-none");
+              el.style.cursor = "pointer";
+            });
         },
       });
     },
