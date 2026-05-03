@@ -10,13 +10,12 @@ const {
   description,
 } = Astro.props as SkillItem;
 
-const classes = {
-  base: `p-6 rounded-2xl border bg-slate-50/95 dark:bg-slate-900/95 ${textColor}`,
-};
+const base = `p-6 rounded-2xl border border-slate-600/70 dark:border-slate-300/70
+bg-slate-50/95 dark:bg-slate-900/95 ${textColor} hover:border-current`;
 ---
 
 <skill-card class="block">
-  <div data-skill-card class={`${classes.base} pointer-events-none opacity-0`}>
+  <div data-skill-card class={`${base} pointer-events-none opacity-0`}>
     <SkillContent
       icon={Icon}
       title={title}
@@ -31,7 +30,7 @@ const classes = {
     class="hidden fixed inset-0 z-50 items-center justify-center
          bg-indigo-950/45 dark:bg-slate-950/70 backdrop-blur-sm"
   >
-    <div data-skill-dialog class={`${classes.base} w-[min(92vw,32rem)]`}>
+    <div data-skill-dialog class={`${base} w-[min(92vw,32rem)]`}>
       <SkillContent
         icon={Icon}
         title={title}
@@ -194,6 +193,7 @@ const classes = {
       skillCard.addEventListener("click", () => {
         // hover時のborder colorのままview transitionするため
         skillCard.style.borderColor = getComputedStyle(skillCard).color;
+        skillDialog.style.borderColor = getComputedStyle(skillCard).color;
         toggle(true);
       });
       skillDialogCloseBtn.addEventListener("click", () => toggle(false));
