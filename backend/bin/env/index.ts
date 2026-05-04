@@ -30,6 +30,11 @@ export interface EnvConfig {
     | "aarch64-manylinux_2_34";
   sessionBucketName: string;
   agentId: string;
+  openSearchBatchFunctionName: string;
+  openSearchUrlParam: string;
+  openSearchPortParam: string;
+  openSearchUserParam: string;
+  openSearchPassParam: string;
 }
 
 export function getEnvConfig(env: string): EnvConfig {

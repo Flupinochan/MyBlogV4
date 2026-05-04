@@ -4,6 +4,7 @@
   },
   "dependencies": {
     "@aws-cdk/aws-bedrock-agentcore-alpha": "^2.247.0-alpha.0",
+    "@aws-cdk/aws-lambda-go-alpha": "^2.252.0-alpha.0",
     "@aws-cdk/aws-lambda-python-alpha": "^2.248.0-alpha.0",
     "@aws-lambda-powertools/event-handler": "^2.32.0",
     "@aws-lambda-powertools/parser": "^2.32.0",

@@ -6,6 +6,7 @@
       "name": "backend",
       "dependencies": {
         "@aws-cdk/aws-bedrock-agentcore-alpha": "^2.247.0-alpha.0",
+        "@aws-cdk/aws-lambda-go-alpha": "^2.252.0-alpha.0",
         "@aws-cdk/aws-lambda-python-alpha": "^2.248.0-alpha.0",
         "@aws-lambda-powertools/event-handler": "^2.32.0",
         "@aws-lambda-powertools/parser": "^2.32.0",
@@ -38,6 +39,8 @@
     "@aws-cdk/aws-bedrock-agentcore-alpha": ["@aws-cdk/aws-bedrock-agentcore-alpha@2.247.0-alpha.0", "", { "peerDependencies": { "@aws-cdk/aws-bedrock-alpha": "2.247.0-alpha.0", "aws-cdk-lib": "^2.247.0", "constructs": "^10.5.0" } }, "sha512-ULK5hdhBKpBLgYZHdO8UFRcKbAFp9r2Ds7INw1x/g+QPKGiSBxyQw4VOvqN1sSYswPn/aMqSKYK3pQSEl4YJ7w=="],
 
     "@aws-cdk/aws-bedrock-alpha": ["@aws-cdk/aws-bedrock-alpha@2.247.0-alpha.0", "", { "peerDependencies": { "aws-cdk-lib": "^2.247.0", "constructs": "^10.5.0" } }, "sha512-CKFuyHggxFDu/6NkooIsGPuMxDXsrJiu6PjPf+Z2gwKuyVBwSyOPkuLaoI485Q1jY5TdP1aWfZ0Hv/xkD62eng=="],
+
+    "@aws-cdk/aws-lambda-go-alpha": ["@aws-cdk/aws-lambda-go-alpha@2.252.0-alpha.0", "", { "peerDependencies": { "aws-cdk-lib": "^2.252.0", "constructs": "^10.5.0" } }, "sha512-NU1BPGvQy2ep4+tNvizZwkrQLtzJTKqnqErU2Xas37ZFKV7IUfYs7V+2atbBD67nnLojjYM+q8USVtKHAlM6eA=="],
 
     "@aws-cdk/aws-lambda-python-alpha": ["@aws-cdk/aws-lambda-python-alpha@2.248.0-alpha.0", "", { "peerDependencies": { "aws-cdk-lib": "^2.248.0", "constructs": "^10.5.0" } }, "sha512-LNqqYbGjxoje3v2zMcZMPttgxK4bBXekobmx5e1psOm3/GMr5mJzAPLJLwqyxXziFg6laLxuhyl+W6UoX4YIRg=="],
 

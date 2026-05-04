@@ -8,6 +8,7 @@ import { BuildAssetsStack } from "../lib/build-assets-stack";
 import { HostingStack } from "../lib/hosting-stack";
 import { ChatAudioStack } from "../lib/lambda/chat-audio/chat-audio-stack";
 import { ChatSessionStack } from "../lib/lambda/chat-session/chat-session-stack";
+import { OpenSearchBatchStack } from "../lib/lambda/open-search-batch/open-search-batch-stack";
 import { SynthesizeVoiceEcrStack } from "../lib/lambda/synthesize-voice/synthesize-voice-ecr-stack";
 import { SynthesizeVoiceStack } from "../lib/lambda/synthesize-voice/synthesize-voice-stack";
 import { PipelineStack } from "../lib/pipeline-stack";
@@ -123,4 +124,12 @@ new PipelineStack(app, `${prefix}-PipelineStack`, {
   repoName: cfg.repoName,
   branchName: cfg.branchName,
   synthesizeVoiceRepositoryName: cfg.synthesizeVoiceRepositoryName,
+});
+
+new OpenSearchBatchStack(app, `${prefix}-OpenSearchBatchStack`, {
+  openSearchBatchFunctionName: cfg.openSearchBatchFunctionName,
+  openSearchUrlParam: cfg.openSearchUrlParam,
+  openSearchPortParam: cfg.openSearchPortParam,
+  openSearchUserParam: cfg.openSearchUserParam,
+  openSearchPassParam: cfg.openSearchPassParam,
 });

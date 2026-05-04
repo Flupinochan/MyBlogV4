@@ -25,4 +25,9 @@ export const config: EnvConfig = {
   agentCorePlatform: "aarch64-manylinux2014",
   sessionBucketName: "prod-myblogv4-chat-session",
   agentId: "prod-myblogv4-agent",
+  openSearchBatchFunctionName: "prod-myblogv4-open-search-batch",
+  openSearchUrlParam: "zenn-open-search-url",
+  openSearchPortParam: "zenn-open-search-port",
+  openSearchUserParam: "zenn-open-search-user",
+  openSearchPassParam: "zenn-open-search-pass",
 };

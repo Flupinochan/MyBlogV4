@@ -1,0 +1,19 @@
+module opensearch
+
+go 1.25.0
+
+require (
+	github.com/aws/aws-lambda-go v1.54.0
+	github.com/google/go-github/v85 v85.0.0
+	github.com/hashicorp/go-retryablehttp v0.7.8
+)
+
+require (
+	github.com/google/go-querystring v1.2.0 // indirect
+	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
+)
+
+require (
+	github.com/opensearch-project/opensearch-go/v2 v2.3.0
+	github.com/stretchr/testify v1.11.1 // indirect
+)
