@@ -16,14 +16,14 @@
 
 @theme {
   --font-family-geist: "GeistPixelSquare", monospace;
-  --scrollbar-track-bg: var(--color-indigo-100);
+  --scrollbar-track-bg: var(--color-transparent);
 }
 
-@layer theme {
+/* @layer theme {
   :root.dark {
     --scrollbar-track-bg: var(--color-indigo-950);
   }
-}
+} */
 
 @layer base {
   html,
