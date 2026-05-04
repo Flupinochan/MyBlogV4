@@ -42,7 +42,7 @@ func NewOpenSearchClient(config *AppConfig) (*opensearch.Client, error) {
 }
 
 // Create Index
-func CreateIndexFromFile(client *opensearch.Client, indexName string, filePath string) error {
+func CreateIndexFromFile(ctx context.Context, client *opensearch.Client, indexName string, filePath string) error {
 	body, err := indexFiles.ReadFile(filePath)
 	if err != nil {
 		return fmt.Errorf("failed to read embedded index file [%s]: %w", filePath, err)
@@ -51,6 +51,7 @@ func CreateIndexFromFile(client *opensearch.Client, indexName string, filePath s
 	res, err := client.Indices.Create(
 		indexName,
 		client.Indices.Create.WithBody(bytes.NewReader(body)),
+		client.Indices.Create.WithContext(ctx),
 	)
 	if err != nil {
 		return fmt.Errorf("opensearch api call failed: %w", err)
@@ -67,8 +68,11 @@ func CreateIndexFromFile(client *opensearch.Client, indexName string, filePath s
 }
 
 // Update Alias
-func CreateOrUpdateAlias(client *opensearch.Client, aliasName string, indexName string) error {
-	getAliasRes, err := client.Indices.GetAlias(client.Indices.GetAlias.WithName(aliasName))
+func CreateOrUpdateAlias(ctx context.Context, client *opensearch.Client, aliasName string, indexName string) error {
+	getAliasRes, err := client.Indices.GetAlias(
+		client.Indices.GetAlias.WithName(aliasName),
+		client.Indices.GetAlias.WithContext(ctx),
+	)
 
 	// atomic update (RDBのtransactionに近い)
 	var actions []string
@@ -94,7 +98,10 @@ func CreateOrUpdateAlias(client *opensearch.Client, aliasName string, indexName 
 
 	// update alias
 	body := fmt.Sprintf(`{ "actions": [ %s ] }`, strings.Join(actions, ","))
-	updateAliasRes, err := client.Indices.UpdateAliases(strings.NewReader(body))
+	updateAliasRes, err := client.Indices.UpdateAliases(
+		strings.NewReader(body),
+		client.Indices.UpdateAliases.WithContext(ctx),
+	)
 	if err != nil {
 		return fmt.Errorf("failed to update alias: %w", err)
 	}
@@ -107,7 +114,10 @@ func CreateOrUpdateAlias(client *opensearch.Client, aliasName string, indexName 
 
 	// delete old indices
 	if len(indicesToDelete) > 0 {
-		if deleteRes, err := client.Indices.Delete(indicesToDelete); err == nil {
+		if deleteRes, err := client.Indices.Delete(
+			indicesToDelete,
+			client.Indices.Delete.WithContext(ctx),
+		); err == nil {
 			defer deleteRes.Body.Close()
 		}
 		slog.Info("Deleted old indices", "indices", indicesToDelete)
@@ -128,7 +138,7 @@ type BlogDocument struct {
 }
 
 // Bulk Index Documents
-func BulkIndexDocuments(client *opensearch.Client, ctx context.Context, indexName string, docs []BlogDocument) error {
+func BulkIndexDocuments(ctx context.Context, client *opensearch.Client, indexName string, docs []BlogDocument) error {
 	// Create the indexer
 	indexer, err := opensearchutil.NewBulkIndexer(opensearchutil.BulkIndexerConfig{
 		Client:     client,
@@ -147,6 +157,7 @@ func BulkIndexDocuments(client *opensearch.Client, ctx context.Context, indexNam
 				slog.String("error", err.Error()),
 				slog.Any("document", doc),
 			)
+			continue
 		}
 
 		err = indexer.Add(
@@ -173,6 +184,9 @@ func BulkIndexDocuments(client *opensearch.Client, ctx context.Context, indexNam
 			},
 		)
 		if err != nil {
+			if ctx.Err() != nil {
+				return fmt.Errorf("bulk indexing canceled: %w", ctx.Err())
+			}
 			slog.Error("Unexpected error while adding document to indexer", slog.String("error", err.Error()))
 		}
 	}

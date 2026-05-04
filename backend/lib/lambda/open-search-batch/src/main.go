@@ -33,13 +33,13 @@ func run(ctx context.Context) error {
 	// Create Index
 	now := time.Now()
 	indexName := fmt.Sprintf("%s_%s", aliasName, now.Format("20060102_150405"))
-	err = CreateIndexFromFile(client, indexName, "index.json")
+	err = CreateIndexFromFile(ctx, client, indexName, "index.json")
 	if err != nil {
 		return fmt.Errorf("failed to create index: %w", err)
 	}
 
 	// Update Alias
-	err = CreateOrUpdateAlias(client, aliasName, indexName)
+	err = CreateOrUpdateAlias(ctx, client, aliasName, indexName)
 	if err != nil {
 		return fmt.Errorf("failed to update alias: %w", err)
 	}
