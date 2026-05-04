@@ -68,7 +68,7 @@ func CreateIndexFromFile(ctx context.Context, client *opensearch.Client, indexNa
 }
 
 // Update Alias
-func CreateOrUpdateAlias(ctx context.Context, client *opensearch.Client, aliasName string, indexName string) error {
+func CreateOrUpdateAlias(ctx context.Context, client *opensearch.Client, indexName string, aliasName string) error {
 	getAliasRes, err := client.Indices.GetAlias(
 		client.Indices.GetAlias.WithName(aliasName),
 		client.Indices.GetAlias.WithContext(ctx),

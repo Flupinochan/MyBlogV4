@@ -43,7 +43,7 @@ type GitHubBlogFile struct {
 	DownloadUrl string
 }
 
-func FetchGitHubBlogFiles(ctx context.Context, config *GithubConfig, client *github.Client) ([]GitHubBlogFile, error) {
+func FetchGitHubBlogFiles(ctx context.Context, client *github.Client, config *GithubConfig) ([]GitHubBlogFile, error) {
 	_, directoryContent, _, err := client.Repositories.GetContents(ctx, config.Owner, config.Repo, config.Path, nil)
 
 	if err != nil {
@@ -71,7 +71,7 @@ func FetchGitHubBlogFiles(ctx context.Context, config *GithubConfig, client *git
 }
 
 // 指定されたファイルの最初のコミット日時を取得 (ブログの作成日として利用)
-func fetchInitialCommitDate(ctx context.Context, config *GithubConfig, client *github.Client, filePath string) (time.Time, error) {
+func fetchInitialCommitDate(ctx context.Context, client *github.Client, config *GithubConfig, filePath string) (time.Time, error) {
 	opts := &github.CommitsListOptions{
 		Path: filePath,
 		ListOptions: github.ListOptions{
