@@ -60,7 +60,7 @@ func run(ctx context.Context) error {
 	slog.Info("Successfully retrieved blog details", slog.Int("count", len(blogDetails)))
 
 	// Build Blog Documents
-	const maxConcurrency = 10
+	const maxConcurrency = 50
 	sem := semaphore.NewWeighted(maxConcurrency)
 
 	var mu sync.Mutex

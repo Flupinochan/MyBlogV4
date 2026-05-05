@@ -175,7 +175,9 @@ func GetAllBlogDetails(ctx context.Context, ghClient *github.Client, httpClient 
 		return nil, err
 	}
 
-	const maxConcurrency = 5
+	// 以下でGitHub APIのレートリミットを参考に設定 (思ったより余裕はありそう)
+	// curl -H "Authorization: Bearer YOUR_TOKEN" https://api.github.com/rate_limit
+	const maxConcurrency = 30
 	sem := semaphore.NewWeighted(maxConcurrency)
 
 	var mu sync.Mutex
