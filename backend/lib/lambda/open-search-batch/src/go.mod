@@ -1,4 +1,4 @@
-module opensearch
+module metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-batch/src
 
 go 1.25.0
 

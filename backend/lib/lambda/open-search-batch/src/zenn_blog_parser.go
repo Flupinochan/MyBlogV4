@@ -141,9 +141,6 @@ func BuildBlogDocuments(ctx context.Context, blogDetails []GitHubBlogDetail) ([]
 			}
 			defer sem.Release(1)
 
-			slog.Info("Processing blog detail",
-				slog.String("file", blogDetail.FileName),
-			)
 			parsed, err := ParseBlogContent(blogDetail.Content)
 			if err != nil {
 				slog.Error("Failed to parse blog content",

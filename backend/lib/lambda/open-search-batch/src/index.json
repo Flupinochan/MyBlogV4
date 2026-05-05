@@ -74,10 +74,8 @@
         "properties": {
             "slug": {
                 "type": "keyword",
-                "index": false,
-                "doc_values": false,
                 "meta": {
-                    "description": "基本的にファイル名",
+                    "description": "基本的にファイル名 (ID相当)",
                     "usage": "返却用"
                 }
             },

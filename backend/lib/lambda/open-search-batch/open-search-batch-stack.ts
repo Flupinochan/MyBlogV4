@@ -79,7 +79,7 @@ export class OpenSearchBatchStack extends cdk.Stack {
       entry: path.join(__dirname, "src"),
       runtime: lambda.Runtime.PROVIDED_AL2023,
       architecture: lambda.Architecture.ARM_64,
-      timeout: cdk.Duration.minutes(5),
+      timeout: cdk.Duration.minutes(3),
       memorySize: 256,
       logGroup: this.logGroup,
       loggingFormat: lambda.LoggingFormat.JSON,

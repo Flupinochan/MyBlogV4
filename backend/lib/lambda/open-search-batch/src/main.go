@@ -13,7 +13,7 @@ func run(ctx context.Context) error {
 	// Load Configuration (Lambda Environment Variables)
 	config, err := GetAppConfig()
 	if err != nil {
-		return fmt.Errorf("failed to get OpenSearch config: %w", err)
+		return fmt.Errorf("failed to get App config: %w", err)
 	}
 
 	// Logger Initialization

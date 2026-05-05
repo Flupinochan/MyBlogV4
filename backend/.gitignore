@@ -10,3 +10,5 @@ cdk.out
 # custom
 voicevox.tar.gz
 .cache
+tmp/
+.env
