@@ -14,7 +14,12 @@ type OpenSearchError struct {
 	Message    string // 独自のエラーメッセージ
 }
 
-// Logger Handler
+// Enabled (ログレベル判定に必要)
+func (h *OpenSearchLogHandler) Enabled(ctx context.Context, level slog.Level) bool {
+	return h.Handler.Enabled(ctx, level)
+}
+
+// Handler
 type OpenSearchLogHandler struct {
 	slog.Handler
 }
@@ -34,11 +39,6 @@ func (h *OpenSearchLogHandler) Handle(ctx context.Context, r slog.Record) error 
 		return true
 	})
 	return h.Handler.Handle(ctx, r)
-}
-
-// Logger Config
-type LoggerConfig struct {
-	Level slog.Level
 }
 
 // ロガー定義

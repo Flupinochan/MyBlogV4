@@ -30,4 +30,11 @@ export const config: EnvConfig = {
   openSearchPortParam: "zenn-open-search-port",
   openSearchUserParam: "zenn-open-search-user",
   openSearchPassParam: "zenn-open-search-pass",
+  aliasName: "tech-blog",
+  githubOwner: "Flupinochan",
+  githubRepo: "zenn-content",
+  githubPath: "articles",
+  githubAppsPrivateKeyParam: "github-apps-private-key-zenn-blog",
+  githubAppsIdParam: "github-apps-app-id-zenn-blog",
+  githubInstallationIdParam: "github-apps-installation-id-zenn-blog",
 };

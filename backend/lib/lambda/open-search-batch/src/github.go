@@ -6,18 +6,13 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
+	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/google/go-github/v85/github"
 	"github.com/hashicorp/go-retryablehttp"
 )
-
-type GithubConfig struct {
-	Owner       string // Flupinochan
-	Repo        string // zenn-content
-	Path        string // articles
-	AccessToken string
-}
 
 // Initialize Http Client
 func NewHttpClient() *http.Client {
@@ -32,8 +27,26 @@ func NewHttpClient() *http.Client {
 	return client.StandardClient()
 }
 
-func NewGitHubHttpClient(config *GithubConfig, client *http.Client) *github.Client {
-	return github.NewClient(client).WithAuthToken(config.AccessToken)
+func NewGitHubHttpClient(config *AppConfig, client *http.Client) (*github.Client, error) {
+	tr := client.Transport
+	if tr == nil {
+		tr = http.DefaultTransport
+	}
+
+	itr, err := ghinstallation.New(
+		tr,
+		config.GitHubAppsId,
+		config.GitHubInstallationId,
+		[]byte(config.GithubAppsPrivateKey),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create GitHub Apps transport: %w", err)
+	}
+
+	githubAuthenticatedClient := *client
+	githubAuthenticatedClient.Transport = itr
+
+	return github.NewClient(&githubAuthenticatedClient), nil
 }
 
 // GitHub zenn-contentリポジトリのarticlesディレクトリ内のファイル一覧を取得
@@ -43,8 +56,8 @@ type GitHubBlogFile struct {
 	DownloadUrl string
 }
 
-func FetchGitHubBlogFiles(ctx context.Context, client *github.Client, config *GithubConfig) ([]GitHubBlogFile, error) {
-	_, directoryContent, _, err := client.Repositories.GetContents(ctx, config.Owner, config.Repo, config.Path, nil)
+func GetBlogFiles(ctx context.Context, client *github.Client, config *AppConfig) ([]GitHubBlogFile, error) {
+	_, directoryContent, _, err := client.Repositories.GetContents(ctx, config.GithubOwner, config.GithubRepo, config.GithubPath, nil)
 
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch directory contents from GitHub: %w", err)
@@ -56,47 +69,55 @@ func FetchGitHubBlogFiles(ctx context.Context, client *github.Client, config *Gi
 			continue
 		}
 
+		if !strings.HasSuffix(item.GetName(), ".md") {
+			continue
+		}
+
 		files = append(files, GitHubBlogFile{
-			FileName:    item.GetName(),
+			FileName:    strings.TrimSuffix(item.GetName(), ".md"),
 			FilePath:    item.GetPath(),
 			DownloadUrl: item.GetDownloadURL(),
 		})
 	}
 
 	if len(files) >= 1000 {
-		slog.Warn("GitHub API limit reached (1,000 items). Some files may not have been fetched.", "path", config.Path)
+		slog.Warn("GitHub API limit reached (1,000 items). Some files may not have been fetched.", slog.String("path", config.GithubPath))
 	}
 
 	return files, nil
 }
 
 // 指定されたファイルの最初のコミット日時を取得 (ブログの作成日として利用)
-func fetchInitialCommitDate(ctx context.Context, client *github.Client, config *GithubConfig, filePath string) (time.Time, error) {
+type GetFirstCommitDateParams struct {
+	FilePath string
+}
+
+func getFirstCommitDate(ctx context.Context, client *github.Client, config *AppConfig, params GetFirstCommitDateParams) (time.Time, error) {
 	opts := &github.CommitsListOptions{
-		Path: filePath,
+		Path: params.FilePath,
 		ListOptions: github.ListOptions{
 			PerPage: 1,
 		},
 	}
 
-	commits, resp, err := client.Repositories.ListCommits(ctx, config.Owner, config.Repo, opts)
+	commits, resp, err := client.Repositories.ListCommits(ctx, config.GithubOwner, config.GithubRepo, opts)
 	if err != nil {
-		return time.Time{}, fmt.Errorf("failed to fetch initial commit info for %s: %w", filePath, err)
+		return time.Time{}, fmt.Errorf("failed to fetch initial commit info for %s: %w", params.FilePath, err)
 	}
 
 	if len(commits) == 0 {
-		return time.Time{}, fmt.Errorf("no commits found for file: %s", filePath)
+		return time.Time{}, fmt.Errorf("no commits found for file: %s", params.FilePath)
 	}
 
 	// 複数ページ存在する場合は、最後のページから再取得
 	if resp.LastPage > 0 {
 		opts.Page = resp.LastPage
-		commits, _, err = client.Repositories.ListCommits(ctx, config.Owner, config.Repo, opts)
+		commits, _, err = client.Repositories.ListCommits(ctx, config.GithubOwner, config.GithubRepo, opts)
 		if err != nil {
-			return time.Time{}, fmt.Errorf("failed to fetch first commit for %s: %w", filePath, err)
+			return time.Time{}, fmt.Errorf("failed to fetch first commit for %s: %w", params.FilePath, err)
 		}
 		if len(commits) == 0 {
-			return time.Time{}, fmt.Errorf("no commits found on last page for file: %s", filePath)
+			return time.Time{}, fmt.Errorf("no commits found on last page for file: %s", params.FilePath)
 		}
 	}
 
@@ -107,7 +128,7 @@ func fetchInitialCommitDate(ctx context.Context, client *github.Client, config *
 }
 
 // DownloadUrlを使用してファイルの内容を取得
-func FetchBlogBody(ctx context.Context, client *http.Client, file GitHubBlogFile) (string, error) {
+func GetBlogBody(ctx context.Context, client *http.Client, file GitHubBlogFile) (string, error) {
 	if file.DownloadUrl == "" {
 		return "", fmt.Errorf("download URL is empty for file: %s", file.FileName)
 	}
@@ -133,4 +154,57 @@ func FetchBlogBody(ctx context.Context, client *http.Client, file GitHubBlogFile
 	}
 
 	return string(bodyBytes), nil
+}
+
+type GitHubBlogDetail struct {
+	FileName    string
+	FilePath    string
+	DownloadUrl string
+	Content     string
+	CreatedAt   time.Time
+}
+
+// メイン処理
+func GetAllBlogDetails(ctx context.Context, ghClient *github.Client, httpClient *http.Client, config *AppConfig) ([]GitHubBlogDetail, error) {
+	// 1. ブログファイル一覧を取得
+	baseFiles, err := GetBlogFiles(ctx, ghClient, config)
+	if err != nil {
+		return nil, err
+	}
+
+	var details []GitHubBlogDetail
+
+	for _, file := range baseFiles {
+		// 2. ブログファイルのBodyを取得
+		body, err := GetBlogBody(ctx, httpClient, file)
+		if err != nil {
+			slog.Error("failed to fetch body", slog.String("file", file.FileName), slog.Any("error", err))
+			continue
+		}
+
+		// 3. ブログファイルの最初のコミット日時を取得
+		createdAt, err := getFirstCommitDate(ctx, ghClient, config, GetFirstCommitDateParams{
+			FilePath: file.FilePath,
+		})
+		if err != nil {
+			slog.Error("failed to fetch commit date", slog.String("file", file.FileName), slog.Any("error", err))
+			continue
+		}
+
+		// 4. データを統合
+		details = append(details, GitHubBlogDetail{
+			FileName:    file.FileName,
+			FilePath:    file.FilePath,
+			DownloadUrl: file.DownloadUrl,
+			Content:     body,
+			CreatedAt:   createdAt,
+		})
+	}
+
+	slog.Debug("Get all blog details (first 3 items)",
+		slog.String("count", fmt.Sprintf("%d", len(details))),
+		slog.Any("samples", details[:min(3, len(details))]),
+	)
+
+	return details, nil
 }

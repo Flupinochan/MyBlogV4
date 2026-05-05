@@ -35,6 +35,13 @@ export interface EnvConfig {
   openSearchPortParam: string;
   openSearchUserParam: string;
   openSearchPassParam: string;
+  aliasName: string;
+  githubOwner: string;
+  githubRepo: string;
+  githubPath: string;
+  githubAppsPrivateKeyParam: string;
+  githubAppsIdParam: string;
+  githubInstallationIdParam: string;
 }
 
 export function getEnvConfig(env: string): EnvConfig {

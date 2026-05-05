@@ -42,14 +42,19 @@ func NewOpenSearchClient(config *AppConfig) (*opensearch.Client, error) {
 }
 
 // Create Index
-func CreateIndexFromFile(ctx context.Context, client *opensearch.Client, indexName string, filePath string) error {
-	body, err := indexFiles.ReadFile(filePath)
+type CreateIndexParams struct {
+	IndexName string
+	FilePath  string
+}
+
+func CreateIndex(ctx context.Context, client *opensearch.Client, params CreateIndexParams) error {
+	body, err := indexFiles.ReadFile(params.FilePath)
 	if err != nil {
-		return fmt.Errorf("failed to read embedded index file [%s]: %w", filePath, err)
+		return fmt.Errorf("failed to read embedded index file [%s]: %w", params.FilePath, err)
 	}
 
 	res, err := client.Indices.Create(
-		indexName,
+		params.IndexName,
 		client.Indices.Create.WithBody(bytes.NewReader(body)),
 		client.Indices.Create.WithContext(ctx),
 	)
@@ -62,15 +67,20 @@ func CreateIndexFromFile(ctx context.Context, client *opensearch.Client, indexNa
 		return fmt.Errorf("opensearch error [%s]: %s", res.Status(), res.String())
 	}
 
-	slog.Info("Successfully created index", "name", indexName)
+	slog.Info("Successfully created index", slog.String("indexName", params.IndexName))
 
 	return nil
 }
 
 // Update Alias
-func CreateOrUpdateAlias(ctx context.Context, client *opensearch.Client, indexName string, aliasName string) error {
+type UpdateAliasParams struct {
+	AliasName string
+	IndexName string
+}
+
+func UpdateAlias(ctx context.Context, client *opensearch.Client, params UpdateAliasParams) error {
 	getAliasRes, err := client.Indices.GetAlias(
-		client.Indices.GetAlias.WithName(aliasName),
+		client.Indices.GetAlias.WithName(params.AliasName),
 		client.Indices.GetAlias.WithContext(ctx),
 	)
 
@@ -84,7 +94,7 @@ func CreateOrUpdateAlias(ctx context.Context, client *opensearch.Client, indexNa
 		var aliasInfo map[string]interface{}
 		if err := json.NewDecoder(getAliasRes.Body).Decode(&aliasInfo); err == nil {
 			for oldIndex := range aliasInfo {
-				actions = append(actions, fmt.Sprintf(`{ "remove": { "index": "%s", "alias": "%s" } }`, oldIndex, aliasName))
+				actions = append(actions, fmt.Sprintf(`{ "remove": { "index": "%s", "alias": "%s" } }`, oldIndex, params.AliasName))
 				indicesToDelete = append(indicesToDelete, oldIndex)
 			}
 		}
@@ -94,7 +104,7 @@ func CreateOrUpdateAlias(ctx context.Context, client *opensearch.Client, indexNa
 	}
 
 	// 新しいindexをaliasに関連付けるactionを追加
-	actions = append(actions, fmt.Sprintf(`{ "add": { "index": "%s", "alias": "%s" } }`, indexName, aliasName))
+	actions = append(actions, fmt.Sprintf(`{ "add": { "index": "%s", "alias": "%s" } }`, params.IndexName, params.AliasName))
 
 	// update alias
 	body := fmt.Sprintf(`{ "actions": [ %s ] }`, strings.Join(actions, ","))
@@ -110,7 +120,10 @@ func CreateOrUpdateAlias(ctx context.Context, client *opensearch.Client, indexNa
 	if updateAliasRes.IsError() {
 		return fmt.Errorf("opensearch alias error [%s]: %s", updateAliasRes.Status(), updateAliasRes.String())
 	}
-	slog.Info("Successfully updated alias", "alias", aliasName, "new_index", indexName, "removed_indices", indicesToDelete)
+	slog.Info("Successfully updated alias",
+		slog.String("aliasName", params.AliasName),
+		slog.String("indexName", params.IndexName),
+	)
 
 	// delete old indices
 	if len(indicesToDelete) > 0 {
@@ -120,12 +133,13 @@ func CreateOrUpdateAlias(ctx context.Context, client *opensearch.Client, indexNa
 		); err == nil {
 			defer deleteRes.Body.Close()
 		}
-		slog.Info("Deleted old indices", "indices", indicesToDelete)
+		slog.Info("Deleted old indices", slog.Any("indices", indicesToDelete))
 	}
 
 	return nil
 }
 
+// Bulk Index Documents
 type BlogDocument struct {
 	Slug      string   `json:"slug"`
 	URL       string   `json:"url"`
@@ -137,12 +151,16 @@ type BlogDocument struct {
 	CreatedAt string   `json:"created_at"` // yyyy-MM-dd HH:mm:ss (プログラム上ではstringで扱う)
 }
 
-// Bulk Index Documents
-func BulkIndexDocuments(ctx context.Context, client *opensearch.Client, indexName string, docs []BlogDocument) error {
+type BulkIndexDocumentsParams struct {
+	IndexName string
+	Documents []BlogDocument
+}
+
+func BulkIndexDocuments(ctx context.Context, client *opensearch.Client, params BulkIndexDocumentsParams) error {
 	// Create the indexer
 	indexer, err := opensearchutil.NewBulkIndexer(opensearchutil.BulkIndexerConfig{
 		Client:     client,
-		Index:      indexName,
+		Index:      params.IndexName,
 		NumWorkers: 2,
 	})
 	if err != nil {
@@ -150,7 +168,7 @@ func BulkIndexDocuments(ctx context.Context, client *opensearch.Client, indexNam
 	}
 
 	// Add documents to the indexer
-	for _, doc := range docs {
+	for _, doc := range params.Documents {
 		data, err := json.Marshal(doc)
 		if err != nil {
 			slog.Error("Failed to marshal document",
@@ -202,9 +220,10 @@ func BulkIndexDocuments(ctx context.Context, client *opensearch.Client, indexNam
 	}
 
 	slog.Info("Bulk indexing completed",
-		"total", stats.NumAdded,
-		"flushed", stats.NumFlushed,
-		"failed", stats.NumFailed,
+		slog.String("indexName", params.IndexName),
+		slog.Int("total", int(stats.NumAdded)),
+		slog.Int("flushed", int(stats.NumFlushed)),
+		slog.Int("failed", int(stats.NumFailed)),
 	)
 
 	return nil

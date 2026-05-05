@@ -132,4 +132,11 @@ new OpenSearchBatchStack(app, `${prefix}-OpenSearchBatchStack`, {
   openSearchPortParam: cfg.openSearchPortParam,
   openSearchUserParam: cfg.openSearchUserParam,
   openSearchPassParam: cfg.openSearchPassParam,
+  aliasName: cfg.aliasName,
+  githubOwner: cfg.githubOwner,
+  githubRepo: cfg.githubRepo,
+  githubPath: cfg.githubPath,
+  githubAppsPrivateKey: cfg.githubAppsPrivateKeyParam,
+  githubAppsId: cfg.githubAppsIdParam,
+  githubInstallationId: cfg.githubInstallationIdParam,
 });

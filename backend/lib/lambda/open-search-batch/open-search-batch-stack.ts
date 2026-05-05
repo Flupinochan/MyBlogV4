@@ -13,6 +13,13 @@ interface OpenSearchBatchStackProps extends cdk.StackProps {
   openSearchPortParam: string;
   openSearchUserParam: string;
   openSearchPassParam: string;
+  aliasName: string;
+  githubOwner: string;
+  githubRepo: string;
+  githubPath: string;
+  githubAppsPrivateKey: string;
+  githubAppsId: string;
+  githubInstallationId: string;
 }
 
 export class OpenSearchBatchStack extends cdk.Stack {
@@ -39,6 +46,18 @@ export class OpenSearchBatchStack extends cdk.Stack {
       this,
       props.openSearchPassParam,
     );
+    const githubAppsPrivateKey = ssm.StringParameter.valueForStringParameter(
+      this,
+      props.githubAppsPrivateKey,
+    );
+    const githubAppsId = ssm.StringParameter.valueForStringParameter(
+      this,
+      props.githubAppsId,
+    );
+    const githubInstallationId = ssm.StringParameter.valueForStringParameter(
+      this,
+      props.githubInstallationId,
+    );
 
     this.logGroup = new logs.LogGroup(this, "OpenSearchBatchLogGroup", {
       logGroupName: `/aws/lambda/${props.openSearchBatchFunctionName}`,
@@ -64,6 +83,8 @@ export class OpenSearchBatchStack extends cdk.Stack {
       memorySize: 256,
       logGroup: this.logGroup,
       loggingFormat: lambda.LoggingFormat.JSON,
+      // 常にDEBUGにしておいて、slog側で制御
+      applicationLogLevelV2: lambda.ApplicationLogLevel.DEBUG,
       role: this.role,
       tracing: lambda.Tracing.ACTIVE,
       environment: {
@@ -72,6 +93,13 @@ export class OpenSearchBatchStack extends cdk.Stack {
         OPEN_SEARCH_USER: openSearchUser,
         OPEN_SEARCH_PASS: openSearchPass,
         LOG_LEVEL: "-4", // DEBUG:-4、INFO:0、WARN:4、ERROR:8
+        ALIAS_NAME: props.aliasName,
+        GITHUB_OWNER: props.githubOwner,
+        GITHUB_REPO: props.githubRepo,
+        GITHUB_PATH: props.githubPath,
+        GITHUB_APPS_PRIVATE_KEY: githubAppsPrivateKey,
+        GITHUB_APPS_ID: githubAppsId,
+        GITHUB_INSTALLATION_ID: githubInstallationId,
       },
       bundling: {
         goBuildFlags: ['-ldflags "-s -w"'],
