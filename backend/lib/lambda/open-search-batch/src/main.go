@@ -4,9 +4,12 @@ import (
 	"context"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
+	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
 )
 
 func run(ctx context.Context) error {
@@ -57,29 +60,50 @@ func run(ctx context.Context) error {
 	slog.Info("Successfully retrieved blog details", slog.Int("count", len(blogDetails)))
 
 	// Build Blog Documents
+	const maxConcurrency = 10
+	sem := semaphore.NewWeighted(maxConcurrency)
+
+	var mu sync.Mutex
 	var documents []BlogDocument
+
+	g, gctx := errgroup.WithContext(ctx)
 	for _, blogDetail := range blogDetails {
-		slog.Info("Processing blog detail",
-			slog.String("file", blogDetail.FileName),
-		)
-		parsed, err := ParseBlogContent(blogDetail.Content)
-		if err != nil {
-			slog.Error("Failed to parse blog content",
+		g.Go(func() error {
+			if err := sem.Acquire(gctx, 1); err != nil {
+				return fmt.Errorf("semaphore acquire failed: %w", err)
+			}
+			defer sem.Release(1)
+
+			slog.Info("Processing blog detail",
 				slog.String("file", blogDetail.FileName),
-				slog.String("error", err.Error()),
 			)
-			continue
-		}
-		documents = append(documents, BlogDocument{
-			Slug:      blogDetail.FileName,
-			URL:       "https://zenn.dev/metalmental/articles/" + blogDetail.FileName,
-			Title:     parsed.Title,
-			Emoji:     parsed.Emoji,
-			Type:      parsed.Type,
-			Topics:    parsed.Topics,
-			Content:   parsed.Content,
-			CreatedAt: blogDetail.CreatedAt.Format("2006-01-02 15:04:05"),
+			parsed, err := ParseBlogContent(blogDetail.Content)
+			if err != nil {
+				slog.Error("Failed to parse blog content",
+					slog.String("file", blogDetail.FileName),
+					slog.String("error", err.Error()),
+				)
+				return nil
+			}
+
+			mu.Lock()
+			documents = append(documents, BlogDocument{
+				Slug:      blogDetail.FileName,
+				URL:       "https://zenn.dev/metalmental/articles/" + blogDetail.FileName,
+				Title:     parsed.Title,
+				Emoji:     parsed.Emoji,
+				Type:      parsed.Type,
+				Topics:    parsed.Topics,
+				Content:   parsed.Content,
+				CreatedAt: blogDetail.CreatedAt.Format("2006-01-02 15:04:05"),
+			})
+			mu.Unlock()
+
+			return nil
 		})
+	}
+	if err := g.Wait(); err != nil {
+		return fmt.Errorf("failed to build blog documents: %w", err)
 	}
 	slog.Info("Successfully built blog documents", slog.Int("count", len(documents)))
 

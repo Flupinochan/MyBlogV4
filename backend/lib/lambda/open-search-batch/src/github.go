@@ -7,11 +7,14 @@ import (
 	"log/slog"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/bradleyfalzon/ghinstallation/v2"
 	"github.com/google/go-github/v85/github"
 	"github.com/hashicorp/go-retryablehttp"
+	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
 )
 
 // Initialize Http Client
@@ -172,33 +175,54 @@ func GetAllBlogDetails(ctx context.Context, ghClient *github.Client, httpClient 
 		return nil, err
 	}
 
+	const maxConcurrency = 5
+	sem := semaphore.NewWeighted(maxConcurrency)
+
+	var mu sync.Mutex
 	var details []GitHubBlogDetail
 
+	g, gctx := errgroup.WithContext(ctx)
+
 	for _, file := range baseFiles {
-		// 2. ブログファイルのBodyを取得
-		body, err := GetBlogBody(ctx, httpClient, file)
-		if err != nil {
-			slog.Error("failed to fetch body", slog.String("file", file.FileName), slog.Any("error", err))
-			continue
-		}
+		g.Go(func() error {
+			if err := sem.Acquire(gctx, 1); err != nil {
+				return fmt.Errorf("semaphore acquire failed: %w", err)
+			}
+			defer sem.Release(1)
 
-		// 3. ブログファイルの最初のコミット日時を取得
-		createdAt, err := getFirstCommitDate(ctx, ghClient, config, GetFirstCommitDateParams{
-			FilePath: file.FilePath,
-		})
-		if err != nil {
-			slog.Error("failed to fetch commit date", slog.String("file", file.FileName), slog.Any("error", err))
-			continue
-		}
+			// 2. ブログファイルのBodyを取得
+			body, err := GetBlogBody(gctx, httpClient, file)
+			if err != nil {
+				slog.Error("failed to fetch body", slog.String("file", file.FileName), slog.Any("error", err))
+				return nil
+			}
 
-		// 4. データを統合
-		details = append(details, GitHubBlogDetail{
-			FileName:    file.FileName,
-			FilePath:    file.FilePath,
-			DownloadUrl: file.DownloadUrl,
-			Content:     body,
-			CreatedAt:   createdAt,
+			// 3. ブログファイルの最初のコミット日時を取得
+			createdAt, err := getFirstCommitDate(gctx, ghClient, config, GetFirstCommitDateParams{
+				FilePath: file.FilePath,
+			})
+			if err != nil {
+				slog.Error("failed to fetch commit date", slog.String("file", file.FileName), slog.Any("error", err))
+				return nil
+			}
+
+			// 3. データを統合
+			mu.Lock()
+			details = append(details, GitHubBlogDetail{
+				FileName:    file.FileName,
+				FilePath:    file.FilePath,
+				DownloadUrl: file.DownloadUrl,
+				Content:     body,
+				CreatedAt:   createdAt,
+			})
+			mu.Unlock()
+
+			return nil
 		})
+	}
+
+	if err := g.Wait(); err != nil {
+		return nil, err
 	}
 
 	slog.Debug("Get all blog details (first 3 items)",
