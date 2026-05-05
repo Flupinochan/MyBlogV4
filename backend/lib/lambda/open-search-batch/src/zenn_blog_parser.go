@@ -1,10 +1,15 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strings"
+	"sync"
+
+	"golang.org/x/sync/errgroup"
+	"golang.org/x/sync/semaphore"
 )
 
 type ParsedBlog struct {
@@ -119,4 +124,54 @@ func parseString(rawVal string) (string, error) {
 	}
 	// ダブルクォーテーションで囲まれた部分を返却
 	return rest[:idx], nil
+}
+
+func BuildBlogDocuments(ctx context.Context, blogDetails []GitHubBlogDetail) ([]BlogDocument, error) {
+	const maxConcurrency = 50
+	sem := semaphore.NewWeighted(maxConcurrency)
+
+	var mu sync.Mutex
+	var documents []BlogDocument
+
+	g, gctx := errgroup.WithContext(ctx)
+	for _, blogDetail := range blogDetails {
+		g.Go(func() error {
+			if err := sem.Acquire(gctx, 1); err != nil {
+				return fmt.Errorf("semaphore acquire failed: %w", err)
+			}
+			defer sem.Release(1)
+
+			slog.Info("Processing blog detail",
+				slog.String("file", blogDetail.FileName),
+			)
+			parsed, err := ParseBlogContent(blogDetail.Content)
+			if err != nil {
+				slog.Error("Failed to parse blog content",
+					slog.String("file", blogDetail.FileName),
+					slog.String("error", err.Error()),
+				)
+				return nil
+			}
+
+			mu.Lock()
+			documents = append(documents, BlogDocument{
+				Slug:      blogDetail.FileName,
+				URL:       "https://zenn.dev/metalmental/articles/" + blogDetail.FileName,
+				Title:     parsed.Title,
+				Emoji:     parsed.Emoji,
+				Type:      parsed.Type,
+				Topics:    parsed.Topics,
+				Content:   parsed.Content,
+				CreatedAt: blogDetail.CreatedAt.Format("2006-01-02 15:04:05"),
+			})
+			mu.Unlock()
+
+			return nil
+		})
+	}
+	if err := g.Wait(); err != nil {
+		return nil, fmt.Errorf("failed to build blog documents: %w", err)
+	}
+
+	return documents, nil
 }
