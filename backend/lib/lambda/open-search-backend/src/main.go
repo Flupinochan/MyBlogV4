@@ -50,9 +50,11 @@ func setupRouter() error {
 		return fmt.Errorf("failed to initialize OpenSearch client: %w", err)
 	}
 
+	// Gin Router Initialization with Middleware
 	r := gin.New()
 	r.Use(gin.Recovery())
 	r.Use(middleware.LoggerMiddleware(slog.Default()))
+	r.Use(middleware.ErrorHandler())
 
 	// Register routes
 	router.RegisterRoutes(r, client)

@@ -4,11 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/opensearch-project/opensearch-go/v2"
 	"github.com/opensearch-project/opensearch-go/v2/opensearchapi"
+	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/middleware"
 )
 
 type BlogDocument struct {
@@ -91,9 +93,10 @@ func GetBlogBySlug(ctx context.Context, client *opensearch.Client, slug string) 
 			},
 		},
 	}
+
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		return nil, fmt.Errorf("failed to encode query: %w", err)
+		return nil, fmt.Errorf("failed to encode query: %w", errors.Join(err, middleware.ErrServer))
 	}
 
 	searchReq := opensearchapi.SearchRequest{
@@ -103,21 +106,21 @@ func GetBlogBySlug(ctx context.Context, client *opensearch.Client, slug string) 
 
 	res, err := searchReq.Do(ctx, client)
 	if err != nil {
-		return nil, fmt.Errorf("GetBlogBySlug request failed: %w", err)
+		return nil, fmt.Errorf("opensearch request failed: %w", errors.Join(err, middleware.ErrServer))
 	}
 	defer res.Body.Close()
 
 	if res.IsError() {
-		return nil, fmt.Errorf("GetBlogBySlug error response: %s", res.String())
+		return nil, fmt.Errorf("opensearch error response: %s: %w", res.String(), middleware.ErrServer)
 	}
 
 	var osRes SearchResponse[BlogDocument]
 	if err := json.NewDecoder(res.Body).Decode(&osRes); err != nil {
-		return nil, fmt.Errorf("GetBlogBySlug failed to decode response: %w", err)
+		return nil, fmt.Errorf("failed to decode response: %w", errors.Join(err, middleware.ErrServer))
 	}
 
 	if len(osRes.Hits.Hits) == 0 {
-		return nil, fmt.Errorf("blog not found for slug: %s", slug)
+		return nil, fmt.Errorf("blog not found for slug %q: %w", slug, middleware.ErrNotFound)
 	}
 
 	return &osRes.Hits.Hits[0].Source, nil
