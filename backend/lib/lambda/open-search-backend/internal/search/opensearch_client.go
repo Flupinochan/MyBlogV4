@@ -1,4 +1,4 @@
-package client
+package search
 
 import (
 	"crypto/tls"
@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/opensearch-project/opensearch-go/v2"
-	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/config"
+	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/config"
 )
 
 func NewOpenSearchClient(config *config.AppConfig) (*opensearch.Client, error) {

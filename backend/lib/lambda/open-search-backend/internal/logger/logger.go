@@ -1,11 +1,11 @@
-package middleware
+package logger
 
 import (
 	"context"
 	"log/slog"
 	"os"
 
-	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/config"
+	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/config"
 )
 
 // OpenSearch API Error Response

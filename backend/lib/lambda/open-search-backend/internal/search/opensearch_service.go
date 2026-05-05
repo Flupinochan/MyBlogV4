@@ -1,4 +1,4 @@
-package service
+package search
 
 import (
 	"bytes"
@@ -6,12 +6,19 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"strings"
 
 	"github.com/opensearch-project/opensearch-go/v2"
 	"github.com/opensearch-project/opensearch-go/v2/opensearchapi"
-	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/middleware"
+	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/middleware"
 )
+
+type Repository struct {
+	client *opensearch.Client
+}
+
+func NewRepository(client *opensearch.Client) *Repository {
+	return &Repository{client: client}
+}
 
 type BlogDocument struct {
 	Slug      string   `json:"slug"`
@@ -45,45 +52,21 @@ type SearchResponse[T any] struct {
 	} `json:"hits"`
 }
 
-func AllSearch(ctx context.Context, client *opensearch.Client) ([]BlogDocument, error) {
-	query := `{"query": {"match_all": {}}, "size": 20}`
-
-	searchReq := opensearchapi.SearchRequest{
-		Index: []string{"tech-blog"},
-		Body:  strings.NewReader(query),
-	}
-
-	res, err := searchReq.Do(ctx, client)
+func (r *Repository) Ping(ctx context.Context) error {
+	req := opensearchapi.PingRequest{}
+	res, err := req.Do(ctx, r.client)
 	if err != nil {
-		return nil, fmt.Errorf("opensearch request failed: %w", err)
+		return err
 	}
 	defer res.Body.Close()
 
 	if res.IsError() {
-		return nil, fmt.Errorf("opensearch error response: %s", res.String())
+		return fmt.Errorf("ping failed with status: %w", middleware.ErrServer)
 	}
-
-	var osRes struct {
-		Hits struct {
-			Hits []struct {
-				Source BlogDocument `json:"_source"`
-			} `json:"hits"`
-		} `json:"hits"`
-	}
-
-	if err := json.NewDecoder(res.Body).Decode(&osRes); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", err)
-	}
-
-	docs := make([]BlogDocument, 0, len(osRes.Hits.Hits))
-	for _, hit := range osRes.Hits.Hits {
-		docs = append(docs, hit.Source)
-	}
-
-	return docs, nil
+	return nil
 }
 
-func GetBlogBySlug(ctx context.Context, client *opensearch.Client, slug string) (*BlogDocument, error) {
+func (r *Repository) GetBlogBySlug(c context.Context, slug string) (*BlogDocument, error) {
 	query := SearchRequest{
 		Size:   1,
 		Source: []string{"slug", "url", "title", "emoji", "type", "topics", "content", "created_at"},
@@ -104,7 +87,7 @@ func GetBlogBySlug(ctx context.Context, client *opensearch.Client, slug string) 
 		Body:  &buf,
 	}
 
-	res, err := searchReq.Do(ctx, client)
+	res, err := searchReq.Do(c, r.client)
 	if err != nil {
 		return nil, fmt.Errorf("opensearch request failed: %w", errors.Join(err, middleware.ErrServer))
 	}

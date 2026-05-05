@@ -10,10 +10,11 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/client"
-	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/config"
-	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/middleware"
-	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/router"
+	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/config"
+	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/logger"
+	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/middleware"
+	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/router"
+	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/search"
 )
 
 // API Design Reference
@@ -38,17 +39,19 @@ func setupRouter() error {
 	}
 
 	// Logger Initialization
-	middleware.InitLogger(&config.AppConfig{
+	logger.InitLogger(&config.AppConfig{
 		Level: cfg.Level,
 	})
 
 	slog.Info("Application started")
 
 	// OpenSearch Client Initialization
-	client, err := client.NewOpenSearchClient(cfg)
+	client, err := search.NewOpenSearchClient(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to initialize OpenSearch client: %w", err)
 	}
+	repo := search.NewRepository(client)
+	h := search.NewHandler(repo)
 
 	// Gin Router Initialization with Middleware
 	r := gin.New()
@@ -57,7 +60,7 @@ func setupRouter() error {
 	r.Use(middleware.ErrorHandler())
 
 	// Register routes
-	router.RegisterRoutes(r, client)
+	router.RegisterRoutes(r, h, repo)
 
 	// Run the server
 	s := &http.Server{
