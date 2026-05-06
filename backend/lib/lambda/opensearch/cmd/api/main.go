@@ -52,7 +52,7 @@ func setupRouter() error {
 	if err != nil {
 		return fmt.Errorf("failed to initialize OpenSearch client: %w", err)
 	}
-	repo := blogsearch.NewRepository(client)
+	repo := blogsearch.NewRepository(client, cfg.AliasName)
 	h := blogsearch.NewHandler(repo)
 
 	// Gin Router Initialization with Middleware

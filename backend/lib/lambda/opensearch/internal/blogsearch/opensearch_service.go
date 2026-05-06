@@ -38,7 +38,7 @@ type SearchRequest struct {
 	SearchAfter []any    `json:"search_after,omitempty"` // Fromは利用せず、CursorベースのPagination方針
 	Source      []string `json:"_source,omitempty"`
 	Query       any      `json:"query"`
-	Aggrs       any      `json:"aggs,omitempty"`
+	Aggs        any      `json:"aggs,omitempty"`
 }
 
 type SearchResponse[T any] struct {
@@ -84,7 +84,7 @@ func (r *Repository) GetBlogBySlug(c context.Context, slug string) (*BlogDocumen
 	}
 
 	searchReq := opensearchapi.SearchRequest{
-		Index: []string{"tech-blog"},
+		Index: []string{r.aliasName},
 		Body:  &buf,
 	}
 
@@ -192,7 +192,7 @@ func (r *Repository) ListBlogs(c context.Context, params ListBlogsParams) (*List
 
 	// Send request to OpenSearch
 	searchReq := opensearchapi.SearchRequest{
-		Index: []string{"tech-blog"},
+		Index: []string{r.aliasName},
 		Body:  &buf,
 	}
 
@@ -244,4 +244,63 @@ func (r *Repository) ListBlogs(c context.Context, params ListBlogsParams) (*List
 	)
 
 	return result, nil
+}
+
+// aggregation レスポンス用の型
+type AggsResponse struct {
+	Aggregations struct {
+		AllTopics struct {
+			Buckets []TopicBucket `json:"buckets"`
+		} `json:"all_topics"`
+	} `json:"aggregations"`
+}
+
+type TopicBucket struct {
+	Key      string `json:"key"`
+	DocCount int    `json:"doc_count"`
+}
+
+func (r *Repository) ListTopics(c context.Context) ([]TopicBucket, error) {
+	query := SearchRequest{
+		Size: 0,
+		Aggs: map[string]any{
+			"all_topics": map[string]any{
+				"terms": map[string]any{
+					"field": "topics",
+					"size":  1000,
+					"order": map[string]any{
+						"_count": "desc",
+					},
+				},
+			},
+		},
+		Query: MatchAllQuery{},
+	}
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(query); err != nil {
+		return nil, fmt.Errorf("failed to encode query: %w", errors.Join(err, middleware.ErrServer))
+	}
+
+	searchReq := opensearchapi.SearchRequest{
+		Index: []string{r.aliasName},
+		Body:  &buf,
+	}
+
+	res, err := searchReq.Do(c, r.client)
+	if err != nil {
+		return nil, fmt.Errorf("opensearch request failed: %w", errors.Join(err, middleware.ErrServer))
+	}
+	defer res.Body.Close()
+
+	if res.IsError() {
+		return nil, fmt.Errorf("opensearch error response: %s: %w", res.String(), middleware.ErrServer)
+	}
+
+	var osRes AggsResponse
+	if err := json.NewDecoder(res.Body).Decode(&osRes); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", errors.Join(err, middleware.ErrServer))
+	}
+
+	return osRes.Aggregations.AllTopics.Buckets, nil
 }

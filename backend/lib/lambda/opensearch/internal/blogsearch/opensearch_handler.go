@@ -100,3 +100,14 @@ func (h *Handler) ListBlogs(c *gin.Context) {
 		NextCursor: result.NextCursor,
 	})
 }
+
+func (h *Handler) ListTopics(c *gin.Context) {
+	topics, err := h.repo.ListTopics(c.Request.Context())
+
+	if err != nil {
+		_ = c.Error(err)
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"success": true, "data": topics})
+}

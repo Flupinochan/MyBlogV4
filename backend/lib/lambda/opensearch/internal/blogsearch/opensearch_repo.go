@@ -3,11 +3,12 @@ package blogsearch
 import "github.com/opensearch-project/opensearch-go/v2"
 
 type Repository struct {
-	client *opensearch.Client
+	client    *opensearch.Client
+	aliasName string
 }
 
-func NewRepository(client *opensearch.Client) *Repository {
-	return &Repository{client: client}
+func NewRepository(client *opensearch.Client, aliasName string) *Repository {
+	return &Repository{client: client, aliasName: aliasName}
 }
 
 type BlogDocument struct {

@@ -10,4 +10,9 @@ func OpenSearchRoutes(r *gin.RouterGroup, h *Handler) {
 		blogGroup.GET("/:slug", h.GetBlogBySlug)
 		blogGroup.GET("", h.ListBlogs)
 	}
+
+	topicGroup := r.Group("/topics")
+	{
+		topicGroup.GET("", h.ListTopics)
+	}
 }
