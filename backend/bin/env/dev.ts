@@ -16,6 +16,7 @@ export const config: EnvConfig = {
   vectorBucketName: "dev-myblogv4-blog-kb-vector",
   kbName: "dev-myblogv4-blog-kb",
   dataSourceName: "dev-myblogv4-blog-datasource",
+  modelId: "apac.amazon.nova-micro-v1:0",
   embeddingModelId: "amazon.titan-embed-text-v2:0",
   enrichingModelId: "amazon.nova-micro-v1:0",
   blogRepoName: "zenn-content",

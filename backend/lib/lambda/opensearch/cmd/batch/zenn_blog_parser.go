@@ -7,7 +7,13 @@ import (
 	"log/slog"
 	"strings"
 	"sync"
+	"time"
 
+	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/aws/retry"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime"
+	"github.com/aws/aws-sdk-go-v2/service/bedrockruntime/types"
 	"golang.org/x/sync/errgroup"
 	"golang.org/x/sync/semaphore"
 	blogsource "metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/cmd/batch/github"
@@ -128,7 +134,68 @@ func parseString(rawVal string) (string, error) {
 	return rest[:idx], nil
 }
 
-func BuildBlogDocuments(ctx context.Context, blogDetails []blogsource.GitHubBlogDetail) ([]blogsearch.BlogDocument, error) {
+func SummaryContent(ctx context.Context, modelId string, userPrompt string) (string, error) {
+	// Prepare the input
+	systemPrompt := `読者が学べる内容を把握できるよう、以下の制約で技術ブログの概要を作成してください
+- 5文程度で構成すること
+- この記事では、この技術ブログでは、などの前置きは禁止
+- しています、されています、などの受け身の表現は禁止
+- します、しました、などのブログの投稿者視点での能動的、宣言的な文章にすること`
+
+	systemContentBlock := &types.SystemContentBlockMemberText{
+		Value: systemPrompt,
+	}
+
+	var userContentBlock = types.ContentBlockMemberText{
+		Value: userPrompt,
+	}
+
+	var message = types.Message{
+		Content: []types.ContentBlock{&userContentBlock},
+		Role:    types.ConversationRoleUser,
+	}
+	var converseInput = bedrockruntime.ConverseInput{
+		ModelId:  aws.String(modelId),
+		System:   []types.SystemContentBlock{systemContentBlock},
+		Messages: []types.Message{message},
+	}
+
+	// Create an AWS Config
+	cfg, err := config.LoadDefaultConfig(ctx,
+		config.WithRetryer(func() aws.Retryer {
+			var r aws.Retryer = retry.NewStandard()
+			r = retry.AddWithMaxAttempts(r, 3)
+			r = retry.AddWithMaxBackoffDelay(r, 5*time.Second)
+			return r
+		}),
+	)
+	if err != nil {
+		return "", fmt.Errorf("unable to load AWS SDK config: %w", err)
+	}
+
+	// Call the Converse API
+	client := bedrockruntime.NewFromConfig(cfg)
+	response, err := client.Converse(ctx, &converseInput)
+	if err != nil {
+		return "", fmt.Errorf("failed to call Bedrock Converse API: %w", err)
+	}
+
+	// Process the response
+	responseMsg, ok := response.Output.(*types.ConverseOutputMemberMessage)
+	if !ok || len(responseMsg.Value.Content) == 0 {
+		return "", fmt.Errorf("unexpected response format from Bedrock")
+	}
+	textBlock, ok := responseMsg.Value.Content[0].(*types.ContentBlockMemberText)
+	if !ok {
+		return "", fmt.Errorf("unexpected content block type from Bedrock")
+	}
+
+	slog.Debug("Summary", slog.String("text", textBlock.Value))
+
+	return textBlock.Value, nil
+}
+
+func BuildBlogDocuments(ctx context.Context, blogDetails []blogsource.GitHubBlogDetail, modelId string) ([]blogsearch.BlogDocument, error) {
 	const maxConcurrency = 50
 	sem := semaphore.NewWeighted(maxConcurrency)
 
@@ -152,6 +219,15 @@ func BuildBlogDocuments(ctx context.Context, blogDetails []blogsource.GitHubBlog
 				return nil
 			}
 
+			summary, err := SummaryContent(ctx, modelId, parsed.Content)
+			if err != nil {
+				slog.Error("Failed to summarize blog content",
+					slog.String("file", blogDetail.FileName),
+					slog.String("error", err.Error()),
+				)
+				return nil
+			}
+
 			mu.Lock()
 			documents = append(documents, blogsearch.BlogDocument{
 				Slug:      blogDetail.FileName,
@@ -161,6 +237,7 @@ func BuildBlogDocuments(ctx context.Context, blogDetails []blogsource.GitHubBlog
 				Type:      parsed.Type,
 				Topics:    parsed.Topics,
 				Content:   parsed.Content,
+				Summary:   summary,
 				CreatedAt: blogDetail.CreatedAt.Format("2006-01-02 15:04:05"),
 			})
 			mu.Unlock()

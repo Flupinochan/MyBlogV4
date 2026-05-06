@@ -19,5 +19,6 @@ type BlogDocument struct {
 	Type      string   `json:"type"`
 	Topics    []string `json:"topics"`
 	Content   string   `json:"content"`
+	Summary   string   `json:"summary"`
 	CreatedAt string   `json:"created_at"`
 }

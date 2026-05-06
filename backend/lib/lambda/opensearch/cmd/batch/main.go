@@ -76,7 +76,7 @@ func run(ctx context.Context) error {
 	slog.Info("Successfully retrieved blog details", slog.Int("count", len(blogDetails)))
 
 	// Build Blog Documents
-	documents, err := BuildBlogDocuments(ctx, blogDetails)
+	documents, err := BuildBlogDocuments(ctx, blogDetails, config.ModelId)
 	if err != nil {
 		return fmt.Errorf("failed to build blog documents: %w", err)
 	}

@@ -127,6 +127,14 @@
                     "usage": "検索用"
                 }
             },
+            "summary": {
+                "type": "text",
+                "index": false,
+                "meta": {
+                    "description": "ブログの要約",
+                    "usage": "返却用"
+                }
+            },
             "created_at": {
                 "type": "date",
                 "format": "yyyy-MM-dd HH:mm:ss",

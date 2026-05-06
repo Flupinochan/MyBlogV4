@@ -18,6 +18,7 @@ export interface EnvConfig {
   vectorBucketName: string;
   kbName: string;
   dataSourceName: string;
+  modelId: string;
   embeddingModelId: string;
   enrichingModelId: string;
   blogRepoName: string;

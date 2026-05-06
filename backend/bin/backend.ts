@@ -8,12 +8,12 @@ import { BuildAssetsStack } from "../lib/build-assets-stack";
 import { HostingStack } from "../lib/hosting-stack";
 import { ChatAudioStack } from "../lib/lambda/chat-audio/chat-audio-stack";
 import { ChatSessionStack } from "../lib/lambda/chat-session/chat-session-stack";
+import { OpenSearchApiStack } from "../lib/lambda/opensearch/opensearch-api-stack";
 import { OpenSearchBatchStack } from "../lib/lambda/opensearch/opensearch-batch-stack";
 import { SynthesizeVoiceEcrStack } from "../lib/lambda/synthesize-voice/synthesize-voice-ecr-stack";
 import { SynthesizeVoiceStack } from "../lib/lambda/synthesize-voice/synthesize-voice-stack";
 import { PipelineStack } from "../lib/pipeline-stack";
 import { getEnvConfig, isProd } from "./env";
-import { OpenSearchApiStack } from "../lib/lambda/opensearch/opensearch-api-stack";
 
 const app = new cdk.App();
 
@@ -140,6 +140,8 @@ new OpenSearchBatchStack(app, `${prefix}-OpenSearchBatchStack`, {
   githubAppsPrivateKey: cfg.githubAppsPrivateKeyParam,
   githubAppsId: cfg.githubAppsIdParam,
   githubInstallationId: cfg.githubInstallationIdParam,
+  modelId: cfg.modelId,
+  embeddingModelId: cfg.embeddingModelId,
 });
 
 new OpenSearchApiStack(app, `${prefix}-OpenSearchApiStack`, {

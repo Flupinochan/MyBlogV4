@@ -20,6 +20,7 @@ type AppConfig struct {
 	GithubAppsPrivateKey string
 	GitHubAppsId         int64
 	GitHubInstallationId int64
+	ModelId              string
 }
 
 func GetAppConfig() (*AppConfig, error) {
@@ -84,6 +85,10 @@ func GetAppConfig() (*AppConfig, error) {
 	if err != nil {
 		return nil, fmt.Errorf("invalid GITHUB_INSTALLATION_ID: %w", err)
 	}
+	modelId, err := getRequired("MODEL_ID")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get MODEL_ID: %w", err)
+	}
 
 	var logLevel slog.Level
 	if lvl, err := strconv.Atoi(os.Getenv("LOG_LEVEL")); err == nil {
@@ -102,5 +107,6 @@ func GetAppConfig() (*AppConfig, error) {
 		GithubAppsPrivateKey: githubAppsPrivateKey,
 		GitHubAppsId:         githubAppsId,
 		GitHubInstallationId: gitHubInstallationId,
+		ModelId:              modelId,
 	}, nil
 }

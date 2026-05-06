@@ -20,6 +20,8 @@ interface OpenSearchBatchStackProps extends cdk.StackProps {
   githubAppsPrivateKey: string;
   githubAppsId: string;
   githubInstallationId: string;
+  modelId: string;
+  embeddingModelId: string;
 }
 
 export class OpenSearchBatchStack extends cdk.Stack {
@@ -74,6 +76,20 @@ export class OpenSearchBatchStack extends cdk.Stack {
       ],
     });
 
+    this.role.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          "bedrock:InvokeModel",
+          "bedrock:InvokeModelWithResponseStream",
+        ],
+        resources: [
+          `arn:aws:bedrock:*:${cdk.Aws.ACCOUNT_ID}:inference-profile/*`,
+          "arn:aws:bedrock:*::foundation-model/*",
+        ],
+      }),
+    );
+
     new go.GoFunction(this, "MyGoFunction", {
       functionName: props.openSearchBatchFunctionName,
       entry: path.join(__dirname, "cmd/batch"),
@@ -100,6 +116,8 @@ export class OpenSearchBatchStack extends cdk.Stack {
         GITHUB_APPS_PRIVATE_KEY: githubAppsPrivateKey,
         GITHUB_APPS_ID: githubAppsId,
         GITHUB_INSTALLATION_ID: githubInstallationId,
+        MODEL_ID: props.modelId,
+        EMBEDDING_MODEL_ID: props.embeddingModelId,
       },
       bundling: {
         goBuildFlags: ['-ldflags "-s -w"'],

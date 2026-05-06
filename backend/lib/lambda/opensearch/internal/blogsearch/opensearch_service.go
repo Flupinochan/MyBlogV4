@@ -70,7 +70,7 @@ func (r *Repository) Ping(ctx context.Context) error {
 func (r *Repository) GetBlogBySlug(c context.Context, slug string) (*BlogDocument, error) {
 	query := SearchRequest{
 		Size:   1,
-		Source: []string{"slug", "url", "title", "emoji", "type", "topics", "content", "created_at"},
+		Source: []string{"slug", "url", "title", "emoji", "type", "topics", "content", "summary", "created_at"},
 		Query: TermQuery{
 			Term: map[string]any{
 				"slug": slug,
@@ -172,7 +172,7 @@ func (r *Repository) ListBlogs(c context.Context, params ListBlogsParams) (*List
 
 	searchReqBody := SearchRequest{
 		Size:   params.Limit,
-		Source: []string{"slug", "url", "title", "emoji", "type", "topics", "created_at"}, // exclude content
+		Source: []string{"slug", "url", "title", "emoji", "type", "topics", "summary", "created_at"}, // exclude content
 		Query:  query,
 		Sort: []any{
 			map[string]any{
