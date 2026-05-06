@@ -31,6 +31,7 @@ export interface EnvConfig {
   sessionBucketName: string;
   agentId: string;
   openSearchBatchFunctionName: string;
+  openSearchApiFunctionName: string;
   openSearchUrlParam: string;
   openSearchPortParam: string;
   openSearchUserParam: string;

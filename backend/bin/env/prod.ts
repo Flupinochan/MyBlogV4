@@ -26,6 +26,7 @@ export const config: EnvConfig = {
   sessionBucketName: "prod-myblogv4-chat-session",
   agentId: "prod-myblogv4-agent",
   openSearchBatchFunctionName: "prod-myblogv4-open-search-batch",
+  openSearchApiFunctionName: "prod-myblogv4-open-search-api",
   openSearchUrlParam: "zenn-open-search-url",
   openSearchPortParam: "zenn-open-search-port",
   openSearchUserParam: "zenn-open-search-user",
