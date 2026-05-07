@@ -110,6 +110,7 @@ export class OpenSearchBatchStack extends cdk.Stack {
         OPEN_SEARCH_PASS: openSearchPass,
         LOG_LEVEL: "-4", // DEBUG:-4、INFO:0、WARN:4、ERROR:8
         ALIAS_NAME: props.aliasName,
+        ALIAS_NAME_EMBEDDING: `${props.aliasName}-embedding`,
         GITHUB_OWNER: props.githubOwner,
         GITHUB_REPO: props.githubRepo,
         GITHUB_PATH: props.githubPath,

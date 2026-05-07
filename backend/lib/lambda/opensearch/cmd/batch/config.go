@@ -14,6 +14,7 @@ type AppConfig struct {
 	Password             string
 	Level                slog.Level
 	AliasName            string
+	AliasNameEmbedding   string
 	GithubOwner          string
 	GithubRepo           string
 	GithubPath           string
@@ -21,6 +22,7 @@ type AppConfig struct {
 	GitHubAppsId         int64
 	GitHubInstallationId int64
 	ModelId              string
+	EmbeddingModelId     string
 }
 
 func GetAppConfig() (*AppConfig, error) {
@@ -50,6 +52,10 @@ func GetAppConfig() (*AppConfig, error) {
 		return nil, err
 	}
 	aliasName, err := getRequired("ALIAS_NAME")
+	if err != nil {
+		return nil, err
+	}
+	aliasNameEmbedding, err := getRequired("ALIAS_NAME_EMBEDDING")
 	if err != nil {
 		return nil, err
 	}
@@ -89,6 +95,10 @@ func GetAppConfig() (*AppConfig, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to get MODEL_ID: %w", err)
 	}
+	embeddingModelId, err := getRequired("EMBEDDING_MODEL_ID")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get EMBEDDING_MODEL_ID: %w", err)
+	}
 
 	var logLevel slog.Level
 	if lvl, err := strconv.Atoi(os.Getenv("LOG_LEVEL")); err == nil {
@@ -101,6 +111,7 @@ func GetAppConfig() (*AppConfig, error) {
 		Password:             password,
 		Level:                logLevel,
 		AliasName:            aliasName,
+		AliasNameEmbedding:   aliasNameEmbedding,
 		GithubOwner:          githubOwner,
 		GithubRepo:           githubRepo,
 		GithubPath:           githubPath,
@@ -108,5 +119,6 @@ func GetAppConfig() (*AppConfig, error) {
 		GitHubAppsId:         githubAppsId,
 		GitHubInstallationId: gitHubInstallationId,
 		ModelId:              modelId,
+		EmbeddingModelId:     embeddingModelId,
 	}, nil
 }

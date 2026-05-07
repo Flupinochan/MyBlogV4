@@ -22,3 +22,16 @@ type BlogDocument struct {
 	Summary   string   `json:"summary"`
 	CreatedAt string   `json:"created_at"`
 }
+
+type ChunkDocument struct {
+	Slug           string    `json:"slug"`
+	URL            string    `json:"url"`
+	Title          string    `json:"title"`
+	Emoji          string    `json:"emoji"`
+	Type           string    `json:"type"`
+	Topics         []string  `json:"topics"`
+	Chunk          string    `json:"chunk"`
+	ChunkEmbedding []float64 `json:"chunk_embedding"`
+	Summary        string    `json:"summary"`
+	CreatedAt      string    `json:"created_at"`
+}

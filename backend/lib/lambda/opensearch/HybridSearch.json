@@ -1,0 +1,26 @@
+{
+    "size": 10,
+    "query": {
+        "hybrid": {
+            "queries": [
+                {
+                    "match": {
+                        "content": "trail running shoes"
+                    }
+                },
+                {
+                    "knn": {
+                        "embedding": {
+                            "vector": [
+                                0.1,
+                                0.2,
+                                0.3
+                            ],
+                            "k": 10
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}

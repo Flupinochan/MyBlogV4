@@ -12,7 +12,7 @@ import (
 	"github.com/opensearch-project/opensearch-go/v2/opensearchutil"
 )
 
-//go:embed index.json
+//go:embed index.json index_hybrid.json
 var indexFiles embed.FS
 
 // Create Index
@@ -183,6 +183,82 @@ func (r *Repository) BulkIndexDocuments(ctx context.Context, params BulkIndexDoc
 	}
 
 	slog.Info("Bulk indexing completed",
+		slog.String("indexName", params.IndexName),
+		slog.Int("total", int(stats.NumAdded)),
+		slog.Int("flushed", int(stats.NumFlushed)),
+		slog.Int("failed", int(stats.NumFailed)),
+	)
+
+	return nil
+}
+
+// Bulk Indexing (Chunk Documents for Hybrid Search)
+type BulkIndexChunkDocumentsParams struct {
+	IndexName string
+	Documents []ChunkDocument
+}
+
+func (r *Repository) BulkIndexChunkDocuments(ctx context.Context, params BulkIndexChunkDocumentsParams) error {
+	indexer, err := opensearchutil.NewBulkIndexer(opensearchutil.BulkIndexerConfig{
+		Client:     r.client,
+		Index:      params.IndexName,
+		NumWorkers: 2,
+	})
+	if err != nil {
+		return fmt.Errorf("Error creating the indexer: %w", err)
+	}
+
+	for _, doc := range params.Documents {
+		data, err := json.Marshal(doc)
+		if err != nil {
+			slog.Error("Failed to marshal chunk document",
+				slog.String("error", err.Error()),
+				slog.Any("document", doc),
+			)
+			continue
+		}
+
+		err = indexer.Add(
+			ctx,
+			opensearchutil.BulkIndexerItem{
+				Action: "index",
+				Body:   bytes.NewReader(data),
+				OnFailure: func(
+					ctx context.Context,
+					item opensearchutil.BulkIndexerItem,
+					res opensearchutil.BulkIndexerResponseItem,
+					err error,
+				) {
+					if err != nil {
+						slog.Error("Failed to index chunk document", slog.String("error", err.Error()))
+					} else {
+						slog.Error("Failed to index chunk document",
+							slog.Int("status", res.Status),
+							slog.String("type", res.Error.Type),
+							slog.String("reason", res.Error.Reason),
+						)
+					}
+				},
+			},
+		)
+		if err != nil {
+			if ctx.Err() != nil {
+				return fmt.Errorf("bulk chunk indexing canceled: %w", ctx.Err())
+			}
+			slog.Error("Unexpected error while adding chunk document to indexer", slog.String("error", err.Error()))
+		}
+	}
+
+	if err := indexer.Close(ctx); err != nil {
+		return fmt.Errorf("Error closing the chunk indexer: %w", err)
+	}
+
+	stats := indexer.Stats()
+	if stats.NumFailed > 0 {
+		return fmt.Errorf("Indexed [%d] chunk documents with [%d] errors", stats.NumFlushed, stats.NumFailed)
+	}
+
+	slog.Info("Bulk chunk indexing completed",
 		slog.String("indexName", params.IndexName),
 		slog.Int("total", int(stats.NumAdded)),
 		slog.Int("flushed", int(stats.NumFlushed)),

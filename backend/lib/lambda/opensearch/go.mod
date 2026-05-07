@@ -14,6 +14,7 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.8
 	github.com/joho/godotenv v1.5.1
 	github.com/opensearch-project/opensearch-go/v2 v2.3.0
+	github.com/yuin/goldmark v1.4.13
 	golang.org/x/sync v0.19.0
 )
 

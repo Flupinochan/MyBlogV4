@@ -7,9 +7,10 @@ import (
 	"time"
 
 	"github.com/aws/aws-lambda-go/lambda"
-	blogsource "metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/cmd/batch/github"
+	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/cmd/batch/blogsource"
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/cmd/batch/myhttp"
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/blogsearch"
+	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/genai"
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/mylogger"
 )
 
@@ -47,6 +48,16 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("failed to create index: %w", err)
 	}
 
+	// Create Hybrid Index
+	hybridIndexName := fmt.Sprintf("%s_%s", config.AliasNameEmbedding, now.Format("20060102_150405"))
+	err = repo.CreateIndex(ctx, blogsearch.CreateIndexParams{
+		IndexName: hybridIndexName,
+		FilePath:  "index_hybrid.json",
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create hybrid index: %w", err)
+	}
+
 	// Initialize Http Client
 	httpClient := myhttp.NewHttpClient()
 	httpRepo := myhttp.NewHttpRepository(httpClient)
@@ -65,7 +76,6 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("failed to initialize GitHub client: %w", err)
 	}
 	githubRepo := blogsource.NewGitHubRepository(githubConfig, githubClient)
-
 	blogService := blogsource.NewBlogService(httpRepo, githubRepo)
 
 	// Get Blog Files from GitHub
@@ -75,8 +85,18 @@ func run(ctx context.Context) error {
 	}
 	slog.Info("Successfully retrieved blog details", slog.Int("count", len(blogDetails)))
 
-	// Build Blog Documents
-	documents, err := BuildBlogDocuments(ctx, blogDetails, config.ModelId)
+	// GenAI Client Initialization
+	genaiClient, err := genai.NewGenAIClient(ctx, &genai.GenAIConfig{
+		MaxAttempts:     3,
+		MaxBackoffDelay: 5 * time.Second,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to initialize GenAI client: %w", err)
+	}
+	genaiRepo := genai.NewRepository(genaiClient, config.ModelId)
+
+	// Build Blog Documents and Summarize Content
+	documents, err := BuildBlogDocuments(ctx, blogDetails, genaiRepo)
 	if err != nil {
 		return fmt.Errorf("failed to build blog documents: %w", err)
 	}
@@ -91,6 +111,22 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("failed to bulk index documents: %w", err)
 	}
 
+	// Chunking Markdown Content for Embedding and Building Chunk Documents
+	chunkDocuments, err := BuildChunkDocuments(ctx, documents, genaiRepo, config.EmbeddingModelId)
+	if err != nil {
+		return fmt.Errorf("failed to build chunk documents: %w", err)
+	}
+	slog.Info("Successfully built chunk documents", slog.Int("count", len(chunkDocuments)))
+
+	// Bulk Index Chunk Documents into Hybrid Index
+	err = repo.BulkIndexChunkDocuments(ctx, blogsearch.BulkIndexChunkDocumentsParams{
+		IndexName: hybridIndexName,
+		Documents: chunkDocuments,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to bulk index chunk documents: %w", err)
+	}
+
 	// Update Alias
 	err = repo.UpdateAlias(ctx, blogsearch.UpdateAliasParams{
 		AliasName: config.AliasName,
@@ -98,6 +134,15 @@ func run(ctx context.Context) error {
 	})
 	if err != nil {
 		return fmt.Errorf("failed to update alias: %w", err)
+	}
+
+	// Update Hybrid Alias
+	err = repo.UpdateAlias(ctx, blogsearch.UpdateAliasParams{
+		AliasName: config.AliasNameEmbedding,
+		IndexName: hybridIndexName,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to update hybrid alias: %w", err)
 	}
 
 	return nil
