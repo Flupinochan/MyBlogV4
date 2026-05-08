@@ -10,11 +10,11 @@ import (
 )
 
 type Handler struct {
-	repo *Repository
+	s *BlogSearchService
 }
 
-func NewHandler(repo *Repository) *Handler {
-	return &Handler{repo: repo}
+func NewHandler(s *BlogSearchService) *Handler {
+	return &Handler{s: s}
 }
 
 type GetBlogBySlugUri struct {
@@ -28,7 +28,7 @@ func (h *Handler) GetBlogBySlug(c *gin.Context) {
 		return
 	}
 
-	blog, err := h.repo.GetBlogBySlug(c.Request.Context(), uri.Slug)
+	blog, err := h.s.GetBlogBySlug(c.Request.Context(), uri.Slug)
 	if err != nil {
 		_ = c.Error(err)
 		return
@@ -43,12 +43,13 @@ type ListBlogsQuery struct {
 	Topic  string `form:"topic"  binding:"omitempty,max=100"`
 	Type   string `form:"type"   binding:"omitempty,oneof=tech idea"`
 	Query  string `form:"query"  binding:"omitempty,max=500"`
+	Vector bool   `form:"vector" binding:"omitempty"`
 }
 
 type ListBlogsResponse struct {
-	Success    bool           `json:"success"`
-	Data       []BlogDocument `json:"data"`
-	NextCursor any            `json:"next_cursor"`
+	Success    bool                   `json:"success"`
+	Data       []BlogSearchResultItem `json:"data"`
+	NextCursor any                    `json:"next_cursor"`
 }
 
 func (h *Handler) ListBlogs(c *gin.Context) {
@@ -88,7 +89,13 @@ func (h *Handler) ListBlogs(c *gin.Context) {
 		Query:  query.Query,
 	}
 
-	result, err := h.repo.ListBlogs(c.Request.Context(), params)
+	var result *ListBlogsResult
+	var err error
+	if query.Vector && query.Query != "" {
+		result, err = h.s.ListBlogsVector(c.Request.Context(), params)
+	} else {
+		result, err = h.s.ListBlogs(c.Request.Context(), params)
+	}
 	if err != nil {
 		_ = c.Error(err)
 		return
@@ -102,7 +109,7 @@ func (h *Handler) ListBlogs(c *gin.Context) {
 }
 
 func (h *Handler) ListTopics(c *gin.Context) {
-	topics, err := h.repo.ListTopics(c.Request.Context())
+	topics, err := h.s.ListTopics(c.Request.Context())
 
 	if err != nil {
 		_ = c.Error(err)

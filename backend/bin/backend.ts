@@ -23,6 +23,7 @@ const cfg = getEnvConfig(envName);
 
 const baseName = "myblogv4";
 const prefix = `${envName}-${baseName}`;
+const apiPath = "api";
 
 new BuildAssetsStack(app, `${prefix}-BuildAssetsStack`, {
   bucketName: cfg.buildAssetsBucketName,
@@ -98,13 +99,46 @@ const chatSessionStack = new ChatSessionStack(
   },
 );
 
-const apiPath = "api";
+new OpenSearchBatchStack(app, `${prefix}-OpenSearchBatchStack`, {
+  openSearchBatchFunctionName: cfg.openSearchBatchFunctionName,
+  openSearchUrlParam: cfg.openSearchUrlParam,
+  openSearchPortParam: cfg.openSearchPortParam,
+  openSearchUserParam: cfg.openSearchUserParam,
+  openSearchPassParam: cfg.openSearchPassParam,
+  aliasName: cfg.aliasName,
+  githubOwner: cfg.githubOwner,
+  githubRepo: cfg.githubRepo,
+  githubPath: cfg.githubPath,
+  githubAppsPrivateKey: cfg.githubAppsPrivateKeyParam,
+  githubAppsId: cfg.githubAppsIdParam,
+  githubInstallationId: cfg.githubInstallationIdParam,
+  modelId: cfg.modelId,
+  embeddingModelId: cfg.embeddingModelId,
+});
+
+const openSearchApiStack = new OpenSearchApiStack(
+  app,
+  `${prefix}-OpenSearchApiStack`,
+  {
+    openSearchApiFunctionName: cfg.openSearchApiFunctionName,
+    openSearchUrlParam: cfg.openSearchUrlParam,
+    openSearchPortParam: cfg.openSearchPortParam,
+    openSearchUserParam: cfg.openSearchUserParam,
+    openSearchPassParam: cfg.openSearchPassParam,
+    aliasName: cfg.aliasName,
+    aliasNameEmbedding: cfg.aliasNameEmbedding,
+    modelId: cfg.modelId,
+    modelIdEmbedding: cfg.embeddingModelId,
+  },
+);
+
 const apiStack = new ApiStack(app, `${prefix}-ApiStack`, {
   domainName: cfg.domainName,
   apiPath,
   isProd: isProd(envName),
   chatSessionLambda: chatSessionStack.function,
   chatAudioLambda: chatAudioStack.function,
+  blogSearchLambda: openSearchApiStack.function,
 });
 
 const hostingStack = new HostingStack(app, `${prefix}-HostingStack`, {
@@ -125,30 +159,4 @@ new PipelineStack(app, `${prefix}-PipelineStack`, {
   repoName: cfg.repoName,
   branchName: cfg.branchName,
   synthesizeVoiceRepositoryName: cfg.synthesizeVoiceRepositoryName,
-});
-
-new OpenSearchBatchStack(app, `${prefix}-OpenSearchBatchStack`, {
-  openSearchBatchFunctionName: cfg.openSearchBatchFunctionName,
-  openSearchUrlParam: cfg.openSearchUrlParam,
-  openSearchPortParam: cfg.openSearchPortParam,
-  openSearchUserParam: cfg.openSearchUserParam,
-  openSearchPassParam: cfg.openSearchPassParam,
-  aliasName: cfg.aliasName,
-  githubOwner: cfg.githubOwner,
-  githubRepo: cfg.githubRepo,
-  githubPath: cfg.githubPath,
-  githubAppsPrivateKey: cfg.githubAppsPrivateKeyParam,
-  githubAppsId: cfg.githubAppsIdParam,
-  githubInstallationId: cfg.githubInstallationIdParam,
-  modelId: cfg.modelId,
-  embeddingModelId: cfg.embeddingModelId,
-});
-
-new OpenSearchApiStack(app, `${prefix}-OpenSearchApiStack`, {
-  openSearchApiFunctionName: cfg.openSearchApiFunctionName,
-  openSearchUrlParam: cfg.openSearchUrlParam,
-  openSearchPortParam: cfg.openSearchPortParam,
-  openSearchUserParam: cfg.openSearchUserParam,
-  openSearchPassParam: cfg.openSearchPassParam,
-  aliasName: cfg.aliasName,
 });

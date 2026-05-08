@@ -12,6 +12,7 @@ import (
 	"github.com/joho/godotenv"
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/blogsearch"
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/config"
+	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/genai"
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/middleware"
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/mylogger"
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/router"
@@ -52,8 +53,17 @@ func setupRouter() error {
 	if err != nil {
 		return fmt.Errorf("failed to initialize OpenSearch client: %w", err)
 	}
-	repo := blogsearch.NewRepository(client, cfg.AliasName)
-	h := blogsearch.NewHandler(repo)
+	genaiClient, err := genai.NewGenAIClient(&genai.GenAIConfig{
+		MaxAttempts:     3,
+		MaxBackoffDelay: 2 * time.Second,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to initialize GenAI client: %w", err)
+	}
+	genaiRepo := genai.NewRepository(genaiClient, cfg.ModelId, cfg.ModelIdEmbedding)
+	blogSearchRepo := blogsearch.NewRepository(client, cfg.AliasName, cfg.AliasNameEmbedding)
+	blogSearchService := blogsearch.NewBlogSearchService(genaiRepo, blogSearchRepo)
+	h := blogsearch.NewHandler(blogSearchService)
 
 	// Gin Router Initialization with Middleware
 	r := gin.New()
@@ -63,10 +73,10 @@ func setupRouter() error {
 	r.Use(middleware.ErrorHandler())
 
 	// Register routes
-	router.RegisterRoutes(r, h, repo)
+	router.RegisterRoutes(r, h, blogSearchService)
 
 	// Run the server (Using "localhost:8080" instead of "127.0.0.1:8080")
-	s := &http.Server{
+	server := &http.Server{
 		Addr:              "0.0.0.0:8080",
 		Handler:           r,
 		ReadHeaderTimeout: 5 * time.Second,
@@ -76,7 +86,7 @@ func setupRouter() error {
 		MaxHeaderBytes:    1 << 20,
 		ErrorLog:          log.New(os.Stderr, "http: ", log.LstdFlags),
 	}
-	s.ListenAndServe()
+	server.ListenAndServe()
 
 	return nil
 }

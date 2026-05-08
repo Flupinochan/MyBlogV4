@@ -9,11 +9,14 @@ import (
 
 // Lambda環境変数
 type AppConfig struct {
-	Address   string
-	Username  string
-	Password  string
-	AliasName string
-	Level     slog.Level
+	Address            string
+	Username           string
+	Password           string
+	AliasName          string
+	AliasNameEmbedding string
+	ModelId            string
+	ModelIdEmbedding   string
+	Level              slog.Level
 }
 
 func GetAppConfig() (*AppConfig, error) {
@@ -46,6 +49,18 @@ func GetAppConfig() (*AppConfig, error) {
 	if err != nil {
 		return nil, err
 	}
+	aliasNameEmbedding, err := getRequired("ALIAS_NAME_EMBEDDING")
+	if err != nil {
+		return nil, err
+	}
+	modelId, err := getRequired("MODEL_ID")
+	if err != nil {
+		return nil, err
+	}
+	modelIdEmbedding, err := getRequired("MODEL_ID_EMBEDDING")
+	if err != nil {
+		return nil, err
+	}
 
 	var logLevel slog.Level
 	if lvl, err := strconv.Atoi(os.Getenv("LOG_LEVEL")); err == nil {
@@ -53,10 +68,13 @@ func GetAppConfig() (*AppConfig, error) {
 	}
 
 	return &AppConfig{
-		Address:   fmt.Sprintf("%s:%s", address, port),
-		Username:  username,
-		Password:  password,
-		AliasName: aliasName,
-		Level:     logLevel,
+		Address:            fmt.Sprintf("%s:%s", address, port),
+		Username:           username,
+		Password:           password,
+		AliasName:          aliasName,
+		AliasNameEmbedding: aliasNameEmbedding,
+		ModelId:            modelId,
+		ModelIdEmbedding:   modelIdEmbedding,
+		Level:              logLevel,
 	}, nil
 }

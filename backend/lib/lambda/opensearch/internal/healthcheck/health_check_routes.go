@@ -9,7 +9,7 @@ import (
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/middleware"
 )
 
-func HostHealthCheckRoutes(r *gin.RouterGroup, repo *blogsearch.Repository) {
+func HostHealthCheckRoutes(r *gin.RouterGroup, s *blogsearch.BlogSearchService) {
 	healthGroup := r.Group("/health")
 	{
 		hostHandler := func(c *gin.Context) {
@@ -22,7 +22,7 @@ func HostHealthCheckRoutes(r *gin.RouterGroup, repo *blogsearch.Repository) {
 		healthGroup.GET("/opensearch", func(c *gin.Context) {
 			logger := middleware.GetLogger(c.Request.Context())
 
-			if err := repo.Ping(c.Request.Context()); err != nil {
+			if err := s.Ping(c.Request.Context()); err != nil {
 				logger.Error("OpenSearch health check failed", slog.Any("error", err))
 				c.JSON(http.StatusServiceUnavailable, gin.H{"status": "unhealthy"})
 				return

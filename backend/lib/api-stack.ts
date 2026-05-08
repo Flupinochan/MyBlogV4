@@ -10,6 +10,7 @@ interface ApiStackProps extends cdk.StackProps {
   isProd: boolean;
   chatSessionLambda: lambda.Function;
   chatAudioLambda: lambda.Function;
+  blogSearchLambda: lambda.Function;
 }
 
 export class ApiStack extends cdk.Stack {
@@ -75,6 +76,14 @@ export class ApiStack extends cdk.Stack {
     this.api.addGatewayResponse("Default5xxResponse", {
       type: apigateway.ResponseType.DEFAULT_5XX,
       responseHeaders,
+    });
+
+    this.api.root.addProxy({
+      defaultIntegration: new apigateway.LambdaIntegration(
+        props.blogSearchLambda,
+        { proxy: true },
+      ),
+      anyMethod: true,
     });
 
     const v1 = this.api.root.addResource("v1");

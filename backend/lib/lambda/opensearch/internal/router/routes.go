@@ -6,10 +6,10 @@ import (
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/healthcheck"
 )
 
-func RegisterRoutes(r *gin.Engine, h *blogsearch.Handler, repo *blogsearch.Repository) {
+func RegisterRoutes(r *gin.Engine, h *blogsearch.Handler, s *blogsearch.BlogSearchService) {
 	v1 := r.Group("/api/v1")
 	{
-		healthcheck.HostHealthCheckRoutes(v1, repo)
+		healthcheck.HostHealthCheckRoutes(v1, s)
 		blogsearch.OpenSearchRoutes(v1, h)
 	}
 }

@@ -11,15 +11,16 @@ import (
 )
 
 type Repository struct {
-	client  *bedrockruntime.Client
-	modelId string
+	client           *bedrockruntime.Client
+	modelId          string
+	modelIdEmbedding string
 }
 
-func NewRepository(client *bedrockruntime.Client, modelId string) *Repository {
-	return &Repository{client: client, modelId: modelId}
+func NewRepository(client *bedrockruntime.Client, modelId string, modelIdEmbedding string) *Repository {
+	return &Repository{client: client, modelId: modelId, modelIdEmbedding: modelIdEmbedding}
 }
 
-func (r *Repository) SummaryContent(ctx context.Context, userPrompt string) (string, error) {
+func (r *Repository) SummaryContent(c context.Context, userPrompt string) (string, error) {
 	systemPrompt := `読者が学べる内容を把握できるよう、以下の制約で技術ブログの概要を作成してください
 - 5文程度で構成すること
 - この記事では、この技術ブログでは、などの前置きは禁止
@@ -44,7 +45,7 @@ func (r *Repository) SummaryContent(ctx context.Context, userPrompt string) (str
 		Messages: []types.Message{message},
 	}
 
-	response, err := r.client.Converse(ctx, &converseInput)
+	response, err := r.client.Converse(c, &converseInput)
 	if err != nil {
 		return "", fmt.Errorf("failed to call Bedrock Converse API: %w", err)
 	}
@@ -80,7 +81,7 @@ type EmbeddingsByType struct {
 	Float  []float64 `json:"float"`
 }
 
-func (r *Repository) GenerateEmbedding(ctx context.Context, chunk string, modelId string) ([]float64, error) {
+func (r *Repository) GenerateEmbedding(ctx context.Context, chunk string) ([]float64, error) {
 	request := EmbeddingRequest{
 		InputText:      chunk,
 		Dimensions:     1024,
@@ -95,7 +96,7 @@ func (r *Repository) GenerateEmbedding(ctx context.Context, chunk string, modelI
 
 	response, err := r.client.InvokeModel(ctx, &bedrockruntime.InvokeModelInput{
 		Body:        requestBytes,
-		ModelId:     aws.String(modelId),
+		ModelId:     aws.String(r.modelIdEmbedding),
 		ContentType: aws.String("application/json"),
 	})
 	if err != nil {

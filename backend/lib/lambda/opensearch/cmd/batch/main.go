@@ -35,7 +35,7 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to initialize OpenSearch client: %w", err)
 	}
-	repo := blogsearch.NewRepository(client, config.AliasName)
+	repo := blogsearch.NewRepository(client, config.AliasName, config.AliasNameEmbedding)
 
 	// Create Index
 	now := time.Now()
@@ -86,14 +86,14 @@ func run(ctx context.Context) error {
 	slog.Info("Successfully retrieved blog details", slog.Int("count", len(blogDetails)))
 
 	// GenAI Client Initialization
-	genaiClient, err := genai.NewGenAIClient(ctx, &genai.GenAIConfig{
+	genaiClient, err := genai.NewGenAIClient(&genai.GenAIConfig{
 		MaxAttempts:     3,
-		MaxBackoffDelay: 5 * time.Second,
+		MaxBackoffDelay: 2 * time.Second,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to initialize GenAI client: %w", err)
 	}
-	genaiRepo := genai.NewRepository(genaiClient, config.ModelId)
+	genaiRepo := genai.NewRepository(genaiClient, config.ModelId, config.EmbeddingModelId)
 
 	// Build Blog Documents and Summarize Content
 	documents, err := BuildBlogDocuments(ctx, blogDetails, genaiRepo)

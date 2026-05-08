@@ -38,6 +38,7 @@ export interface EnvConfig {
   openSearchUserParam: string;
   openSearchPassParam: string;
   aliasName: string;
+  aliasNameEmbedding: string;
   githubOwner: string;
   githubRepo: string;
   githubPath: string;

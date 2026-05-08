@@ -101,7 +101,7 @@ func BuildChunkDocuments(
 			}
 			defer sem.Release(1)
 
-			embedding, err := genaiRepo.GenerateEmbedding(gctx, item.chunk, embeddingModelId)
+			embedding, err := genaiRepo.GenerateEmbedding(gctx, item.chunk)
 			if err != nil {
 				slog.Error("Failed to get embedding for chunk",
 					slog.String("slug", item.doc.Slug),

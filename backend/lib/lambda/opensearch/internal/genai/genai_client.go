@@ -16,8 +16,11 @@ type GenAIConfig struct {
 	MaxBackoffDelay time.Duration
 }
 
-func NewGenAIClient(ctx context.Context, cfg *GenAIConfig) (*bedrockruntime.Client, error) {
-	awsCfg, err := config.LoadDefaultConfig(ctx,
+// func NewGenAIClient(cfg *GenAIConfig) (*bedrockruntime.Client, error) {
+func NewGenAIClient(cfg *GenAIConfig) (*bedrockruntime.Client, error) {
+	// Config初期化時は空のContextを利用し、Client呼び出し時に実際のContextを利用
+	awsCfg, err := config.LoadDefaultConfig(
+		context.TODO(),
 		config.WithRetryer(func() aws.Retryer {
 			var r aws.Retryer = retry.NewStandard()
 			r = retry.AddWithMaxAttempts(r, cfg.MaxAttempts)

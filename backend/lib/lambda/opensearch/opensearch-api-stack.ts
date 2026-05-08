@@ -14,6 +14,9 @@ interface OpenSearchApiStackProps extends cdk.StackProps {
   openSearchUserParam: string;
   openSearchPassParam: string;
   aliasName: string;
+  aliasNameEmbedding: string;
+  modelId: string;
+  modelIdEmbedding: string;
 }
 
 export class OpenSearchApiStack extends cdk.Stack {
@@ -56,7 +59,21 @@ export class OpenSearchApiStack extends cdk.Stack {
       ],
     });
 
-    new go.GoFunction(this, "OpenSearchApiFunction", {
+    this.role.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          "bedrock:InvokeModel",
+          "bedrock:InvokeModelWithResponseStream",
+        ],
+        resources: [
+          `arn:aws:bedrock:*:${cdk.Aws.ACCOUNT_ID}:inference-profile/*`,
+          "arn:aws:bedrock:*::foundation-model/*",
+        ],
+      }),
+    );
+
+    this.function = new go.GoFunction(this, "OpenSearchApiFunction", {
       functionName: props.openSearchApiFunctionName,
       entry: path.join(__dirname, "cmd/api"),
       runtime: lambda.Runtime.PROVIDED_AL2023,
@@ -75,6 +92,9 @@ export class OpenSearchApiStack extends cdk.Stack {
         OPEN_SEARCH_USER: openSearchUser,
         OPEN_SEARCH_PASS: openSearchPass,
         ALIAS_NAME: props.aliasName,
+        ALIAS_NAME_EMBEDDING: props.aliasNameEmbedding,
+        MODEL_ID: props.modelId,
+        MODEL_ID_EMBEDDING: props.modelIdEmbedding,
         GIN_MODE: "release",
         LOG_LEVEL: "0", // DEBUG:-4、INFO:0、WARN:4、ERROR:8
         AWS_LAMBDA_LOG_LEVEL: "INFO",
@@ -93,7 +113,7 @@ export class OpenSearchApiStack extends cdk.Stack {
           "LambdaAdapterLayer",
           `arn:aws:lambda:${this.region}:753240598075:layer:LambdaAdapterLayerArm64:27`,
         ),
-      ]
+      ],
     });
   }
 }
