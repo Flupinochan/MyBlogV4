@@ -73,7 +73,7 @@ export class PipelineStack extends cdk.Stack {
           install: {
             "runtime-versions": {
               nodejs: "24",
-              golang: "1.23",
+              golang: "1.26",
             },
             commands: [
               "node -v",
