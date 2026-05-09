@@ -10,9 +10,9 @@ import { ApiStack } from "./api-stack";
 
 interface HostingStackProps extends cdk.StackProps {
   envName: string;
-  bucketName: string;
+  hostingBucketName: string;
   domainName: string;
-  certificateArn: string;
+  certificateArnParam: string;
   apiStack?: ApiStack;
   apiPath?: string;
 }
@@ -26,7 +26,7 @@ export class HostingStack extends cdk.Stack {
 
     // CORS設定を変更する場合はbucket名を変えて再ビルドしないと安定しないため注意
     this.bucket = new s3.Bucket(this, "bucket", {
-      bucketName: props.bucketName,
+      bucketName: props.hostingBucketName,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
       enforceSSL: true,
@@ -56,7 +56,7 @@ export class HostingStack extends cdk.Stack {
       this,
       "CertificateArn",
       {
-        parameterName: props.certificateArn,
+        parameterName: props.certificateArnParam,
       },
     ).stringValue;
 

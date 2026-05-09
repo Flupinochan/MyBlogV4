@@ -1,14 +1,17 @@
 import * as go from "@aws-cdk/aws-lambda-go-alpha";
 import * as cdk from "aws-cdk-lib";
+import * as codepipeline from "aws-cdk-lib/aws-codepipeline";
+import * as codepipeline_actions from "aws-cdk-lib/aws-codepipeline-actions";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as logs from "aws-cdk-lib/aws-logs";
+import * as s3 from "aws-cdk-lib/aws-s3";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import { Construct } from "constructs";
 import * as path from "path";
 
 interface OpenSearchBatchStackProps extends cdk.StackProps {
-  openSearchBatchFunctionName: string;
+  openSearchBatchLambdaName: string;
   openSearchUrlParam: string;
   openSearchPortParam: string;
   openSearchUserParam: string;
@@ -17,17 +20,21 @@ interface OpenSearchBatchStackProps extends cdk.StackProps {
   githubOwner: string;
   githubRepo: string;
   githubPath: string;
-  githubAppsPrivateKey: string;
-  githubAppsId: string;
-  githubInstallationId: string;
+  githubAppsPrivateKeyParam: string;
+  githubAppsIdParam: string;
+  githubInstallationIdParam: string;
   modelId: string;
   embeddingModelId: string;
+  githubConnectionArnParam: string;
+  blogBranchName: string;
+  openSearchApiFunctionName: string;
 }
 
 export class OpenSearchBatchStack extends cdk.Stack {
   public readonly function: lambda.Function;
   public readonly logGroup: logs.LogGroup;
   public readonly role: iam.Role;
+  public readonly pipeline: codepipeline.Pipeline;
 
   constructor(scope: Construct, id: string, props: OpenSearchBatchStackProps) {
     super(scope, id, props);
@@ -50,19 +57,19 @@ export class OpenSearchBatchStack extends cdk.Stack {
     );
     const githubAppsPrivateKey = ssm.StringParameter.valueForStringParameter(
       this,
-      props.githubAppsPrivateKey,
+      props.githubAppsPrivateKeyParam,
     );
     const githubAppsId = ssm.StringParameter.valueForStringParameter(
       this,
-      props.githubAppsId,
+      props.githubAppsIdParam,
     );
     const githubInstallationId = ssm.StringParameter.valueForStringParameter(
       this,
-      props.githubInstallationId,
+      props.githubInstallationIdParam,
     );
 
     this.logGroup = new logs.LogGroup(this, "OpenSearchBatchLogGroup", {
-      logGroupName: `/aws/lambda/${props.openSearchBatchFunctionName}`,
+      logGroupName: `/aws/lambda/${props.openSearchBatchLambdaName}`,
       retention: logs.RetentionDays.ONE_DAY,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
@@ -90,8 +97,8 @@ export class OpenSearchBatchStack extends cdk.Stack {
       }),
     );
 
-    new go.GoFunction(this, "MyGoFunction", {
-      functionName: props.openSearchBatchFunctionName,
+    new go.GoFunction(this, "OpenSearchBatchFunction", {
+      functionName: props.openSearchBatchLambdaName,
       entry: path.join(__dirname, "cmd/batch"),
       runtime: lambda.Runtime.PROVIDED_AL2023,
       architecture: lambda.Architecture.ARM_64,
@@ -123,6 +130,57 @@ export class OpenSearchBatchStack extends cdk.Stack {
       bundling: {
         goBuildFlags: ['-ldflags "-s -w"'],
       },
+    });
+
+    const connectionArn = ssm.StringParameter.fromStringParameterAttributes(
+      this,
+      "GitHubConnectionArn",
+      {
+        parameterName: props.githubConnectionArnParam,
+      },
+    ).stringValue;
+
+    const artifactBucket = new s3.Bucket(this, "ArtifactBucket", {
+      removalPolicy: cdk.RemovalPolicy.DESTROY,
+      autoDeleteObjects: true,
+      lifecycleRules: [
+        {
+          expiration: cdk.Duration.days(1),
+        },
+      ],
+    });
+
+    this.pipeline = new codepipeline.Pipeline(this, "Pipeline", {
+      artifactBucket,
+      crossAccountKeys: false,
+    });
+
+    this.pipeline.addStage({
+      stageName: "Source",
+      actions: [
+        new codepipeline_actions.CodeStarConnectionsSourceAction({
+          actionName: "GitHub_Source",
+          connectionArn: connectionArn,
+          owner: props.githubOwner,
+          repo: props.githubRepo,
+          branch: props.blogBranchName,
+          output: new codepipeline.Artifact("SourceOutput"),
+        }),
+      ],
+    });
+
+    this.pipeline.addStage({
+      stageName: "Build",
+      actions: [
+        new codepipeline_actions.LambdaInvokeAction({
+          actionName: "OpenSearchBlogSync",
+          lambda: cdk.aws_lambda.Function.fromFunctionArn(
+            this,
+            "OpenSearchApiFunctionRef",
+            `arn:aws:lambda:${this.region}:${this.account}:function:${props.openSearchApiFunctionName}`,
+          ),
+        }),
+      ],
     });
   }
 }

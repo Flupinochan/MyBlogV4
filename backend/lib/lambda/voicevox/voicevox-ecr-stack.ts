@@ -3,22 +3,19 @@ import * as ecr from "aws-cdk-lib/aws-ecr";
 import * as cdk from "aws-cdk-lib/core";
 import { Construct } from "constructs";
 
-interface SynthesizeVoiceEcrStackProps extends cdk.StackProps {
-  repositoryName: string;
+interface VoicevoxEcrStackProps extends cdk.StackProps {
+  voicevoxEcrName: string;
 }
 
-export class SynthesizeVoiceEcrStack extends cdk.Stack {
+// CodeBuildでビルドしたImageを格納するECRリポジトリ
+export class VoicevoxEcrStack extends cdk.Stack {
   public readonly repository: ecr.Repository;
 
-  constructor(
-    scope: Construct,
-    id: string,
-    props: SynthesizeVoiceEcrStackProps,
-  ) {
+  constructor(scope: Construct, id: string, props: VoicevoxEcrStackProps) {
     super(scope, id, props);
 
     this.repository = new ecr.Repository(this, "repository", {
-      repositoryName: props.repositoryName,
+      repositoryName: props.voicevoxEcrName,
       removalPolicy: RemovalPolicy.DESTROY,
       emptyOnDelete: true,
       lifecycleRules: [

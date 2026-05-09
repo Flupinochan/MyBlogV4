@@ -8,31 +8,31 @@ import * as s3 from "aws-cdk-lib/aws-s3";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import { Construct } from "constructs";
 
-interface PipelineStackProps extends cdk.StackProps {
-  hostingBucketName: string;
-  buildAssetsBucketName: string;
-  hostingDistributionId: string;
-  githubConnectionArn: string;
+interface HostingPipelineStackProps extends cdk.StackProps {
+  envName: string;
+  githubConnectionArnParam: string;
   repoName: string;
   branchName: string;
-  envName: string;
-  synthesizeVoiceRepositoryName: string;
+  hostingBucketName: string;
+  hostingDistributionId: string;
+  voicevoxBucketName: string;
+  voicevoxEcrName: string;
 }
 
-export class PipelineStack extends cdk.Stack {
+export class HostingPipelineStack extends cdk.Stack {
   public readonly codeBuildLogGroup: logs.LogGroup;
   public readonly artifactBucket: s3.Bucket;
   public readonly codebuild: codebuild.PipelineProject;
   public readonly pipeline: codepipeline.Pipeline;
 
-  constructor(scope: Construct, id: string, props: PipelineStackProps) {
+  constructor(scope: Construct, id: string, props: HostingPipelineStackProps) {
     super(scope, id, props);
 
     const connectionArn = ssm.StringParameter.fromStringParameterAttributes(
       this,
       "GitHubConnectionArn",
       {
-        parameterName: props.githubConnectionArn,
+        parameterName: props.githubConnectionArnParam,
       },
     ).stringValue;
 
@@ -81,6 +81,7 @@ export class PipelineStack extends cdk.Stack {
             },
             "on-failure": "ABORT",
             commands: [
+              // prepare bun
               "node -v",
               "curl -fsSL https://bun.com/install | bash",
               'export BUN_INSTALL="$HOME/.bun"',
@@ -88,9 +89,9 @@ export class PipelineStack extends cdk.Stack {
               "ln -s $HOME/.bun/bin/bun /usr/local/bin/bun",
               "bun -v",
               // prepare voicevox assets
-              "mkdir -p backend/lib/lambda/synthesize-voice",
-              `aws s3 cp s3://${props.buildAssetsBucketName}/voicevox.tar.gz voicevox.tar.gz`,
-              "tar -xzf voicevox.tar.gz -C backend/lib/lambda/synthesize-voice",
+              "mkdir -p backend/lib/lambda/voicevox",
+              `aws s3 cp s3://${props.voicevoxBucketName}/voicevox.tar.gz voicevox.tar.gz`,
+              "tar -xzf voicevox.tar.gz -C backend/lib/lambda/voicevox",
             ],
           },
           // build & deploy backend
@@ -98,19 +99,19 @@ export class PipelineStack extends cdk.Stack {
             "on-failure": "ABORT",
             commands: [
               // build and push Docker image for synthesizeVoice Lambda
-              `export SYNTHESIZE_VOICE_IMAGE_REF=$(date -u +%Y%m%d%H%M%S)`,
+              `export VOICEVOX_LAMBDA_IMAGE_TAG=$(date -u +%Y%m%d%H%M%S)`,
               `export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)`,
-              `export ECR_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${props.synthesizeVoiceRepositoryName}`,
+              `export ECR_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${props.voicevoxEcrName}`,
               `aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com`,
-              `docker build -t ${props.synthesizeVoiceRepositoryName}:$SYNTHESIZE_VOICE_IMAGE_REF backend/lib/lambda/synthesize-voice`,
-              `docker tag ${props.synthesizeVoiceRepositoryName}:$SYNTHESIZE_VOICE_IMAGE_REF $ECR_URI:$SYNTHESIZE_VOICE_IMAGE_REF`,
-              `docker push $ECR_URI:$SYNTHESIZE_VOICE_IMAGE_REF`,
+              `docker build -t ${props.voicevoxEcrName}:$VOICEVOX_LAMBDA_IMAGE_TAG backend/lib/lambda/voicevox`,
+              `docker tag ${props.voicevoxEcrName}:$VOICEVOX_LAMBDA_IMAGE_TAG $ECR_URI:$VOICEVOX_LAMBDA_IMAGE_TAG`,
+              `docker push $ECR_URI:$VOICEVOX_LAMBDA_IMAGE_TAG`,
               "cd $CODEBUILD_SRC_DIR/backend",
               // install uv
               "pip install uv",
               // deploy backend
               `bun install --frozen-lockfile --ignore-scripts`,
-              `bun run cdk -- deploy --all --parallel --ci --require-approval never --context env=${props.envName} --context synthesizeVoiceImageRef=$SYNTHESIZE_VOICE_IMAGE_REF`,
+              `bun run cdk -- deploy --all --parallel --ci --require-approval never --context env=${props.envName} --context voicevoxLambdaImageTag=$VOICEVOX_LAMBDA_IMAGE_TAG`,
             ],
           },
           // build frontend
@@ -143,8 +144,8 @@ export class PipelineStack extends cdk.Stack {
         resources: [
           `arn:aws:s3:::${props.hostingBucketName}`,
           `arn:aws:s3:::${props.hostingBucketName}/*`,
-          `arn:aws:s3:::${props.buildAssetsBucketName}`,
-          `arn:aws:s3:::${props.buildAssetsBucketName}/*`,
+          `arn:aws:s3:::${props.voicevoxBucketName}`,
+          `arn:aws:s3:::${props.voicevoxBucketName}/*`,
         ],
       }),
     );
@@ -182,7 +183,7 @@ export class PipelineStack extends cdk.Stack {
         effect: iam.Effect.ALLOW,
         actions: ["ecr:*"],
         resources: [
-          `arn:aws:ecr:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:repository/${props.synthesizeVoiceRepositoryName}`,
+          `arn:aws:ecr:${cdk.Aws.REGION}:${cdk.Aws.ACCOUNT_ID}:repository/${props.voicevoxEcrName}`,
         ],
       }),
     );

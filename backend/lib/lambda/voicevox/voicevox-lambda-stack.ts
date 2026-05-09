@@ -6,23 +6,23 @@ import * as logs from "aws-cdk-lib/aws-logs";
 import * as cdk from "aws-cdk-lib/core";
 import { Construct } from "constructs";
 
-interface SynthesizeVoiceStackProps extends cdk.StackProps {
-  functionName: string;
-  repository: ecr.IRepository;
-  imageTagOrDigest: string;
-  voiceOutputBucketName: string;
+interface VoicevoxLambdaStackProps extends cdk.StackProps {
+  voicevoxLambdaName: string;
+  voicevoxEcrName: string;
+  imageTag: string;
+  createdVoiceOutputBucketName: string;
 }
 
-export class SynthesizeVoiceStack extends cdk.Stack {
+export class VoicevoxLambdaStack extends cdk.Stack {
   public readonly function: lambda.DockerImageFunction;
   public readonly logGroup: logs.LogGroup;
   public readonly role: iam.Role;
 
-  constructor(scope: Construct, id: string, props: SynthesizeVoiceStackProps) {
+  constructor(scope: Construct, id: string, props: VoicevoxLambdaStackProps) {
     super(scope, id, props);
 
     this.logGroup = new logs.LogGroup(this, "logGroup", {
-      logGroupName: `/aws/lambda/${props.functionName}`,
+      logGroupName: `/aws/lambda/${props.voicevoxLambdaName}`,
       retention: logs.RetentionDays.ONE_DAY,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
@@ -40,8 +40,8 @@ export class SynthesizeVoiceStack extends cdk.Stack {
             new iam.PolicyStatement({
               actions: ["s3:*"],
               resources: [
-                `arn:aws:s3:::${props.voiceOutputBucketName}`,
-                `arn:aws:s3:::${props.voiceOutputBucketName}/*`,
+                `arn:aws:s3:::${props.createdVoiceOutputBucketName}`,
+                `arn:aws:s3:::${props.createdVoiceOutputBucketName}/*`,
               ],
             }),
           ],
@@ -49,10 +49,16 @@ export class SynthesizeVoiceStack extends cdk.Stack {
       },
     });
 
+    const voicevoxEcr = ecr.Repository.fromRepositoryName(
+      this,
+      "EcrRepository",
+      props.voicevoxEcrName,
+    );
+
     this.function = new lambda.DockerImageFunction(this, "function", {
-      functionName: props.functionName,
-      code: lambda.DockerImageCode.fromEcr(props.repository, {
-        tagOrDigest: props.imageTagOrDigest,
+      functionName: props.voicevoxLambdaName,
+      code: lambda.DockerImageCode.fromEcr(voicevoxEcr, {
+        tagOrDigest: props.imageTag,
       }),
       architecture: lambda.Architecture.X86_64,
       timeout: Duration.seconds(900),
@@ -62,7 +68,7 @@ export class SynthesizeVoiceStack extends cdk.Stack {
       role: this.role,
       tracing: lambda.Tracing.ACTIVE,
       environment: {
-        VOICE_OUTPUT_BUCKET_NAME: props.voiceOutputBucketName,
+        VOICE_OUTPUT_BUCKET_NAME: props.createdVoiceOutputBucketName,
       },
     });
   }

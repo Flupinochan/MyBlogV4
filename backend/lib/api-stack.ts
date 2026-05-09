@@ -8,9 +8,7 @@ interface ApiStackProps extends cdk.StackProps {
   domainName: string;
   apiPath: string;
   isProd: boolean;
-  chatSessionLambda: lambda.Function;
-  chatAudioLambda: lambda.Function;
-  blogSearchLambda: lambda.Function;
+  openSearchApiLambdaName: string;
 }
 
 export class ApiStack extends cdk.Stack {
@@ -78,35 +76,17 @@ export class ApiStack extends cdk.Stack {
       responseHeaders,
     });
 
+    const blogSearchLambda = lambda.Function.fromFunctionName(
+      this,
+      "BlogSearchLambda",
+      props.openSearchApiLambdaName,
+    );
+
     this.api.root.addProxy({
-      defaultIntegration: new apigateway.LambdaIntegration(
-        props.blogSearchLambda,
-        { proxy: true },
-      ),
+      defaultIntegration: new apigateway.LambdaIntegration(blogSearchLambda, {
+        proxy: true,
+      }),
       anyMethod: true,
     });
-
-    const v1 = this.api.root.addResource("v1");
-    const users = v1.addResource("users");
-    const user = users.addResource("{user_id}");
-    const sessions = user.addResource("sessions");
-    const session = sessions.addResource("{session_id}");
-    const messages = session.addResource("messages");
-
-    messages.addMethod(
-      "GET",
-      new apigateway.LambdaIntegration(props.chatSessionLambda, {
-        proxy: true,
-        timeout: cdk.Duration.seconds(60),
-      }),
-    );
-
-    messages.addMethod(
-      "POST",
-      new apigateway.LambdaIntegration(props.chatAudioLambda, {
-        proxy: true,
-        timeout: cdk.Duration.seconds(60),
-      }),
-    );
   }
 }

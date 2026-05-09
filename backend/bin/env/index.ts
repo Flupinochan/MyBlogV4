@@ -1,50 +1,17 @@
 import { config as devConfig } from "./dev";
 import { config as prodConfig } from "./prod";
 
+// Stack間の依存関係を断つためにOutputは利用せず、事前にリソース名は定義しておく
 export interface EnvConfig {
-  name: string;
-  domainName: string;
-  repoName: string;
-  branchName: string;
-  certificateArnParam: string;
-  githubConnectionArnParam: string;
-  // Stack間の依存関係を断つためにOutputは利用せず、事前にリソース名は定義しておく
-  hostingBucketName: string;
-  buildAssetsBucketName: string;
-  chatAudioFunctionName: string;
-  synthesizeVoiceFunctionName: string;
-  synthesizeVoiceRepositoryName: string;
-  sourceBucketName: string;
-  vectorBucketName: string;
-  kbName: string;
-  dataSourceName: string;
+  envName: string;
+  hostingDomainName: string;
+  hostingBranchName: string;
   modelId: string;
-  embeddingModelId: string;
-  enrichingModelId: string;
-  blogRepoName: string;
-  blogBranchName: string;
-  entryPoint: string[];
-  agentRuntimeName: string;
-  agentCorePlatform:
-    | "aarch64-manylinux2014"
-    | "aarch64-manylinux_2_28"
-    | "aarch64-manylinux_2_34";
-  sessionBucketName: string;
-  agentId: string;
-  openSearchBatchFunctionName: string;
-  openSearchApiFunctionName: string;
+  modelIdEmbedding: string;
   openSearchUrlParam: string;
   openSearchPortParam: string;
   openSearchUserParam: string;
   openSearchPassParam: string;
-  aliasName: string;
-  aliasNameEmbedding: string;
-  githubOwner: string;
-  githubRepo: string;
-  githubPath: string;
-  githubAppsPrivateKeyParam: string;
-  githubAppsIdParam: string;
-  githubInstallationIdParam: string;
 }
 
 export function getEnvConfig(env: string): EnvConfig {
