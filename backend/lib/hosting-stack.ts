@@ -37,7 +37,7 @@ export class HostingStack extends cdk.Stack {
         {
           allowedOrigins: [
             `https://${props.domainName}`,
-            props.envName === "prod" ? "" : "http://localhost:5173",
+            props.envName === "prod" ? "" : "http://localhost:4321",
           ],
           allowedMethods: [
             s3.HttpMethods.GET,

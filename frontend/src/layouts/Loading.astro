@@ -9,7 +9,7 @@
   <svg
     xmlns="http://www.w3.org/2000/svg"
     viewBox="0 0 40 40"
-    class="c-fadein__icon"
+    class="loading-icon"
     width="80"
   >
     <path
@@ -19,15 +19,15 @@
 </div>
 
 <style>
-  .c-fadein__icon {
+  .loading-icon {
     position: absolute;
     left: calc(50% - 40px);
     top: 45%;
     transform-origin: right bottom;
-    animation: c-fadein-icon-loop 0.8s ease infinite alternate;
+    animation: loading-icon-animation 0.8s ease infinite alternate;
   }
 
-  @keyframes c-fadein-icon-loop {
+  @keyframes loading-icon-animation {
     0% {
       transform: rotate(45deg);
     }

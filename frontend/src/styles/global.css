@@ -4,9 +4,30 @@
   - ライト/ダークモード: white, gray, slate, indigo
 */
 
+/* Tailwind CSS有効化 */
 @import "tailwindcss";
+
+/* Tailwind CSS記法
+  通常のCSSファイル(astro)でdark:を利用可能にするための定義
+  @variant dark (&:where(.dark, .dark *)); で利用
+*/
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+  CSSの優先順位（右が高）
+  theme < base < components < utilities < class < inline style
+
+  - theme      : CSS変数定義 (color, font等)
+  - base       : リセットCSS・HTMLレベルのグローバルCSS (scrollbar等)
+  - components : グローバルで再利用するclassコンポーネント（.svg-path 等）
+  - utilities  : Tailwindに梱包されているユーティリティクラス（.flex 等）
+
+  各.astro/.cssファイルの固有スタイルは @layer を使わず直接記述すること
+  → unlayered CSSとして本global.cssで定義したスタイルより優先されるため
+*/
+@layer theme, base, components, utilities;
+
+/* フォント定義 */
 @font-face {
   font-family: "GeistPixelSquare";
   src: url("/geist-font-1.8.0/fonts/GeistPixel/webfonts/GeistPixel-Square.woff2")
@@ -14,16 +35,11 @@
   font-display: swap;
 }
 
+/* Tailwind CSS記法 (@layer theme相当) */
 @theme {
   --font-family-geist: "GeistPixelSquare", monospace;
   --scrollbar-track-bg: var(--color-transparent);
 }
-
-/* @layer theme {
-  :root.dark {
-    --scrollbar-track-bg: var(--color-indigo-950);
-  }
-} */
 
 @layer base {
   html,
@@ -80,6 +96,7 @@
   }
 }
 
+/* @layer baseに含められないため外だし (優先度は高いが問題ない) */
 @supports selector(::-webkit-scrollbar-button) {
   html::-webkit-scrollbar-button,
   .custom-scrollbar::-webkit-scrollbar-button {

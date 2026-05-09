@@ -80,69 +80,72 @@ const commitStats = await getGitHubCommitStats();
   </div>
 </Flex>
 
+<!-- darkを利用するためにglobalで定義 -->
 <style is:global>
+  /* @applyを有効化
+    @applyを利用することで通常のCSSファイル内でTailwind CSSの
+    ユーティリティクラスを使用可能にする
+  */
   @reference "tailwindcss";
   @variant dark (&:where(.dark, .dark *));
 
-  @layer components {
-    /* group */
-    .radio-group {
-      @apply relative flex flex-col gap-8;
-    }
-    .radio-group::before {
-      content: "";
-      @apply absolute pointer-events-none z-0 rounded
-             transition-all duration-400
-             ease-[cubic-bezier(0.34,1.56,0.64,1)]
-             bg-violet-500/20 dark:bg-violet-800/50;
+  /* group */
+  .radio-group {
+    @apply relative flex flex-col gap-8;
+  }
+  .radio-group::before {
+    content: "";
+    @apply absolute pointer-events-none z-0 rounded
+           transition-all duration-400
+           ease-[cubic-bezier(0.34,1.56,0.64,1)]
+           bg-violet-500/20 dark:bg-violet-800/50;
 
-      position-anchor: var(--active-anchor);
-      top: anchor(top);
-      left: anchor(left);
-      right: anchor(right);
-      bottom: anchor(bottom);
-    }
+    position-anchor: var(--active-anchor);
+    top: anchor(top);
+    left: anchor(left);
+    right: anchor(right);
+    bottom: anchor(bottom);
+  }
 
-    /* normal */
-    .radio-label {
-      @apply relative z-10 p-4
-             opacity-0 invisible
-             border-2 border-slate-500 dark:border-slate-400
-             rounded cursor-pointer
-             transition-all duration-150
-             active:translate-y-0.5 active:scale-95;
-    }
-    .radio-title {
-      @apply text-slate-800 dark:text-slate-100 font-bold whitespace-nowrap;
-    }
-    .radio-description {
-      @apply text-sm mt-2 text-slate-700/80 dark:text-slate-300/80 leading-relaxed;
-    }
+  /* normal */
+  .radio-label {
+    @apply relative z-10 p-4
+           opacity-0 invisible
+           border-2 border-slate-500 dark:border-slate-400
+           rounded cursor-pointer
+           transition-all duration-150
+           active:translate-y-0.5 active:scale-95;
+  }
+  .radio-title {
+    @apply text-slate-800 dark:text-slate-100 font-bold whitespace-nowrap;
+  }
+  .radio-description {
+    @apply text-sm mt-2 text-slate-700/80 dark:text-slate-300/80 leading-relaxed;
+  }
 
-    /* checked */
-    .radio-label:has(input:checked) {
-      @apply border-violet-600 dark:border-violet-400;
-    }
-    .radio-group:has(input[value="pie"]:checked) {
-      --active-anchor: --pie;
-    }
-    .radio-group:has(input[value="bar"]:checked) {
-      --active-anchor: --bar;
-    }
-    .radio-group:has(input[value="stack"]:checked) {
-      --active-anchor: --stack;
-    }
+  /* checked */
+  .radio-label:has(input:checked) {
+    @apply border-violet-600 dark:border-violet-400;
+  }
+  .radio-group:has(input[value="pie"]:checked) {
+    --active-anchor: --pie;
+  }
+  .radio-group:has(input[value="bar"]:checked) {
+    --active-anchor: --bar;
+  }
+  .radio-group:has(input[value="stack"]:checked) {
+    --active-anchor: --stack;
+  }
 
-    /* hover */
-    .radio-group:has(label[data-anchor="pie"]:hover) {
-      --active-anchor: --pie;
-    }
-    .radio-group:has(label[data-anchor="bar"]:hover) {
-      --active-anchor: --bar;
-    }
-    .radio-group:has(label[data-anchor="stack"]:hover) {
-      --active-anchor: --stack;
-    }
+  /* hover */
+  .radio-group:has(label[data-anchor="pie"]:hover) {
+    --active-anchor: --pie;
+  }
+  .radio-group:has(label[data-anchor="bar"]:hover) {
+    --active-anchor: --bar;
+  }
+  .radio-group:has(label[data-anchor="stack"]:hover) {
+    --active-anchor: --stack;
   }
 </style>
 
