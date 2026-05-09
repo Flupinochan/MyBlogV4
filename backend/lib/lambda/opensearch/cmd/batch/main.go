@@ -6,7 +6,11 @@ import (
 	"log/slog"
 	"time"
 
+	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
+	"github.com/aws/aws-sdk-go-v2/config"
+	"github.com/aws/aws-sdk-go-v2/service/codepipeline"
+	"github.com/aws/aws-sdk-go-v2/service/codepipeline/types"
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/cmd/batch/blogsource"
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/cmd/batch/myhttp"
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/blogsearch"
@@ -149,16 +153,48 @@ func run(ctx context.Context) error {
 }
 
 // Entry Point for AWS Lambda
+// Invoked by CodePipeline
 func main() {
-	lambda.Start(func(ctx context.Context) error {
-		err := run(ctx)
-		if err != nil {
-			slog.Error("Application error", slog.Any("error", err))
+	lambda.Start(func(ctx context.Context, event events.CodePipelineJobEvent) error {
+		if err := handler(ctx, event); err != nil {
+			slog.Error("OpenSearch Sync Batch error", slog.Any("error", err))
 			return err
 		}
-		slog.Info("Application finished successfully")
+		slog.Info("OpenSearch Sync Batch finished successfully")
 		return nil
 	})
+}
+
+func handler(ctx context.Context, event events.CodePipelineJobEvent) error {
+	jobID := event.CodePipelineJob.ID
+
+	cfg, err := config.LoadDefaultConfig(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to load AWS config: %w", err)
+	}
+	cp := codepipeline.NewFromConfig(cfg)
+
+	if runErr := run(ctx); runErr != nil {
+		msg := runErr.Error()
+		if _, err := cp.PutJobFailureResult(ctx, &codepipeline.PutJobFailureResultInput{
+			JobId: &jobID,
+			FailureDetails: &types.FailureDetails{
+				Type:    types.FailureTypeJobFailed,
+				Message: &msg,
+			},
+		}); err != nil {
+			return fmt.Errorf("failed to notify CodePipeline failure: %w", err)
+		}
+		return runErr
+	}
+
+	if _, err := cp.PutJobSuccessResult(ctx, &codepipeline.PutJobSuccessResultInput{
+		JobId: &jobID,
+	}); err != nil {
+		return fmt.Errorf("failed to notify CodePipeline success: %w", err)
+	}
+
+	return nil
 }
 
 // メモ

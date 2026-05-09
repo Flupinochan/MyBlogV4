@@ -96,6 +96,17 @@ export class OpenSearchBatchStack extends cdk.Stack {
       }),
     );
 
+    this.role.addToPolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: [
+          "codepipeline:PutJobSuccessResult",
+          "codepipeline:PutJobFailureResult",
+        ],
+        resources: ["*"],
+      }),
+    );
+
     new go.GoFunction(this, "OpenSearchBatchFunction", {
       functionName: props.openSearchBatchLambdaName,
       entry: path.join(__dirname, "cmd/batch"),

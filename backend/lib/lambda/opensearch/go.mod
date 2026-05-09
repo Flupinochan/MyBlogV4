@@ -7,6 +7,7 @@ require (
 	github.com/aws/aws-sdk-go-v2 v1.41.7
 	github.com/aws/aws-sdk-go-v2/config v1.32.17
 	github.com/aws/aws-sdk-go-v2/service/bedrockruntime v1.50.6
+	github.com/aws/aws-sdk-go-v2/service/codepipeline v1.46.23
 	github.com/bradleyfalzon/ghinstallation/v2 v2.18.0
 	github.com/gin-gonic/gin v1.12.0
 	github.com/google/go-github/v85 v85.0.0

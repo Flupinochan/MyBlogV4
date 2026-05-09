@@ -73,7 +73,7 @@ func ParseBlogContent(content string) (ParsedBlog, error) {
 			}
 		// topicsはlist
 		case "topics":
-			val, err := parseFrontmatterStringList(rawVal)
+			val, err := parseLowercaseTopics(rawVal)
 			if err != nil {
 				slog.Error("Failed to parse topics field",
 					slog.String("raw", rawVal),
@@ -88,6 +88,18 @@ func ParseBlogContent(content string) (ParsedBlog, error) {
 	parsed.Content = strings.TrimLeft(strings.Join(lines[endLine+1:], "\n"), "\n")
 
 	return parsed, nil
+}
+
+// topics(タグ)は小文字で統一
+func parseLowercaseTopics(rawVal string) ([]string, error) {
+	topics, err := parseFrontmatterStringList(rawVal)
+	if err != nil {
+		return []string{}, err
+	}
+	for i, t := range topics {
+		topics[i] = strings.ToLower(t)
+	}
+	return topics, nil
 }
 
 func parseFrontmatterStringList(rawVal string) ([]string, error) {
