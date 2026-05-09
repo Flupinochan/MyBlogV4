@@ -27,7 +27,6 @@ interface OpenSearchBatchStackProps extends cdk.StackProps {
   embeddingModelId: string;
   githubConnectionArnParam: string;
   blogBranchName: string;
-  openSearchApiFunctionName: string;
 }
 
 export class OpenSearchBatchStack extends cdk.Stack {
@@ -177,7 +176,7 @@ export class OpenSearchBatchStack extends cdk.Stack {
           lambda: cdk.aws_lambda.Function.fromFunctionArn(
             this,
             "OpenSearchApiFunctionRef",
-            `arn:aws:lambda:${this.region}:${this.account}:function:${props.openSearchApiFunctionName}`,
+            `arn:aws:lambda:${this.region}:${this.account}:function:${props.openSearchBatchLambdaName}`,
           ),
         }),
       ],

@@ -81,7 +81,6 @@ new OpenSearchBatchStack(app, `${stackBaseName}-OpenSearchBatchStack`, {
   embeddingModelId: cfg.modelIdEmbedding,
   githubConnectionArnParam,
   blogBranchName,
-  openSearchApiFunctionName: openSearchApiLambdaName,
 });
 
 new OpenSearchApiStack(app, `${stackBaseName}-OpenSearchApiStack`, {
