@@ -1,6 +1,6 @@
 module metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src
 
-go 1.26.2
+go 1.26
 
 require (
 	github.com/aws/aws-lambda-go v1.54.0
