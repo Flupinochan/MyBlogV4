@@ -61,6 +61,10 @@ export class PipelineStack extends cdk.Stack {
         // husky対策
         CI: { value: "true" },
         HUSKY: { value: "0" },
+        GITHUB_TOKEN: {
+          type: codebuild.BuildEnvironmentVariableType.PARAMETER_STORE,
+          value: "github-zenn-token",
+        },
       },
       logging: {
         cloudWatch: {
@@ -75,6 +79,7 @@ export class PipelineStack extends cdk.Stack {
               nodejs: "24",
               golang: "1.26",
             },
+            "on-failure": "ABORT",
             commands: [
               "node -v",
               "curl -fsSL https://bun.com/install | bash",
@@ -90,6 +95,7 @@ export class PipelineStack extends cdk.Stack {
           },
           // build & deploy backend
           pre_build: {
+            "on-failure": "ABORT",
             commands: [
               // build and push Docker image for synthesizeVoice Lambda
               `export SYNTHESIZE_VOICE_IMAGE_REF=$(date -u +%Y%m%d%H%M%S)`,
@@ -109,6 +115,7 @@ export class PipelineStack extends cdk.Stack {
           },
           // build frontend
           build: {
+            "on-failure": "ABORT",
             commands: [
               "cd $CODEBUILD_SRC_DIR/frontend",
               `bun install --frozen-lockfile --ignore-scripts`,
@@ -117,6 +124,7 @@ export class PipelineStack extends cdk.Stack {
           },
           // deploy frontend
           post_build: {
+            "on-failure": "ABORT",
             commands: [
               // upload built assets to hosting bucket
               `aws s3 sync $CODEBUILD_SRC_DIR/frontend/dist/ s3://${props.hostingBucketName}/ --delete`,
@@ -182,6 +190,14 @@ export class PipelineStack extends cdk.Stack {
       new iam.PolicyStatement({
         effect: iam.Effect.ALLOW,
         actions: ["ecr:GetAuthorizationToken"],
+        resources: ["*"],
+      }),
+    );
+
+    this.codebuild.addToRolePolicy(
+      new iam.PolicyStatement({
+        effect: iam.Effect.ALLOW,
+        actions: ["ssm:GetParameter"],
         resources: ["*"],
       }),
     );

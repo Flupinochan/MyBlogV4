@@ -102,7 +102,6 @@ export class HostingStack extends cdk.Stack {
     const apiPath = props.apiPath;
     if (apiStack && apiPath) {
       const origin = new origins.RestApiOrigin(apiStack.api, {
-        originPath: "",
         readTimeout: cdk.Duration.seconds(60),
       });
       this.distribution.addBehavior(`/${apiPath}/*`, origin, {
