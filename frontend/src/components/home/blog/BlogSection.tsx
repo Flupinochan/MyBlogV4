@@ -50,8 +50,8 @@ const INITIAL_LIMIT = 5;
 const INCREMENTAL_LIMIT = 1;
 const DEBOUNCE_MS = 400;
 const HYBRID_PIPELINES: Partial<Record<SearchMode, string>> = {
-  "hybrid-rrf":  "hybrid-rrf-pipeline",
-  "hybrid-norm": "hybrid-norm-pipeline",
+  "hybrid-rrf": "hybrid-rrf-pipeline",
+  "hybrid-nlp": "hybrid-nlp-pipeline",
 };
 
 const queryClient = new QueryClient();
@@ -113,7 +113,7 @@ function formatDate(value: string): string {
 }
 
 // ── Search Mode Select ────────────────────────────────────────────────────────
-type SearchMode = "fulltext" | "vector" | "hybrid-rrf" | "hybrid-norm";
+type SearchMode = "fulltext" | "vector" | "hybrid-rrf" | "hybrid-nlp";
 
 function SearchModeSelect({
   value,
@@ -131,7 +131,7 @@ function SearchModeSelect({
       <option value="fulltext">全文検索</option>
       <option value="vector">ベクトル検索</option>
       <option value="hybrid-rrf">ハイブリッド検索 (RRF)</option>
-      <option value="hybrid-norm">ハイブリッド検索 (Norm)</option>
+      <option value="hybrid-nlp">ハイブリッド検索 (NLP)</option>
     </select>
   );
 }
