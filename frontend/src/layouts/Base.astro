@@ -24,11 +24,13 @@ import BackgroundParticles from "./BackgroundParticles.astro";
     <title>Astro Basics</title>
 
     <script is:inline>
-      const isDarkMode =
-        localStorage.theme === "dark" ||
-        (!("theme" in localStorage) &&
-          window.matchMedia("(prefers-color-scheme: dark)").matches);
+      // デフォルトはダークモード、localStorageにtheme設定がある場合はそれを優先
+      const savedTheme = localStorage.getItem("theme");
+      const isDarkMode = savedTheme !== null ? savedTheme === "dark" : true;
       document.documentElement.classList.toggle("dark", isDarkMode);
+      if (savedTheme === null) {
+        localStorage.setItem("theme", "dark");
+      }
     </script>
   </head>
   <body
@@ -36,7 +38,7 @@ import BackgroundParticles from "./BackgroundParticles.astro";
   >
     <Loading />
     <!-- <BackgroundParticles /> -->
-    <ScrollToTopButton />
+    <!-- <ScrollToTopButton /> -->
     <Header />
     <Flex class="flex-1 pt-16 max-w-7xl mx-auto px-4 w-full">
       <aside class="w-1/3 sticky top-0 h-dvh">

@@ -104,7 +104,10 @@ import SunMoon from "../components/icons/SunMoon.astro";
       "startViewTransition" in document &&
       window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
 
+    const isDark = document.documentElement.classList.contains("dark");
+    const nextTheme = isDark ? "light" : "dark";
     if (!enable) {
+      localStorage.setItem("theme", nextTheme);
       document.documentElement.classList.toggle("dark");
       isAnimating = false;
       return;
@@ -128,14 +131,15 @@ import SunMoon from "../components/icons/SunMoon.astro";
 
     try {
       await document.startViewTransition(() => {
+        localStorage.setItem("theme", nextTheme);
         root.classList.toggle("dark");
       }).finished;
     } finally {
       // view-transition-nameは実行時だけ付与して、完了後に削除すること!!
       root.classList.remove("is-theme-switching");
 
-      const isTurningDark = !root.classList.contains("dark");
-      const targetShape = isTurningDark ? "#target-moon" : "#target-sun";
+      const isNowDark = root.classList.contains("dark");
+      const targetShape = isNowDark ? "#target-sun" : "#target-moon";
       const activePath = document.getElementById("active-path");
       gsap.to(activePath, {
         morphSVG: targetShape,
