@@ -10,6 +10,15 @@ export default defineConfig({
   vite: {
     // @ts-ignore
     plugins: [tailwindcss()],
+    // Connect to the backend go gin server
+    server: {
+      proxy: {
+        "/api": {
+          target: "http://localhost:8080",
+          changeOrigin: true,
+        },
+      },
+    },
   },
   env: {
     schema: {

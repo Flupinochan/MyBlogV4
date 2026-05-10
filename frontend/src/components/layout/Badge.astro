@@ -1,0 +1,32 @@
+---
+import type { BadgeColor, BadgeRounded } from "./badge.types";
+import { COLOR_MAP } from "./badge.types";
+
+interface Props {
+  color: BadgeColor;
+  rounded?: BadgeRounded;
+  border?: boolean;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  color,
+  rounded = "full",
+  border = false,
+  class: extraClass = "",
+  ...rest
+} = Astro.props;
+
+const classes = [
+  "px-2 py-0.5 text-xs font-medium leading-none inline-block",
+  rounded === "full" ? "rounded-full" : "rounded-md",
+  COLOR_MAP[color],
+  border ? "border border-current/30" : "",
+  extraClass,
+]
+  .filter(Boolean)
+  .join(" ");
+---
+
+<span class={classes} {...rest}><slot /></span>

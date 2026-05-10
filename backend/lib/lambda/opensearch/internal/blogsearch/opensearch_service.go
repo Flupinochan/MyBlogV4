@@ -13,87 +13,6 @@ import (
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/middleware"
 )
 
-type MatchAllQuery struct {
-	MatchAll struct{} `json:"match_all"`
-}
-
-type MultiMatch struct {
-	Query      string   `json:"query"`
-	Fields     []string `json:"fields"`
-	Type       string   `json:"type,omitempty"`
-	TieBreaker float64  `json:"tie_breaker,omitempty"`
-	Fuzziness  string   `json:"fuzziness,omitempty"`
-}
-
-type MultiMatchQuery struct {
-	MultiMatch MultiMatch `json:"multi_match"`
-}
-
-type MatchQuery struct {
-	Match map[string]any `json:"match"`
-}
-
-type TermQuery struct {
-	Term map[string]any `json:"term"`
-}
-
-type BoolQuery struct {
-	Bool struct {
-		Filter []any `json:"filter,omitempty"`
-		Must   []any `json:"must,omitempty"`
-	} `json:"bool"`
-}
-
-type HighlightField struct {
-	FragmentSize      int `json:"fragment_size,omitempty"`
-	NumberOfFragments int `json:"number_of_fragments,omitempty"`
-}
-
-type Highlight struct {
-	Fields map[string]HighlightField `json:"fields"`
-}
-
-type Collapse struct {
-	Field string `json:"field"`
-}
-
-type KnnQueryDetail struct {
-	Vector []float64      `json:"vector"`
-	K      int            `json:"k"`
-	Filter map[string]any `json:"filter,omitempty"`
-}
-
-type KnnQuery struct {
-	Knn map[string]KnnQueryDetail `json:"knn"`
-}
-
-type SearchRequest struct {
-	From        int        `json:"from,omitempty"`
-	Size        int        `json:"size,omitempty"`
-	Sort        []any      `json:"sort,omitempty"`
-	SearchAfter []any      `json:"search_after,omitempty"` // Fromは利用せず、CursorベースのPagination方針
-	Source      []string   `json:"_source,omitempty"`
-	Query       any        `json:"query"`
-	Highlight   *Highlight `json:"highlight,omitempty"`
-	Collapse    *Collapse  `json:"collapse,omitempty"`
-	Aggs        any        `json:"aggs,omitempty"`
-	TrackScores *bool      `json:"track_scores,omitempty"`
-}
-
-type SearchResponse[T any] struct {
-	Hits struct {
-		Hits []struct {
-			Source    T                   `json:"_source"`
-			Score     *float64            `json:"_score,omitempty"`
-			Sort      []any               `json:"sort,omitempty"`
-			Highlight map[string][]string `json:"highlight,omitempty"`
-		} `json:"hits"`
-		Total struct {
-			Value int `json:"value"`
-		} `json:"total"`
-	} `json:"hits"`
-}
-
 type BlogSearchService struct {
 	genaiRepo      *genai.Repository
 	blogsearchRepo *Repository
@@ -161,25 +80,6 @@ func (s *BlogSearchService) GetBlogBySlug(ctx context.Context, slug string) (*Bl
 	}
 
 	return &osRes.Hits.Hits[0].Source, nil
-}
-
-type ListBlogsParams struct {
-	Limit  int
-	Cursor []any // 前回のレスポンスで返した Sort の配列
-	Topic  string
-	Type   string
-	Query  string
-}
-
-type BlogSearchResultItem struct {
-	BlogDocument
-	Score      *float64            `json:"score,omitempty"`
-	Highlights map[string][]string `json:"highlights,omitempty"`
-}
-
-type ListBlogsResult struct {
-	Blogs      []BlogSearchResultItem `json:"blogs"`
-	NextCursor []any                  `json:"next_cursor"`
 }
 
 func (s *BlogSearchService) ListBlogs(ctx context.Context, params ListBlogsParams) (*ListBlogsResult, error) {
@@ -254,7 +154,7 @@ func (s *BlogSearchService) ListBlogs(ctx context.Context, params ListBlogsParam
 
 	searchReqBody := SearchRequest{
 		Size:      params.Limit,
-		Source:    []string{"slug", "url", "title", "emoji", "type", "topics", "summary", "created_at"}, // exclude content
+		Source:    []string{"slug", "url", "title", "emoji", "type", "topics", "summary", "created_at"},
 		Query:     query,
 		Highlight: highlight,
 		Sort: []any{
@@ -291,7 +191,7 @@ func (s *BlogSearchService) ListBlogs(ctx context.Context, params ListBlogsParam
 	}
 
 	// Decode response
-	var osRes SearchResponse[BlogDocument]
+	var osRes SearchResponse[BlogListItem]
 	decoder := json.NewDecoder(res.Body)
 	decoder.UseNumber()
 	if err := decoder.Decode(&osRes); err != nil {
@@ -315,7 +215,7 @@ func (s *BlogSearchService) ListBlogs(ctx context.Context, params ListBlogsParam
 	}
 	for _, hit := range osRes.Hits.Hits {
 		item := BlogSearchResultItem{
-			BlogDocument: hit.Source,
+			BlogListItem: hit.Source,
 			Score:        hit.Score,
 			Highlights:   hit.Highlight,
 		}
@@ -411,7 +311,7 @@ func (s *BlogSearchService) ListBlogsVector(c context.Context, params ListBlogsP
 		return nil, fmt.Errorf("opensearch vector search error: %s: %w", res.String(), middleware.ErrServer)
 	}
 
-	var osRes SearchResponse[BlogDocument]
+	var osRes SearchResponse[BlogListItem]
 	decoder := json.NewDecoder(res.Body)
 	decoder.UseNumber()
 	if err := decoder.Decode(&osRes); err != nil {
@@ -424,7 +324,7 @@ func (s *BlogSearchService) ListBlogsVector(c context.Context, params ListBlogsP
 	}
 	for _, hit := range osRes.Hits.Hits {
 		result.Blogs = append(result.Blogs, BlogSearchResultItem{
-			BlogDocument: hit.Source,
+			BlogListItem: hit.Source,
 			Score:        hit.Score,
 		})
 	}
@@ -436,20 +336,6 @@ func (s *BlogSearchService) ListBlogsVector(c context.Context, params ListBlogsP
 	logger.Debug("ListBlogsVector completed", slog.Int("count", len(result.Blogs)))
 
 	return result, nil
-}
-
-// aggregation レスポンス用の型
-type AggsResponse struct {
-	Aggregations struct {
-		AllTopics struct {
-			Buckets []TopicBucket `json:"buckets"`
-		} `json:"all_topics"`
-	} `json:"aggregations"`
-}
-
-type TopicBucket struct {
-	Key      string `json:"key"`
-	DocCount int    `json:"doc_count"`
 }
 
 func (s *BlogSearchService) ListTopics(ctx context.Context) ([]TopicBucket, error) {

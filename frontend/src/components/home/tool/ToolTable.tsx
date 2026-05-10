@@ -1,4 +1,6 @@
 import "./ToolTable.css";
+import { Badge } from "../../layout/Badge";
+import type { BadgeColor } from "../../layout/badge.types";
 import { LuChevronDown } from "react-icons/lu";
 import { LuChevronUp } from "react-icons/lu";
 import { flushSync } from "react-dom";
@@ -85,9 +87,9 @@ interface Tool {
 }
 type ToolColumn = keyof Tool;
 
-const STATUS_COLOR_MAP: Record<Status, string> = {
-  Active: "var(--color-emerald-500)",
-  Inactive: "var(--color-rose-500)",
+const STATUS_BADGE_COLOR: Record<Status, BadgeColor> = {
+  Active: "emerald",
+  Inactive: "rose",
 } as const;
 
 const SKILL_SVG_MAP: Record<Skill, React.ReactNode> = {
@@ -220,15 +222,11 @@ const defaultColumns = [
   columnHelper.accessor("platform", {
     header: "Platform",
     filterFn: platformFilter,
-    cell: (info) => {
-      return (
-        <span
-          className={`rounded-md border border-current/30 bg-current/10 px-2 py-0.5 text-[11px] font-medium leading-none`}
-        >
-          {info.getValue()}
-        </span>
-      );
-    },
+    cell: (info) => (
+      <Badge color="slate" rounded="md" border>
+        {info.getValue()}
+      </Badge>
+    ),
   }),
   columnHelper.accessor("skills", {
     header: "Skills",
@@ -254,16 +252,15 @@ const defaultColumns = [
   columnHelper.accessor("status", {
     header: "Status",
     filterFn: statusFilter,
-    cell: (info) => {
-      return (
-        <span
-          className={`rounded-md border border-current/30 bg-current/10 px-2 py-0.5 text-[11px] font-medium leading-none`}
-          style={{ color: STATUS_COLOR_MAP[info.getValue() as Status] }}
-        >
-          {info.getValue()}
-        </span>
-      );
-    },
+    cell: (info) => (
+      <Badge
+        color={STATUS_BADGE_COLOR[info.getValue() as Status]}
+        rounded="md"
+        border
+      >
+        {info.getValue()}
+      </Badge>
+    ),
   }),
   columnHelper.accessor("createdAt", {
     header: "Created At",
@@ -640,18 +637,19 @@ export default function ToolTable() {
                     >
                       <span>All</span>
                     </option>
-                    {Object.entries(STATUS_COLOR_MAP).map(([status, color]) => (
+                    {(Object.keys(STATUS_BADGE_COLOR) as Status[]).map((status) => (
                       <option
                         key={status}
                         value={status}
                         className="text-slate-700 dark:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/80"
                       >
-                        <span
-                          className={`rounded-md border border-current/30 bg-current/10 px-2 py-0.5 text-[11px] font-medium leading-none`}
-                          style={{ color: color }}
+                        <Badge
+                          color={STATUS_BADGE_COLOR[status]}
+                          rounded="md"
+                          border
                         >
                           {status}
-                        </span>
+                        </Badge>
                       </option>
                     ))}
                   </optgroup>
@@ -687,11 +685,9 @@ export default function ToolTable() {
                         value={platform}
                         className="text-slate-700 dark:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/80"
                       >
-                        <span
-                          className={`rounded-md border border-current/30 bg-current/10 px-2 py-0.5 text-[11px] font-medium leading-none`}
-                        >
+                        <Badge color="slate" rounded="md" border>
                           {platform}
-                        </span>
+                        </Badge>
                       </option>
                     ))}
                   </optgroup>

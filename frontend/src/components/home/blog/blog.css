@@ -1,0 +1,16 @@
+@reference "../../../styles/global.css";
+@variant dark (&:where(.dark, .dark *));
+
+.blog-carousel {
+  @apply flex overflow-x-scroll snap-x snap-mandatory overscroll-x-contain;
+  /* ネイティブスクロールバーを非表示 */
+  scrollbar-width: none;
+}
+
+.blog-carousel::-webkit-scrollbar {
+  display: none;
+}
+
+.blog-carousel-item {
+  @apply snap-center shrink-0 grow-0 basis-full;
+}

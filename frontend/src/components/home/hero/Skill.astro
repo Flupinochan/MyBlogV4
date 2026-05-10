@@ -6,6 +6,7 @@ const {
   icon: Icon,
   title,
   textColor,
+  badgeColor,
   tooltips,
   description,
 } = Astro.props as SkillItem;
@@ -20,6 +21,7 @@ bg-slate-50/95 dark:bg-slate-900/95 ${textColor} hover:border-current`;
       icon={Icon}
       title={title}
       textColor={textColor}
+      badgeColor={badgeColor}
       tooltips={tooltips}
       description={description}
     />
