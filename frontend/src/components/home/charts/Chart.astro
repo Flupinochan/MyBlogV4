@@ -86,7 +86,7 @@ const commitStats = await getGitHubCommitStats();
     @applyを利用することで通常のCSSファイル内でTailwind CSSの
     ユーティリティクラスを使用可能にする
   */
-  @reference "tailwindcss";
+  @reference "../../../styles/global.css";
   @variant dark (&:where(.dark, .dark *));
 
   /* group */
