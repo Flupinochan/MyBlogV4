@@ -14,7 +14,7 @@ import (
 	"github.com/opensearch-project/opensearch-go/v2/opensearchutil"
 )
 
-//go:embed index.json index_hybrid.json hybrid-rrf-pipeline.json hybrid-norm-pipeline.json
+//go:embed index.json index_hybrid.json hybrid-rrf-pipeline.json hybrid-nlp-pipeline.json
 var indexFiles embed.FS
 
 // Create Index

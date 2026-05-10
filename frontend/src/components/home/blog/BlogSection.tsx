@@ -324,7 +324,8 @@ function BlogCarousel() {
             placeholder="記事を検索..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            className="w-full py-2 px-3 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:border-violet-400 dark:focus:border-violet-500 focus:ring-1 focus:ring-violet-400 dark:focus:ring-violet-500 transition-colors"
+            className="w-full py-2 px-3 text-sm rounded-xl border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400 
+                         focus:border-violet-400 dark:focus:border-violet-500 focus:ring-1 focus:ring-violet-400 dark:focus:ring-violet-500 transition-colors"
           />
           {/* search mode select */}
           <SearchModeSelect value={searchMode} onChange={setSearchMode} />

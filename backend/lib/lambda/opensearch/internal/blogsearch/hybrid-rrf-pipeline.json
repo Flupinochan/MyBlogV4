@@ -1,17 +1,14 @@
 {
-  "description": "Hybrid search pipeline using RRF with explicit 0.5 weights for easy tuning",
+  "description": "Post processor for hybrid RRF search",
   "phase_results_processors": [
     {
-      "normalization-processor": {
+      "score-ranker-processor": {
         "combination": {
           "parameters": {
-            "rank_constant": 60,
             "weights": [0.5, 0.5]
           },
+          "rank_constant": 60,
           "technique": "rrf"
-        },
-        "normalization": {
-          "technique": "min_max"
         }
       }
     }

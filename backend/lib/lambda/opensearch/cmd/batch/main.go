@@ -72,11 +72,11 @@ func run(ctx context.Context) error {
 	}
 
 	err = repo.CreateSearchPipeline(ctx, blogsearch.CreateSearchPipelineParams{
-		PipelineID: "hybrid-norm-pipeline",
-		FilePath:   "hybrid-norm-pipeline.json",
+		PipelineID: "hybrid-nlp-pipeline",
+		FilePath:   "hybrid-nlp-pipeline.json",
 	})
 	if err != nil {
-		return fmt.Errorf("failed to create norm search pipeline: %w", err)
+		return fmt.Errorf("failed to create nlp search pipeline: %w", err)
 	}
 
 	// Initialize Http Client
