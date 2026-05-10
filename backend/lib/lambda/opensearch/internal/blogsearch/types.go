@@ -97,6 +97,12 @@ type KnnQuery struct {
 	Knn map[string]KnnQueryDetail `json:"knn"`
 }
 
+type HybridQuery struct {
+	Hybrid struct {
+		Queries []any `json:"queries"`
+	} `json:"hybrid"`
+}
+
 type SearchRequest struct {
 	From        int        `json:"from,omitempty"`
 	Size        int        `json:"size,omitempty"`
@@ -127,11 +133,12 @@ type SearchResponse[T any] struct {
 // ── Service param / result types ─────────────────────────────────────────────
 
 type ListBlogsParams struct {
-	Limit  int
-	Cursor []any
-	Topic  string
-	Type   string
-	Query  string
+	Limit          int
+	Cursor         []any
+	Topic          string
+	Type           string
+	Query          string
+	SearchPipeline string
 }
 
 type BlogSearchResultItem struct {

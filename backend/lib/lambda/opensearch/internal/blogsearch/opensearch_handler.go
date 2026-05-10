@@ -38,12 +38,13 @@ func (h *Handler) GetBlogBySlug(c *gin.Context) {
 }
 
 type ListBlogsQuery struct {
-	Limit  int    `form:"limit"  binding:"omitempty,min=1,max=100"`
-	Cursor string `form:"cursor" binding:"omitempty,max=200"`
-	Topic  string `form:"topic"  binding:"omitempty,max=100"`
-	Type   string `form:"type"   binding:"omitempty,oneof=tech idea"`
-	Query  string `form:"query"  binding:"omitempty,max=500"`
-	Vector bool   `form:"vector" binding:"omitempty"`
+	Limit          int    `form:"limit"            binding:"omitempty,min=1,max=100"`
+	Cursor         string `form:"cursor"           binding:"omitempty,max=200"`
+	Topic          string `form:"topic"            binding:"omitempty,max=100"`
+	Type           string `form:"type"             binding:"omitempty,oneof=tech idea"`
+	Query          string `form:"query"            binding:"omitempty,max=500"`
+	SearchMode     string `form:"search_mode"      binding:"omitempty,oneof=fulltext vector hybrid"`
+	SearchPipeline string `form:"search_pipeline"  binding:"omitempty,max=100"`
 }
 
 type ListBlogsResponse struct {
@@ -82,18 +83,22 @@ func (h *Handler) ListBlogs(c *gin.Context) {
 	}
 
 	params := ListBlogsParams{
-		Limit:  query.Limit,
-		Cursor: cursorObj,
-		Topic:  query.Topic,
-		Type:   query.Type,
-		Query:  query.Query,
+		Limit:          query.Limit,
+		Cursor:         cursorObj,
+		Topic:          query.Topic,
+		Type:           query.Type,
+		Query:          query.Query,
+		SearchPipeline: query.SearchPipeline,
 	}
 
 	var result *ListBlogsResult
 	var err error
-	if query.Vector && query.Query != "" {
+	switch {
+	case query.SearchMode == "vector" && query.Query != "":
 		result, err = h.s.ListBlogsVector(c.Request.Context(), params)
-	} else {
+	case query.SearchMode == "hybrid" && query.Query != "" && query.SearchPipeline != "":
+		result, err = h.s.ListBlogsHybrid(c.Request.Context(), params)
+	default:
 		result, err = h.s.ListBlogs(c.Request.Context(), params)
 	}
 	if err != nil {

@@ -62,6 +62,23 @@ func run(ctx context.Context) error {
 		return fmt.Errorf("failed to create hybrid index: %w", err)
 	}
 
+	// Create Search Pipelines
+	err = repo.CreateSearchPipeline(ctx, blogsearch.CreateSearchPipelineParams{
+		PipelineID: "hybrid-rrf-pipeline",
+		FilePath:   "hybrid-rrf-pipeline.json",
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create rrf search pipeline: %w", err)
+	}
+
+	err = repo.CreateSearchPipeline(ctx, blogsearch.CreateSearchPipelineParams{
+		PipelineID: "hybrid-norm-pipeline",
+		FilePath:   "hybrid-norm-pipeline.json",
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create norm search pipeline: %w", err)
+	}
+
 	// Initialize Http Client
 	httpClient := myhttp.NewHttpClient()
 	httpRepo := myhttp.NewHttpRepository(httpClient)

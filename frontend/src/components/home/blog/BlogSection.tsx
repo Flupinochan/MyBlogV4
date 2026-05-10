@@ -49,6 +49,10 @@ interface TopicsResponse {
 const INITIAL_LIMIT = 5;
 const INCREMENTAL_LIMIT = 1;
 const DEBOUNCE_MS = 400;
+const HYBRID_PIPELINES: Partial<Record<SearchMode, string>> = {
+  "hybrid-rrf":  "hybrid-rrf-pipeline",
+  "hybrid-norm": "hybrid-norm-pipeline",
+};
 
 const queryClient = new QueryClient();
 
@@ -70,16 +74,21 @@ async function fetchBlogs({
   limit,
   query,
   topics,
+  searchMode,
 }: {
   cursor?: unknown;
   limit: number;
   query: string;
   topics: string[];
+  searchMode: SearchMode;
 }): Promise<BlogListResponse> {
   const params = new URLSearchParams({ limit: String(limit) });
   if (cursor != null) params.set("cursor", JSON.stringify(cursor));
   if (query) params.set("query", query);
   if (topics.length > 0) params.set("topic", topics[0]);
+  const pipeline = HYBRID_PIPELINES[searchMode];
+  params.set("search_mode", pipeline ? "hybrid" : searchMode);
+  if (pipeline) params.set("search_pipeline", pipeline);
 
   try {
     const response = await fetch(`/api/v1/blogs?${params}`);
@@ -101,6 +110,30 @@ function formatDate(value: string): string {
     month: "short",
     day: "numeric",
   });
+}
+
+// ── Search Mode Select ────────────────────────────────────────────────────────
+type SearchMode = "fulltext" | "vector" | "hybrid-rrf" | "hybrid-norm";
+
+function SearchModeSelect({
+  value,
+  onChange,
+}: {
+  value: SearchMode;
+  onChange: (v: SearchMode) => void;
+}) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value as SearchMode)}
+      className="py-2 px-3 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-violet-400 dark:focus:border-violet-500 focus:ring-1 focus:ring-violet-400 dark:focus:ring-violet-500 transition-colors cursor-pointer"
+    >
+      <option value="fulltext">全文検索</option>
+      <option value="vector">ベクトル検索</option>
+      <option value="hybrid-rrf">ハイブリッド検索 (RRF)</option>
+      <option value="hybrid-norm">ハイブリッド検索 (Norm)</option>
+    </select>
+  );
 }
 
 // ── Topic Select ──────────────────────────────────────────────────────────────
@@ -167,6 +200,7 @@ function BlogCarousel() {
   // デバウンス後の値が queryKey に入る → ここが変わると再 fetch
   const [query, setQuery] = useState("");
   const [selectedTopics, setSelectedTopics] = useState<string[]>([]);
+  const [searchMode, setSearchMode] = useState<SearchMode>("fulltext");
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -202,13 +236,13 @@ function BlogCarousel() {
     return () => clearTimeout(timer);
   }, [inputValue]);
 
-  // query または selectedTopics が変わったらカルーセルを先頭に戻す
+  // query、selectedTopics、searchMode が変わったらカルーセルを先頭に戻す
   useEffect(() => {
     const el = carouselRef.current;
     if (el) el.scrollLeft = 0;
-    setCanScrollPrev(false);
-    setCanScrollNext(false);
-  }, [query, selectedTopics]);
+    setCurrentIndex(0);
+    updateNavState();
+  }, [query, selectedTopics, searchMode, updateNavState]);
 
   const {
     data,
@@ -219,13 +253,14 @@ function BlogCarousel() {
     isFetching,
     error,
   } = useInfiniteQuery({
-    queryKey: ["blogs", query, selectedTopics],
+    queryKey: ["blogs", query, selectedTopics, searchMode],
     queryFn: ({ pageParam }) =>
       fetchBlogs({
         cursor: pageParam,
         limit: pageParam == null ? INITIAL_LIMIT : INCREMENTAL_LIMIT,
         query,
         topics: selectedTopics,
+        searchMode,
       }),
     initialPageParam: null as unknown,
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
@@ -291,6 +326,8 @@ function BlogCarousel() {
             onChange={(e) => setInputValue(e.target.value)}
             className="w-full py-2 px-3 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:border-violet-400 dark:focus:border-violet-500 focus:ring-1 focus:ring-violet-400 dark:focus:ring-violet-500 transition-colors"
           />
+          {/* search mode select */}
+          <SearchModeSelect value={searchMode} onChange={setSearchMode} />
           {/* topic select */}
           <TopicSelect
             topics={topicsData?.data ?? []}

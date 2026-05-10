@@ -6,13 +6,15 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
+	"net/http"
 	"strings"
 
 	"github.com/opensearch-project/opensearch-go/v2/opensearchutil"
 )
 
-//go:embed index.json index_hybrid.json
+//go:embed index.json index_hybrid.json hybrid-rrf-pipeline.json hybrid-norm-pipeline.json
 var indexFiles embed.FS
 
 // Create Index
@@ -43,6 +45,40 @@ func (r *Repository) CreateIndex(ctx context.Context, params CreateIndexParams) 
 
 	slog.Info("Successfully created index", slog.String("indexName", params.IndexName))
 
+	return nil
+}
+
+// Create Search Pipeline for Hybrid Search
+type CreateSearchPipelineParams struct {
+	PipelineID string
+	FilePath   string
+}
+
+func (r *Repository) CreateSearchPipeline(ctx context.Context, params CreateSearchPipelineParams) error {
+	body, err := indexFiles.ReadFile(params.FilePath)
+	if err != nil {
+		return fmt.Errorf("failed to read embedded pipeline file [%s]: %w", params.FilePath, err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, "/_search/pipeline/"+params.PipelineID, bytes.NewReader(body))
+	if err != nil {
+		return fmt.Errorf("failed to create pipeline request: %w", err)
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	res, err := r.client.Transport.Perform(req)
+	if err != nil {
+		return fmt.Errorf("opensearch api call failed: %w", err)
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode >= 400 {
+		resBody, _ := io.ReadAll(res.Body)
+		return fmt.Errorf("opensearch error [%d]: %s", res.StatusCode, string(resBody))
+	}
+
+	slog.Info("Successfully created hybrid search pipeline", slog.String("pipelineID", params.PipelineID))
 	return nil
 }
 

@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"log/slog"
+	"net/http"
 
 	"github.com/opensearch-project/opensearch-go/v2/opensearchapi"
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/genai"
@@ -334,6 +336,121 @@ func (s *BlogSearchService) ListBlogsVector(c context.Context, params ListBlogsP
 	}
 
 	logger.Debug("ListBlogsVector completed", slog.Int("count", len(result.Blogs)))
+
+	return result, nil
+}
+
+func (s *BlogSearchService) ListBlogsHybrid(ctx context.Context, params ListBlogsParams) (*ListBlogsResult, error) {
+	logger := middleware.GetLogger(ctx)
+	logger.Debug("ListBlogsHybrid called",
+		slog.String("query", params.Query),
+		slog.Int("limit", params.Limit),
+		slog.String("pipeline", params.SearchPipeline),
+	)
+
+	vector, err := s.genaiRepo.GenerateEmbedding(ctx, params.Query)
+	if err != nil {
+		return nil, fmt.Errorf("failed to embed query: %w", errors.Join(err, middleware.ErrServer))
+	}
+
+	var filterQuery map[string]any
+	if params.Topic != "" || params.Type != "" {
+		filters := []any{}
+		if params.Topic != "" {
+			filters = append(filters, TermQuery{Term: map[string]any{"topics": params.Topic}})
+		}
+		if params.Type != "" {
+			filters = append(filters, TermQuery{Term: map[string]any{"type": params.Type}})
+		}
+		filterQuery = map[string]any{
+			"bool": map[string]any{
+				"filter": filters,
+			},
+		}
+	}
+
+	bm25 := BoolQuery{Bool: struct {
+		Filter []any `json:"filter,omitempty"`
+		Must   []any `json:"must,omitempty"`
+	}{
+		Must: []any{MultiMatchQuery{MultiMatch: MultiMatch{
+			Query:      params.Query,
+			Fields:     []string{"title^10", "topics^5", "content"},
+			Type:       "best_fields",
+			TieBreaker: 0.3,
+			Fuzziness:  "AUTO",
+		}}},
+		Filter: func() []any {
+			if filterQuery == nil {
+				return nil
+			}
+			return []any{filterQuery}
+		}(),
+	}}
+
+	knn := KnnQuery{Knn: map[string]KnnQueryDetail{
+		"chunk_embedding": {
+			Vector: vector,
+			K:      params.Limit * 2,
+			Filter: filterQuery,
+		},
+	}}
+
+	var hybridQuery HybridQuery
+	hybridQuery.Hybrid.Queries = []any{bm25, knn}
+
+	searchReqBody := SearchRequest{
+		Size:     params.Limit,
+		Source:   []string{"slug", "url", "title", "emoji", "type", "topics", "summary", "created_at"},
+		Query:    hybridQuery,
+		Collapse: &Collapse{Field: "slug"},
+	}
+
+	var buf bytes.Buffer
+	if err := json.NewEncoder(&buf).Encode(searchReqBody); err != nil {
+		return nil, fmt.Errorf("failed to encode hybrid search request: %w", errors.Join(err, middleware.ErrServer))
+	}
+
+	// opensearch-go v2.3.0 は SearchRequest に SearchPipeline フィールドがないため
+	// Transport.Perform を利用
+	url := fmt.Sprintf("/%s/_search?search_pipeline=%s", s.blogsearchRepo.aliasNameEmbedding, params.SearchPipeline)
+	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &buf)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create hybrid search request: %w", errors.Join(err, middleware.ErrServer))
+	}
+
+	httpReq.Header.Set("Content-Type", "application/json")
+
+	res, err := s.blogsearchRepo.client.Transport.Perform(httpReq)
+	if err != nil {
+		return nil, fmt.Errorf("opensearch hybrid search request failed: %w", errors.Join(err, middleware.ErrServer))
+	}
+	defer res.Body.Close()
+
+	if res.StatusCode >= 400 {
+		body, _ := io.ReadAll(res.Body)
+		return nil, fmt.Errorf("opensearch hybrid search error [%d]: %s: %w", res.StatusCode, string(body), middleware.ErrServer)
+	}
+
+	var osRes SearchResponse[BlogListItem]
+	decoder := json.NewDecoder(res.Body)
+	decoder.UseNumber()
+	if err := decoder.Decode(&osRes); err != nil {
+		return nil, fmt.Errorf("failed to decode hybrid search response: %w", errors.Join(err, middleware.ErrServer))
+	}
+
+	result := &ListBlogsResult{
+		Blogs:      make([]BlogSearchResultItem, 0, len(osRes.Hits.Hits)),
+		NextCursor: nil, // hybridはsearch_afterが非対応なのでページングなし
+	}
+	for _, hit := range osRes.Hits.Hits {
+		result.Blogs = append(result.Blogs, BlogSearchResultItem{
+			BlogListItem: hit.Source,
+			Score:        hit.Score,
+		})
+	}
+
+	logger.Debug("ListBlogsHybrid completed", slog.Int("count", len(result.Blogs)))
 
 	return result, nil
 }
