@@ -51,12 +51,6 @@
     scrollbar-gutter: stable;
   }
 
-  input {
-    &:focus {
-      outline: none;
-    }
-  }
-
   @supports selector(::-webkit-scrollbar) {
     html::-webkit-scrollbar,
     .custom-scrollbar::-webkit-scrollbar {
@@ -92,6 +86,12 @@
       scrollbar-color: var(--color-violet-500) var(--scrollbar-track-bg);
       scrollbar-width: thin;
       scrollbar-gutter: stable;
+    }
+  }
+
+  input {
+    &:focus {
+      outline: none;
     }
   }
 }

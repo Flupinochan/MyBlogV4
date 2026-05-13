@@ -8,6 +8,7 @@ import {
 } from "@tanstack/react-query";
 import EmblaCarousel from "./carousel/EmblaCarousel";
 import { type EmblaOptionsType } from "embla-carousel";
+import "./blog.css";
 
 // ── Types ────────────────────────────────────────────────────────────────────
 interface BlogListItem {
@@ -127,9 +128,9 @@ function SearchModeSelect({
 }) {
   return (
     <select
+      className="blog-search cursor-pointer"
       value={value}
       onChange={(e) => onChange(e.target.value as SearchMode)}
-      className="py-2 px-3 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-violet-400 dark:focus:border-violet-500 focus:ring-1 focus:ring-violet-400 dark:focus:ring-violet-500 transition-colors cursor-pointer"
     >
       <option value="fulltext">全文検索</option>
       <option value="vector">ベクトル検索</option>
@@ -151,9 +152,9 @@ function TopicSelect({
 }) {
   return (
     <select
+      className="blog-search cursor-pointer"
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="py-2 px-3 text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-violet-400 dark:focus:border-violet-500 focus:ring-1 focus:ring-violet-400 dark:focus:ring-violet-500 transition-colors cursor-pointer"
     >
       <option value="">すべてのタグ</option>
       {topics.map((t) => (
@@ -172,7 +173,8 @@ function BlogCard({ blog }: { blog: BlogListItem }) {
       href={blog.url}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex flex-col h-full p-6 border rounded-2xl border-slate-200 dark:border-slate-700 hover:border-violet-300 dark:hover:border-violet-600 transition-all duration-200"
+      className="group flex flex-col h-full p-6 transition-colors
+              border rounded-2xl border-slate-300 dark:border-slate-700 hover:border-violet-400 dark:hover:border-violet-500"
     >
       <div className="flex justify-between gap-3 mb-4">
         {/* title */}
@@ -271,7 +273,7 @@ function BlogCarousel() {
   const slides = blogs.map((blog) => <BlogCard key={blog.slug} blog={blog} />);
 
   return (
-    <section className="flex flex-col py-8">
+    <section className="flex flex-col">
       <div className="flex flex-col gap-4">
         <div className="flex gap-2">
           {/* search bar */}
@@ -281,8 +283,7 @@ function BlogCarousel() {
             placeholder="記事を検索..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            className="w-full py-2 px-3 text-sm rounded-xl border border-slate-200 dark:border-slate-700 text-slate-800 dark:text-slate-100 placeholder-slate-400
-                         focus:border-violet-400 dark:focus:border-violet-500 focus:ring-1 focus:ring-violet-400 dark:focus:ring-violet-500 transition-colors"
+            className="w-full blog-search"
           />
           {/* search mode */}
           <SearchModeSelect value={searchMode} onChange={setSearchMode} />
@@ -298,18 +299,15 @@ function BlogCarousel() {
           {!isLoading &&
             !error &&
             (slides.length > 0 ? (
-              <div
-                className={`w-full ${isFetching ? "opacity-60 transition-opacity" : "transition-opacity"}`}
-              >
-                <EmblaCarousel
-                  key={`${searchMode}-${selectedTopics.join(",")}`}
-                  slides={slides}
-                  options={CAROUSEL_OPTIONS}
-                  onReachEnd={() => {
-                    if (hasNextPage && !isFetchingNextPage) fetchNextPage();
-                  }}
-                />
-              </div>
+              <EmblaCarousel
+                key={`${searchMode}-${selectedTopics.join(",")}`}
+                slides={slides}
+                isFetching={isFetching}
+                options={CAROUSEL_OPTIONS}
+                onReachEnd={() => {
+                  if (hasNextPage && !isFetchingNextPage) fetchNextPage();
+                }}
+              />
             ) : (
               <p className="text-sm text-slate-400 dark:text-slate-500">
                 記事が見つかりませんでした

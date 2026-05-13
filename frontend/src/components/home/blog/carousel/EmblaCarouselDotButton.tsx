@@ -6,7 +6,9 @@ import {
   useState,
 } from "react";
 import { type EmblaCarouselType } from "embla-carousel";
+import { GoDot } from "react-icons/go";
 import "./embla.css";
+
 type UseDotButtonType = {
   selectedIndex: number;
   scrollSnaps: number[];
@@ -77,26 +79,13 @@ export const DotButton = (props: PropType) => {
     <button
       type="button"
       {...restProps}
-      className="p-1 cursor-pointer transition-opacity duration-200 hover:opacity-80"
+      className="p-1 cursor-pointer group relative z-0"
       aria-label={isSelected ? "Current slide" : "Go to slide"}
     >
-      <svg
-        width="10"
-        height="10"
-        viewBox="0 0 10 10"
-        xmlns="http://www.w3.org/2000/svg"
-        className="transition-all duration-300"
-      >
-        <circle
-          cx="5"
-          cy="5"
-          r={isSelected ? "4.5" : "3.5"}
-          fill={isSelected ? "#7c3aed" : "transparent"}
-          stroke="#7c3aed"
-          strokeWidth="1.5"
-          className="transition-all duration-300"
-        />
-      </svg>
+      <GoDot
+        size={24}
+        className="text-slate-400 dark:text-slate-500 group-hover:text-slate-600 dark:group-hover:text-slate-300 transition-colors duration-300"
+      />
       {children}
     </button>
   );

@@ -57,7 +57,7 @@ type PropType = ComponentPropsWithRef<"button">;
 export const PrevButton = (props: PropType) => {
   return (
     <button type="button" {...props}>
-      <HiOutlineArrowCircleLeft className="size-8" />
+      <HiOutlineArrowCircleLeft className="size-10" />
     </button>
   );
 };
@@ -65,7 +65,7 @@ export const PrevButton = (props: PropType) => {
 export const NextButton = (props: PropType) => {
   return (
     <button type="button" {...props}>
-      <HiOutlineArrowCircleRight className="size-8" />
+      <HiOutlineArrowCircleRight className="size-10" />
     </button>
   );
 };
