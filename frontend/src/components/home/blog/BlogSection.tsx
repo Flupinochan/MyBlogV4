@@ -128,6 +128,7 @@ function SearchModeSelect({
 }) {
   return (
     <select
+      id="search-mode"
       className="blog-search cursor-pointer"
       value={value}
       onChange={(e) => onChange(e.target.value as SearchMode)}
@@ -152,6 +153,7 @@ function TopicSelect({
 }) {
   return (
     <select
+      id="topic-select"
       className="blog-search cursor-pointer"
       value={value}
       onChange={(e) => onChange(e.target.value)}
