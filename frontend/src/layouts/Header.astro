@@ -35,7 +35,7 @@ import SunMoon from "../components/icons/SunMoon.astro";
   <Flex class="relative z-10 gap-4 pr-10 items-center">
     <button
       aria-label="ダークモードに切り替える"
-      class="toggle-dark-mode group transform active:scale-95 transition-transform duration-150"
+      class="cursor-pointer toggle-dark-mode group transform active:scale-95 transition-transform duration-150"
     >
       <SunMoon
         class="size-6 transition-all duration-300 group-hover:stroke-[2px] hover:brightness-75 dark:hover:brightness-125"
@@ -78,7 +78,7 @@ import SunMoon from "../components/icons/SunMoon.astro";
 </header>
 
 <script>
-  import { gsap } from "../components/lib/gsap";
+  import { gsap } from "../lib/gsap";
 
   const header = document.querySelector("header");
   if (!header) throw new Error("Header element not found");

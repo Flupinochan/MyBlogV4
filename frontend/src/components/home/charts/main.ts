@@ -1,11 +1,11 @@
 import * as d3 from "d3";
 import { atom } from "nanostores";
+import { gsap } from "../../../lib/gsap";
 import type {
   GitHubCommitCount,
   LanguageRepositoryBytes,
   LanguageRepositoryCount,
 } from "../../../types/github";
-import { gsap } from "../../lib/gsap";
 import { BarChart } from "./barChart";
 import { PieChart } from "./pieChart";
 import { StackChart } from "./stackChart";

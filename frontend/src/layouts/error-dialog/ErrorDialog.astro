@@ -1,0 +1,59 @@
+---
+
+---
+
+<error-dialog>
+  <dialog
+    class="rounded-xl border border-slate-200 dark:border-slate-700
+          bg-slate-100 dark:bg-slate-800
+          text-slate-800 dark:text-slate-100 p-6 min-w-72 max-w-[90vw]
+          mx-auto my-auto"
+  >
+    <p class="message text-sm leading-relaxed"></p>
+    <div class="flex justify-end mt-4">
+      <button
+        class="close-btn py-1.5 px-4 text-sm rounded-lg
+                bg-violet-500 hover:bg-violet-600 text-white cursor-pointer transition-colors"
+      >
+        閉じる
+      </button>
+    </div>
+  </dialog>
+</error-dialog>
+
+<script>
+  class ErrorDialogElement extends HTMLElement {
+    private _handler: (e: Event) => void = () => {};
+
+    connectedCallback() {
+      const dialog = this.querySelector("dialog") as HTMLDialogElement;
+      const message = this.querySelector(".message") as HTMLElement;
+
+      this.querySelector(".close-btn")?.addEventListener("click", () => {
+        dialog.close();
+      });
+
+      this._handler = (e: Event) => {
+        message.textContent = (e as CustomEvent<string>).detail;
+        dialog.showModal();
+      };
+
+      dialog.addEventListener("click", (e) => {
+        if (e.target === dialog) dialog.close();
+      });
+      document.addEventListener("error-dialog:show", this._handler);
+    }
+
+    disconnectedCallback() {
+      document.removeEventListener("error-dialog:show", this._handler);
+    }
+  }
+
+  customElements.define("error-dialog", ErrorDialogElement);
+</script>
+
+<style>
+  dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+  }
+</style>

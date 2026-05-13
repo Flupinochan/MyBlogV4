@@ -7,6 +7,7 @@ import "../styles/global.css";
 import ScrollToTopButton from "./ScrollToTopButton.astro";
 import Loading from "./Loading.astro";
 import BackgroundParticles from "./BackgroundParticles.astro";
+import ErrorDialog from "./error-dialog/ErrorDialog.astro";
 ---
 
 <!doctype html>
@@ -37,6 +38,7 @@ import BackgroundParticles from "./BackgroundParticles.astro";
     class="flex flex-col bg-no-repeat bg-center bg-cover bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200"
   >
     <Loading />
+    <ErrorDialog />
     <!-- <BackgroundParticles /> -->
     <!-- <ScrollToTopButton /> -->
     <Header />

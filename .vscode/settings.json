@@ -1,4 +1,4 @@
 {
   "css.lint.unknownAtRules": "ignore",
-  "cSpell.words": ["fulltext"]
+  "cSpell.words": ["embla", "fulltext", "reinit"]
 }
