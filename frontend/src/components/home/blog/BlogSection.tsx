@@ -294,7 +294,6 @@ function BlogCarousel() {
             onChange={(v) => setSelectedTopics(v ? [v] : [])}
           />
         </div>
-        {/* --slide-height: 19rem;相当の高さを固定 */}
         <div className="min-h-76 flex items-center justify-center">
           {!isLoading &&
             !error &&

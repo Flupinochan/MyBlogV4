@@ -40,7 +40,7 @@ const EmblaCarousel = (props: PropType) => {
     <div
       className={`w-full flex flex-col justify-center ${isFetching ? "opacity-60 transition-opacity" : "transition-opacity"}`}
     >
-      <div className="embla flex justify-between items-center gap-4">
+      <div className="flex justify-between items-center gap-4">
         <PrevButton
           onClick={onPrevButtonClick}
           disabled={prevBtnDisabled}
