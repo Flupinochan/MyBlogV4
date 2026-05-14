@@ -713,7 +713,7 @@ export default function ToolTable() {
         {/* SELECT COLUMNS */}
         <button
           popoverTarget="col-visibility-switch-menu"
-          className="rounded-lg border border-violet-500 px-3 py-1.5 cursor-pointer
+          className="tools-columns-open-button rounded-lg border border-violet-500 px-3 py-1.5 cursor-pointer
                       text-xs font-medium text-violet-600
                       transition hover:bg-violet-500/20 active:scale-95"
         >
@@ -722,7 +722,7 @@ export default function ToolTable() {
 
         {/* FILTER COLUMNS */}
         <button
-          className="rounded-lg border border-violet-500 px-3 py-1.5 cursor-pointer
+          className="tools-columns-open-button rounded-lg border border-violet-500 px-3 py-1.5 cursor-pointer
                       text-xs font-medium text-violet-600
                       transition hover:bg-violet-500/20 active:scale-95"
           onClick={() => setFilterColumnsOpen((prev) => !prev)}
@@ -733,7 +733,7 @@ export default function ToolTable() {
 
       {/* table */}
       <div
-        className="overflow-hidden rounded-xl shadow-sm border border-slate-200 dark:border-slate-700"
+        className="tool-table overflow-hidden rounded-xl shadow-sm border border-slate-200 dark:border-slate-700"
         role="table"
         aria-label="作成したツール一覧"
       >
@@ -801,7 +801,7 @@ export default function ToolTable() {
               return (
                 <div
                   key={virtualRow.key}
-                  className="absolute flex w-full items-center border-b border-slate-200 dark:border-slate-800 
+                  className="tool-table-row absolute flex w-full items-center border-b border-slate-200 dark:border-slate-800 
                 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
                   style={{
                     height: `${virtualRow.size}px`,

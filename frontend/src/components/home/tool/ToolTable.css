@@ -122,3 +122,16 @@
     transform: translateY(8px);
   }
 }
+
+.tools-columns-open-button,
+.tool-table-row,
+.tool-table {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* virtual tableの仕様上、後から動的にDOM挿入されるrowに関しては上書きしてデフォルトで表示しておく */
+.tool-table.rows-animated .tool-table-row {
+  opacity: 1;
+  visibility: visible;
+}
