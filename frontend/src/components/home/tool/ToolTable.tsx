@@ -637,21 +637,23 @@ export default function ToolTable() {
                     >
                       <span>All</span>
                     </option>
-                    {(Object.keys(STATUS_BADGE_COLOR) as Status[]).map((status) => (
-                      <option
-                        key={status}
-                        value={status}
-                        className="text-slate-700 dark:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/80"
-                      >
-                        <Badge
-                          color={STATUS_BADGE_COLOR[status]}
-                          rounded="md"
-                          border
+                    {(Object.keys(STATUS_BADGE_COLOR) as Status[]).map(
+                      (status) => (
+                        <option
+                          key={status}
+                          value={status}
+                          className="text-slate-700 dark:text-slate-100 hover:bg-slate-100/80 dark:hover:bg-slate-800/80"
                         >
-                          {status}
-                        </Badge>
-                      </option>
-                    ))}
+                          <Badge
+                            color={STATUS_BADGE_COLOR[status]}
+                            rounded="md"
+                            border
+                          >
+                            {status}
+                          </Badge>
+                        </option>
+                      ),
+                    )}
                   </optgroup>
                 </div>
               </select>
@@ -711,7 +713,7 @@ export default function ToolTable() {
         {/* SELECT COLUMNS */}
         <button
           popoverTarget="col-visibility-switch-menu"
-          className="rounded-lg border border-violet-500 px-3 py-1.5
+          className="rounded-lg border border-violet-500 px-3 py-1.5 cursor-pointer
                       text-xs font-medium text-violet-600
                       transition hover:bg-violet-500/20 active:scale-95"
         >
@@ -720,7 +722,7 @@ export default function ToolTable() {
 
         {/* FILTER COLUMNS */}
         <button
-          className="rounded-lg border border-violet-500 px-3 py-1.5
+          className="rounded-lg border border-violet-500 px-3 py-1.5 cursor-pointer
                       text-xs font-medium text-violet-600
                       transition hover:bg-violet-500/20 active:scale-95"
           onClick={() => setFilterColumnsOpen((prev) => !prev)}
@@ -785,13 +787,12 @@ export default function ToolTable() {
         {/* body */}
         <div
           ref={scrollContainerRef}
-          className="overflow-auto max-h-62.5 custom-scrollbar"
+          className="overflow-auto h-62.5 custom-scrollbar"
           role="rowgroup"
         >
           <div
             style={{
               height: `${virtualizer.getTotalSize()}px`,
-              minHeight: "500px",
               position: "relative",
             }}
           >
