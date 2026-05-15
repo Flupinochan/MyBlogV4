@@ -1,55 +1,33 @@
 ---
 import ToolTable from "./ToolTable.tsx";
+import SectionHeading from "../../shared/SectionHeading.astro";
 ---
 
-<h2
-  class="text-center text-6xl font-bold mt-20 text-violet-500"
-  data-tool-title
->
-  My Tools
-</h2>
+<SectionHeading accent="amber" data-tool-title>My Tools</SectionHeading>
 
 <ToolTable client:idle />
 
 <script>
   import { gsap } from "../../../lib/gsap";
-  import { SplitText } from "gsap/SplitText";
+  import { initSectionHeadingAnimation } from "../../../lib/sectionHeadingAnimation";
 
   const toolTitleEl = document.querySelector("[data-tool-title]");
   if (!toolTitleEl) {
     throw new Error("Tool title element not found");
   }
 
-  const splitText = new SplitText(toolTitleEl, { type: "chars" });
-  gsap.set(splitText.chars, {
-    autoAlpha: 0,
-    filter: "blur(10px)",
-  });
+  const tl = initSectionHeadingAnimation(toolTitleEl);
 
-  const tl = gsap.timeline({
-    scrollTrigger: {
-      trigger: toolTitleEl,
-      start: "top 50%",
-      toggleActions: "play none none none",
+  tl.to(
+    ".tools-columns-open-button",
+    {
+      autoAlpha: 1,
+      stagger: 0.1,
+      duration: 0.25,
+      ease: "power2.out",
     },
-  });
-  tl.to(splitText.chars, {
-    autoAlpha: 1,
-    filter: "blur(0px)",
-    duration: 0.25,
-    stagger: 0.02,
-    ease: "power2.out",
-  })
-    .to(
-      ".tools-columns-open-button",
-      {
-        autoAlpha: 1,
-        stagger: 0.1,
-        duration: 0.25,
-        ease: "power2.out",
-      },
-      "-=0.2",
-    )
+    "-=0.2",
+  )
     // DOMの描画タイミングの都合上、onComplete後に各rowのアニメーションを開始
     .to(".tool-table", {
       autoAlpha: 1,

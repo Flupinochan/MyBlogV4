@@ -1,5 +1,5 @@
 import { useState, useDeferredValue } from "react";
-import { Badge } from "../../layout/Badge";
+import { Badge } from "../../shared/Badge";
 import {
   useInfiniteQuery,
   useQuery,

@@ -1,8 +1,7 @@
 ---
-import Flex from "../../layout/Flex.astro";
 ---
 
-<Flex class="flex-col gap-14 text-center min-h-80 pt-10">
+<div class="flex flex-col gap-14 text-center min-h-80 pt-10">
   <h1 class="flex flex-col items-center gap-4 text-7xl font-bold">
     <div class="w-fit whitespace-nowrap">
       <span data-home-title-name></span><span data-home-title-prefix></span>
@@ -16,7 +15,7 @@ import Flex from "../../layout/Flex.astro";
       data-home-title-description-middle></span><span
       data-home-title-description-tail></span>
   </p>
-</Flex>
+</div>
 
 <script>
   import { gsap } from "../../../lib/gsap";

@@ -1,13 +1,12 @@
 ---
-import Flex from "../../layout/Flex.astro";
 ---
 
-<Flex class="w-full items-center gap-8">
+<div class="flex w-full items-center gap-8">
   <div class="h-px flex-1 bg-linear-to-l from-slate-500 to-transparent"></div>
   <button
     class="cursor-pointer bg-transparent p-2 flex flex-col items-center mt-4 transition-all duration-200 ease-out hover:scale-105 hover:text-violet-600 active:scale-95"
   >
-    <Flex class="flex-col items-center mt-4">
+    <div class="flex flex-col items-center mt-4">
       {
         [0, 1, 2].map((i) => (
           <span
@@ -17,7 +16,7 @@ import Flex from "../../layout/Flex.astro";
         ))
       }
       <p class="mt-4">SCROLL</p>
-    </Flex>
+    </div>
   </button>
   <button
     class="cursor-pointer rounded-md border bg-transparent px-5 py-2 transition-all duration-200 ease-out hover:border-violet-600 hover:text-violet-600 hover:scale-105 active:scale-95"
@@ -25,7 +24,7 @@ import Flex from "../../layout/Flex.astro";
     Contact me
   </button>
   <div class="h-px flex-1 bg-linear-to-r from-slate-500 to-transparent"></div>
-</Flex>
+</div>
 
 <style>
   @keyframes arrow-fall {

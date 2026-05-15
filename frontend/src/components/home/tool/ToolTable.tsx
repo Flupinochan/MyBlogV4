@@ -1,6 +1,6 @@
 import "./ToolTable.css";
-import { Badge } from "../../layout/Badge";
-import type { BadgeColor } from "../../layout/badge.types";
+import { Badge } from "../../shared/Badge";
+import type { BadgeColor } from "../../shared/badge.types";
 import { LuChevronDown } from "react-icons/lu";
 import { LuChevronUp } from "react-icons/lu";
 import { flushSync } from "react-dom";

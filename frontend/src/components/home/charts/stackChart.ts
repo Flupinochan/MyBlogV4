@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import type { GitHubCommitCount } from "../../../types/github";
+import type { GitHubCommitCount } from "./github.types";
 import type { MergedLangStats, StyleAxisFn } from "./main";
 import type { Tooltip } from "./tooltip";
 

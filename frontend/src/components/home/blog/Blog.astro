@@ -1,0 +1,19 @@
+---
+import BlogSection from "./BlogSection.tsx";
+import SectionHeading from "../../shared/SectionHeading.astro";
+---
+
+<SectionHeading accent="emerald" class="mb-16" data-blog-title>Blog</SectionHeading>
+
+<BlogSection client:idle />
+
+<script>
+  import { initSectionHeadingAnimation } from "../../../lib/sectionHeadingAnimation";
+
+  const blogTitleEl = document.querySelector("[data-blog-title]");
+  if (!blogTitleEl) {
+    throw new Error("Blog title element not found");
+  }
+
+  initSectionHeadingAnimation(blogTitleEl);
+</script>

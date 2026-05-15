@@ -5,7 +5,7 @@ import type {
   GitHubCommitCount,
   LanguageRepositoryBytes,
   LanguageRepositoryCount,
-} from "../../../types/github";
+} from "./github.types";
 
 const GITHUB_OWNER = "flupinochan";
 const TARGET_LANGUAGES = ["TypeScript", "Dart", "Python", "C#", "Rust"];

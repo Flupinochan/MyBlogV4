@@ -1,5 +1,5 @@
 ---
-import Flex from "../../layout/Flex.astro";
+import SectionHeading from "../../shared/SectionHeading.astro";
 import PieChart from "../../icons/PieChart.astro";
 import BarChart from "../../icons/BarChart.astro";
 import TrendChart from "../../icons/TrendChart.astro";
@@ -21,14 +21,9 @@ const langBytes = await getGitHubLanguageBytesStats();
 const commitStats = await getGitHubCommitStats();
 ---
 
-<h2
-  class="text-center text-6xl font-bold mt-20 text-violet-500"
-  data-chart-title
->
-  See Me in Charts
-</h2>
+<SectionHeading accent="rose" data-chart-title>See Me in Charts</SectionHeading>
 
-<Flex class="items-center gap-10 mt-10">
+<div class="flex items-center gap-10 mt-10">
   <div class="radio-group">
     <label data-anchor="pie" class="radio-label [anchor-name:--pie]">
       <input
@@ -38,10 +33,10 @@ const commitStats = await getGitHubCommitStats();
         class="hidden"
         checked
       />
-      <Flex class="gap-2">
+      <div class="flex gap-2">
         <PieChart />
         <p class="radio-title">Language Count</p>
-      </Flex>
+      </div>
       <p class="radio-description">
         各リポジトリのメイン言語を抽出し、多種多様な言語への対応力を可視化
       </p>
@@ -49,10 +44,10 @@ const commitStats = await getGitHubCommitStats();
 
     <label data-anchor="bar" class="radio-label [anchor-name:--bar]">
       <input type="radio" name="chart-type" value="bar" class="hidden" />
-      <Flex class="gap-2">
+      <div class="flex gap-2">
         <BarChart />
         <p class="radio-title">Language Bytes</p>
-      </Flex>
+      </div>
       <p class="radio-description">
         総コード記述量を言語別に集計し、技術的な習熟度をボリュームで表現
       </p>
@@ -60,10 +55,10 @@ const commitStats = await getGitHubCommitStats();
 
     <label data-anchor="stack" class="radio-label [anchor-name:--stack]">
       <input type="radio" name="chart-type" value="stack" class="hidden" />
-      <Flex class="gap-2">
+      <div class="flex gap-2">
         <TrendChart />
         <p class="radio-title">Total Commits</p>
-      </Flex>
+      </div>
       <p class="radio-description">
         全期間のコミット累計から読み取る開発の持続性
       </p>
@@ -78,7 +73,7 @@ const commitStats = await getGitHubCommitStats();
     data-commits={JSON.stringify(commitStats)}
   >
   </div>
-</Flex>
+</div>
 
 <!-- darkを利用するためにglobalで定義 -->
 <style is:global>
@@ -150,38 +145,20 @@ const commitStats = await getGitHubCommitStats();
 </style>
 
 <script>
-  import { gsap } from "../../../lib/gsap";
   import { initChartAnimation, isAnimating } from "./main";
-  import { SplitText } from "gsap/SplitText";
+  import { initSectionHeadingAnimation } from "../../../lib/sectionHeadingAnimation";
 
   const chartTitleEl = document.querySelector("[data-chart-title]");
   if (!chartTitleEl) {
     throw new Error("Chart title element not found");
   }
 
-  const splitText = new SplitText(chartTitleEl, { type: "chars" });
-  gsap.set(splitText.chars, {
-    autoAlpha: 0,
-    filter: "blur(10px)",
-  });
-
-  const tl = gsap.timeline({
-    scrollTrigger: {
-      trigger: chartTitleEl,
-      start: "top 50%",
-      toggleActions: "play none none none",
-    },
+  const tl = initSectionHeadingAnimation(chartTitleEl, {
     onStart: () => isAnimating.set(true),
     onComplete: () => isAnimating.set(false),
   });
 
-  tl.to(splitText.chars, {
-    autoAlpha: 1,
-    filter: "blur(0px)",
-    duration: 0.25,
-    stagger: 0.02,
-    ease: "power2.out",
-  }).to(
+  tl.to(
     ".radio-label",
     {
       autoAlpha: 1,

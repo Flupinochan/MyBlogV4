@@ -5,7 +5,7 @@ import type {
   GitHubCommitCount,
   LanguageRepositoryBytes,
   LanguageRepositoryCount,
-} from "../../../types/github";
+} from "./github.types";
 import { BarChart } from "./barChart";
 import { PieChart } from "./pieChart";
 import { StackChart } from "./stackChart";

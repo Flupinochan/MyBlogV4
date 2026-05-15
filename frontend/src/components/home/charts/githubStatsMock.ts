@@ -2,7 +2,7 @@ import type {
   GitHubCommitCount,
   LanguageRepositoryBytes,
   LanguageRepositoryCount,
-} from "../../../types/github";
+} from "./github.types";
 import mockJson from "./githubStats.mock.json";
 
 export async function getRepositoryCountByLanguage(): Promise<

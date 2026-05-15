@@ -1,0 +1,29 @@
+---
+type AccentColor = "rose" | "amber" | "emerald" | "cyan";
+
+interface Props {
+  accent: AccentColor;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { accent, class: extraClass = "", ...rest } = Astro.props;
+
+const gradientMap: Record<AccentColor, string> = {
+  rose: "from-violet-500 to-rose-500",
+  amber: "from-violet-500 to-amber-500",
+  emerald: "from-violet-500 to-emerald-500",
+  cyan: "from-violet-500 to-cyan-500",
+};
+
+const classes = [
+  "text-center text-6xl font-bold mt-20 leading-snug",
+  "bg-linear-to-r bg-clip-text text-transparent",
+  gradientMap[accent],
+  extraClass,
+]
+  .filter(Boolean)
+  .join(" ");
+---
+
+<h2 class={classes} {...rest}><slot /></h2>

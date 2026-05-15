@@ -1,5 +1,5 @@
 import type { SvgComponent } from "astro/types";
-import type { BadgeColor } from "../../layout/badge.types";
+import type { BadgeColor } from "../../shared/badge.types";
 
 export interface SkillItem {
   icon: SvgComponent;

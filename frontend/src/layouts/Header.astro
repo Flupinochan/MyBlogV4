@@ -2,7 +2,6 @@
 import Mail from "../components/icons/Mail.astro";
 import Zenn from "../components/icons/Zenn.astro";
 import Octcat from "../components/icons/Octcat.astro";
-import Flex from "../components/layout/Flex.astro";
 import SunMoon from "../components/icons/SunMoon.astro";
 ---
 
@@ -32,7 +31,7 @@ import SunMoon from "../components/icons/SunMoon.astro";
   >
     METAL MENTAL
   </a>
-  <Flex class="relative z-10 gap-4 pr-10 items-center">
+  <div class="flex relative z-10 gap-4 pr-10 items-center">
     <button
       aria-label="ダークモードに切り替える"
       class="cursor-pointer toggle-dark-mode group transform active:scale-95 transition-transform duration-150"
@@ -74,7 +73,7 @@ import SunMoon from "../components/icons/SunMoon.astro";
         class="size-6 hover:brightness-75 dark:hover:brightness-125 transition-all duration-300"
       />
     </a>
-  </Flex>
+  </div>
 </header>
 
 <script>
