@@ -296,7 +296,7 @@ function BlogCarousel() {
             onChange={(v) => setSelectedTopics(v ? [v] : [])}
           />
         </div>
-        <div className="min-h-76 flex items-center justify-center">
+        <div className="min-h-76 flex items-center justify-center blog-carousel">
           {!isLoading &&
             !error &&
             (slides.length > 0 ? (

@@ -2,9 +2,14 @@
 @variant dark (&:where(.dark, .dark *));
 
 .blog-search {
-  @apply py-2 px-3 text-sm rounded-xl border border-slate-300 dark:border-slate-700 transition-colors 
-  focus:outline-none focus-visible:ring-1 focus:border-violet-400 dark:focus:border-violet-500 
-  focus-visible:ring-violet-400 dark:focus-visible:ring-violet-500;
+  @apply py-2 px-3 text-sm rounded-xl border border-slate-300 dark:border-slate-700 transition-colors
+  focus:outline-none focus-visible:ring-1 focus:border-violet-400 dark:focus:border-violet-500
+  focus-visible:ring-violet-400 dark:focus-visible:ring-violet-500
+  opacity-0 invisible;
+}
+
+.blog-carousel {
+  @apply opacity-0 invisible;
 }
 
 .blog-search option {

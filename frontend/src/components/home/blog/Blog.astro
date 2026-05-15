@@ -8,6 +8,7 @@ import SectionHeading from "../../shared/SectionHeading.astro";
 <BlogSection client:idle />
 
 <script>
+  import { gsap } from "../../../lib/gsap";
   import { initSectionHeadingAnimation } from "../../../lib/sectionHeadingAnimation";
 
   const blogTitleEl = document.querySelector("[data-blog-title]");
@@ -15,5 +16,24 @@ import SectionHeading from "../../shared/SectionHeading.astro";
     throw new Error("Blog title element not found");
   }
 
-  initSectionHeadingAnimation(blogTitleEl);
+  const tl = initSectionHeadingAnimation(blogTitleEl);
+
+  tl.to(
+    ".blog-search",
+    {
+      autoAlpha: 1,
+      stagger: 0.12,
+      duration: 0.35,
+      ease: "power2.out",
+    },
+    "-=0.1",
+  ).to(
+    ".blog-carousel",
+    {
+      autoAlpha: 1,
+      duration: 0.35,
+      ease: "power2.out",
+    },
+    "-=0.1",
+  );
 </script>
