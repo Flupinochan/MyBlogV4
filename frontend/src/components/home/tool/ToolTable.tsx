@@ -709,7 +709,7 @@ export default function ToolTable() {
         </div>
       )}
 
-      <div className="flex justify-end gap-2 mb-2 mt-20">
+      <div className="flex justify-end gap-4 mb-4">
         {/* SELECT COLUMNS */}
         <button
           popoverTarget="col-visibility-switch-menu"
