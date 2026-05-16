@@ -1,0 +1,170 @@
+---
+import SectionHeading from "../../shared/SectionHeading.astro";
+
+const items = [
+  { year: 2019, title: "Title A", desc: "Description placeholder." },
+  { year: 2021, title: "Title B", desc: "Description placeholder." },
+  { year: 2022, title: "Title C", desc: "Description placeholder." },
+  { year: 2024, title: "Title C", desc: "Description placeholder." },
+  { year: 2026, title: "Title D", desc: "Description placeholder." },
+];
+---
+
+<SectionHeading accent="cyan" class="mb-16" data-timeline-title
+  >See Me in Timeline</SectionHeading
+>
+
+<div id="tl-wrap" class="relative mx-16">
+  <div id="tl-start" class="text-center text-cyan-400">高校卒業</div>
+
+  <div class="flex flex-col gap-30 my-30">
+    {
+      items.map((item, i) => (
+        <div class="tl-row flex justify-between items-center p-4">
+          {i % 2 !== 0 ? (
+            // 奇数行
+            <>
+              <div>
+                <p class="font-bold text-slate-100">{item.title}</p>
+                <p class="text-sm text-slate-400">{item.desc}</p>
+              </div>
+              <p class="text-5xl font-bold text-cyan-400">{item.year}</p>
+            </>
+          ) : (
+            // 偶数行
+            <>
+              <p class="text-5xl font-bold text-cyan-400">{item.year}</p>
+              <div class="text-right">
+                <p class="font-bold text-slate-100">{item.title}</p>
+                <p class="text-sm text-slate-400">{item.desc}</p>
+              </div>
+            </>
+          )}
+        </div>
+      ))
+    }
+  </div>
+
+  <div id="tl-end" class="text-center text-cyan-400">現在</div>
+
+  <!-- 親要素divと同じ位置、同じサイズの背景用timeline svg -->
+  <svg class="absolute -z-1 inset-0 w-full h-full text-cyan-400">
+    <path
+      id="tl-path"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+    >
+    </path>
+    <g id="tl-dots"></g>
+  </svg>
+</div>
+
+<script>
+  import { gsap } from "../../../lib/gsap";
+  import { initSectionHeadingAnimation } from "../../../lib/sectionHeadingAnimation";
+
+  const wrap = document.getElementById("tl-wrap") as HTMLDivElement | null;
+  const path = document.getElementById("tl-path") as SVGPathElement | null;
+  const start = document.getElementById("tl-start") as HTMLDivElement | null;
+  const end = document.getElementById("tl-end") as HTMLDivElement | null;
+  if (!wrap) throw new Error("Timeline wrap element not found");
+  if (!path) throw new Error("Timeline path element not found");
+  if (!start) throw new Error("Timeline start element not found");
+  if (!end) throw new Error("Timeline end element not found");
+
+  // x軸と違い、y軸は20xx要素ごとに高さが異なるため計算が必要
+  // svgは左上座標(0,0)が基準のため、親要素のwrapからの相対位置でy座標を計算する関数
+  // 要素の中央のy座標を返却
+  const centerY = (el: Element) => {
+    const rect = el.getBoundingClientRect();
+    const wrapRect = wrap.getBoundingClientRect();
+    return rect.top + rect.height / 2 - wrapRect.top;
+  };
+
+  // 各要素のbottomのy座標を計算する関数
+  const bottomY = (el: Element) => {
+    const rect = el.getBoundingClientRect();
+    const wrapRect = wrap.getBoundingClientRect();
+    return rect.bottom - wrapRect.top;
+  };
+
+  let tween: gsap.core.Tween | undefined;
+
+  function draw() {
+    if (!wrap) throw new Error("Timeline wrap element not found");
+    if (!path) throw new Error("Timeline path element not found");
+    if (!start) throw new Error("Timeline start element not found");
+    if (!end) throw new Error("Timeline end element not found");
+
+    tween?.scrollTrigger?.kill();
+    tween?.kill();
+
+    const rect = wrap.getBoundingClientRect();
+
+    const wrapWidth = rect.width;
+    const wrapHeight = rect.height;
+    const wrapCenterX = rect.width / 2;
+    const x = 0;
+    const strokeWidthHalf = 1; // stroke-widthの半分 (端でpathが半分見切れるため)
+
+    const startY = centerY(start);
+    const startBottomY = startY + start.getBoundingClientRect().height / 2;
+    const endY = centerY(end);
+    const endStartY = endY - end.getBoundingClientRect().height / 2;
+    const rowCenterYs = Array.from(document.querySelectorAll(".tl-row")).map(
+      centerY,
+    );
+    const rowBottomYs = Array.from(document.querySelectorAll(".tl-row")).map(
+      bottomY,
+    );
+    const rowCount = rowCenterYs.length;
+
+    let d = `M ${wrapCenterX} ${startBottomY}`; // 高校卒業の要素のbottomへ移動
+    d += `l 0 20`; // 下へ20px線を引く
+    d += `l -${wrapCenterX - x - strokeWidthHalf} 0`; // 左端へ線を引く
+    d += `L ${0 + strokeWidthHalf} ${rowBottomYs[0]}`; // 要素のbottomへ線を引く
+    d += `L ${wrapWidth - strokeWidthHalf} ${rowBottomYs[0] - strokeWidthHalf}`; // 右端へ線を引く
+    d += `L ${wrapWidth - strokeWidthHalf} ${rowBottomYs[1] - strokeWidthHalf}`; // 次の要素のbottomへ線を引く
+    d += `L ${0 + strokeWidthHalf} ${rowBottomYs[1] - strokeWidthHalf}`; // 左端へ線を引く
+    d += `L ${0 + strokeWidthHalf} ${rowBottomYs[2] - strokeWidthHalf}`; // 次の要素のbottomへ線を引く
+    d += `L ${wrapWidth - strokeWidthHalf} ${rowBottomYs[2] - strokeWidthHalf}`; // 右端へ線を引く
+    d += `L ${wrapWidth - strokeWidthHalf} ${rowBottomYs[3] - strokeWidthHalf}`; // 次の要素のbottomへ線を引く
+    d += `L ${0 + strokeWidthHalf} ${rowBottomYs[3] - strokeWidthHalf}`; // 左端へ線を引く
+    d += `L ${0 + strokeWidthHalf} ${rowBottomYs[4] - strokeWidthHalf}`; // 次の要素のbottomへ線を引く
+    d += `L ${wrapWidth - strokeWidthHalf} ${rowBottomYs[4] - strokeWidthHalf}`; // 右端へ線を引く
+    d += `L ${wrapWidth - strokeWidthHalf} ${rowBottomYs[5] - strokeWidthHalf}`; // 次の要素のbottomへ線を引く
+    d += `L ${wrapCenterX} ${rowBottomYs[5]}`; // 中央へ線を引く
+    d += `L ${wrapCenterX} ${endStartY}`; // 現在の要素のtopへ線を引く
+
+    path.setAttribute("d", d);
+
+    // gsap drawSVG + ScrollTrigger
+    // 0% -> 100% へ scrub1 でスクロールに連動してpathを絵画
+    tween = gsap.fromTo(
+      path,
+      { drawSVG: "0%" },
+      {
+        drawSVG: "100%",
+        ease: "none",
+        scrollTrigger: {
+          trigger: "#tl-wrap",
+          start: "top 60%",
+          end: "bottom center",
+          scrub: 1,
+          markers: true,
+        },
+      },
+    );
+  }
+
+  draw();
+
+  const ro = new ResizeObserver(draw);
+  ro.observe(wrap);
+
+  const title = document.querySelector("[data-timeline-title]");
+  if (!title) throw new Error("Timeline title element not found");
+  initSectionHeadingAnimation(title);
+</script>
