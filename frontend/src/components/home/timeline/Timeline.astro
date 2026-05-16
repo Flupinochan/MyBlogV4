@@ -42,7 +42,7 @@ const items = [
 <div id="tl-wrap" class="relative mx-16">
   <div
     id="tl-start"
-    class="text-center pb-3"
+    class="text-center font-semibold pb-3"
     style={`color: ${items[0].color}`}
   >
     高校卒業
@@ -52,30 +52,16 @@ const items = [
     {
       items.map((item, i) => (
         <div
-          class="tl-row flex justify-between items-center p-4"
+          class={`tl-row flex justify-between items-center p-4${i % 2 !== 0 ? " flex-row-reverse" : ""}`}
           data-color={item.color}
         >
-          {i % 2 !== 0 ? (
-            <>
-              <div>
-                <p class="font-bold text-slate-100">{item.title}</p>
-                <p class="text-sm text-slate-400">{item.desc}</p>
-              </div>
-              <h3 class="text-5xl font-bold" style={`color: ${item.color}`}>
-                {item.year}
-              </h3>
-            </>
-          ) : (
-            <>
-              <h3 class="text-5xl font-bold" style={`color: ${item.color}`}>
-                {item.year}
-              </h3>
-              <div class="text-right">
-                <p class="font-bold text-slate-100">{item.title}</p>
-                <p class="text-sm text-slate-400">{item.desc}</p>
-              </div>
-            </>
-          )}
+          <h3 class="text-5xl font-bold" style={`color: ${item.color}`}>
+            {item.year}
+          </h3>
+          <div class={i % 2 !== 0 ? "" : "text-right"}>
+            <p class="font-bold text-slate-100">{item.title}</p>
+            <p class="text-sm text-slate-400">{item.desc}</p>
+          </div>
         </div>
       ))
     }
@@ -83,7 +69,7 @@ const items = [
 
   <div
     id="tl-end"
-    class="text-center pt-3 mt-5"
+    class="text-center font-semibold pt-3 mt-5"
     style={`color: ${items[items.length - 1].color}`}
   >
     現在
@@ -149,10 +135,6 @@ const items = [
       const rect = el.getBoundingClientRect();
       return rect.bottom - wrapRect.top;
     };
-    const startY = (el: Element) => {
-      const rect = el.getBoundingClientRect();
-      return rect.bottom - wrapRect.top;
-    };
     const endY = (el: Element) => {
       const rect = el.getBoundingClientRect();
       return rect.top - wrapRect.top;
@@ -161,10 +143,9 @@ const items = [
     tween?.scrollTrigger?.kill();
     tween?.kill();
 
-    const x = 0;
     const strokeWidthHalf = 1; // stroke-widthの半分 (端でpathが半分見切れるため)
 
-    const startBottomY = startY(start);
+    const startBottomY = bottomY(start);
     const endTopY = endY(end);
     const rows = Array.from(document.querySelectorAll<HTMLElement>(".tl-row"));
     const rowBottomYs = rows.map(bottomY);
@@ -192,19 +173,22 @@ const items = [
     });
 
     let d = `M ${wrapCenterX} ${startBottomY}`; // 高校卒業の要素のbottomへ移動
-    d += `l 0 20`; // 下へ20px線を引く (gap-30 mt-35 mb-5 と合わせて調整)
-    d += `l -${wrapCenterX - x - strokeWidthHalf} 0`; // 左端へ線を引く
-    d += `L ${0 + strokeWidthHalf} ${rowBottomYs[0]}`; // 要素のbottomへ線を引く
-    d += `L ${wrapWidth - strokeWidthHalf} ${rowBottomYs[0] - strokeWidthHalf}`; // 右端へ線を引く
-    d += `L ${wrapWidth - strokeWidthHalf} ${rowBottomYs[1] - strokeWidthHalf}`; // 次の要素のbottomへ線を引く
-    d += `L ${0 + strokeWidthHalf} ${rowBottomYs[1] - strokeWidthHalf}`; // 左端へ線を引く
-    d += `L ${0 + strokeWidthHalf} ${rowBottomYs[2] - strokeWidthHalf}`; // 次の要素のbottomへ線を引く
-    d += `L ${wrapWidth - strokeWidthHalf} ${rowBottomYs[2] - strokeWidthHalf}`; // 右端へ線を引く
-    d += `L ${wrapWidth - strokeWidthHalf} ${rowBottomYs[3] - strokeWidthHalf}`; // 次の要素のbottomへ線を引く
-    d += `L ${0 + strokeWidthHalf} ${rowBottomYs[3] - strokeWidthHalf}`; // 左端へ線を引く
-    d += `L ${0 + strokeWidthHalf} ${rowBottomYs[4] - strokeWidthHalf}`; // 次の要素のbottomへ線を引く
-    d += `L ${wrapCenterX} ${rowBottomYs[4]}`; // 中央へ線を引く
-    d += `L ${wrapCenterX} ${endTopY}`; // 現在の要素のtopへ線を引く
+    d += ` l 0 20`; // 下へ20px線を引く (gap-30 mt-35 mb-5 と合わせて調整)
+    d += ` l -${wrapCenterX - strokeWidthHalf} 0`;
+    for (let i = 0; i < rowBottomYs.length; i++) {
+      const isEven = i % 2 === 0;
+      const entryX = isEven ? strokeWidthHalf : wrapWidth - strokeWidthHalf;
+      const exitX = isEven ? wrapWidth - strokeWidthHalf : strokeWidthHalf;
+      const entryY =
+        i === 0 ? rowBottomYs[i] : rowBottomYs[i] - strokeWidthHalf;
+      d += ` L ${entryX} ${entryY}`;
+      if (i < rowBottomYs.length - 1) {
+        d += ` L ${exitX} ${rowBottomYs[i] - strokeWidthHalf}`;
+      } else {
+        d += ` L ${wrapCenterX} ${rowBottomYs[i]}`;
+      }
+    }
+    d += ` L ${wrapCenterX} ${endTopY}`; // 現在の要素のtopへ線を引く
 
     path.setAttribute("d", d);
 
