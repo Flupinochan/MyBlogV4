@@ -113,6 +113,8 @@ const items = [
   ) as SVGLinearGradientElement | null;
 
   let svgTween: gsap.core.Tween | undefined;
+  let startTween: gsap.core.Tween | undefined;
+  let endTween: gsap.core.Tween | undefined;
   let rowTweens: gsap.core.Tween[] = [];
 
   function draw() {
@@ -143,6 +145,10 @@ const items = [
 
     svgTween?.scrollTrigger?.kill();
     svgTween?.kill();
+    startTween?.scrollTrigger?.kill();
+    startTween?.kill();
+    endTween?.scrollTrigger?.kill();
+    endTween?.kill();
     rowTweens.forEach((t) => {
       t.scrollTrigger?.kill();
       t.kill();
@@ -207,10 +213,41 @@ const items = [
         drawSVG: "100%",
         ease: "none",
         scrollTrigger: {
-          trigger: "#tl-wrap",
+          trigger: wrap,
           start: "top 60%",
           end: "bottom center",
           scrub: 1,
+          once: true,
+        },
+      },
+    );
+
+    startTween = gsap.fromTo(
+      start,
+      { opacity: 0 },
+      {
+        opacity: 1,
+        duration: 0.6,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: start,
+          start: "top 60%",
+          end: "bottom center",
+        },
+      },
+    );
+
+    endTween = gsap.fromTo(
+      end,
+      { opacity: 0 },
+      {
+        opacity: 1,
+        duration: 0.6,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: end,
+          start: "top 60%",
+          end: "bottom center",
         },
       },
     );
