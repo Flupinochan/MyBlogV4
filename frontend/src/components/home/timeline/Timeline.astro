@@ -112,7 +112,8 @@ const items = [
     "timelineGradient",
   ) as SVGLinearGradientElement | null;
 
-  let tween: gsap.core.Tween | undefined;
+  let svgTween: gsap.core.Tween | undefined;
+  let rowTweens: gsap.core.Tween[] = [];
 
   function draw() {
     if (!wrap) throw new Error("Timeline wrap element not found");
@@ -140,8 +141,13 @@ const items = [
       return rect.top - wrapRect.top;
     };
 
-    tween?.scrollTrigger?.kill();
-    tween?.kill();
+    svgTween?.scrollTrigger?.kill();
+    svgTween?.kill();
+    rowTweens.forEach((t) => {
+      t.scrollTrigger?.kill();
+      t.kill();
+    });
+    rowTweens = [];
 
     const strokeWidthHalf = 1; // stroke-widthの半分 (端でpathが半分見切れるため)
 
@@ -194,7 +200,7 @@ const items = [
 
     // gsap drawSVG + ScrollTrigger
     // 0% -> 100% へ scrub1 でスクロールに連動してpathを絵画
-    tween = gsap.fromTo(
+    svgTween = gsap.fromTo(
       path,
       { drawSVG: "0%" },
       {
@@ -208,6 +214,25 @@ const items = [
         },
       },
     );
+
+    rowTweens = rows.map((row, i) => {
+      const fromX = i % 2 === 0 ? -40 : 40;
+      return gsap.fromTo(
+        row,
+        { opacity: 0, x: fromX },
+        {
+          opacity: 1,
+          x: 0,
+          duration: 0.6,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: row,
+            start: "top 55%",
+            end: "bottom center",
+          },
+        },
+      );
+    });
   }
 
   draw();
