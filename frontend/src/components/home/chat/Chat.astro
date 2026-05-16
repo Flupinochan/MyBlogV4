@@ -1,0 +1,15 @@
+---
+import SectionHeading from "../../shared/SectionHeading.astro";
+---
+
+<SectionHeading accent="pink" class="mb-16" data-chat-title
+  >See Me in Chat</SectionHeading
+>
+
+<script>
+  import { initSectionHeadingAnimation } from "../../../lib/sectionHeadingAnimation";
+
+  const title = document.querySelector("[data-chat-title]");
+  if (!title) throw new Error("Chat title element not found");
+  initSectionHeadingAnimation(title);
+</script>
