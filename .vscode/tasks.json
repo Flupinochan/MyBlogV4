@@ -1,7 +1,7 @@
 {
   "tasks": [
     {
-      "command": "cd backend/lib/lambda/voicevox && uv run --env-file .env fastapi run src/main.py --port 8080",
+      "command": "cd backend/lib/lambda/voicevox && PYTHONPATH=src uv run --env-file .env fastapi run src/main.py --port 8081",
       "isBackground": true,
       "label": "Start FastAPI (voicevox)",
       "presentation": {

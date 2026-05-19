@@ -13,6 +13,17 @@ export default defineConfig({
     // Connect to the backend go gin server
     server: {
       proxy: {
+        // voiceはs3上にあるため直接dev環境にアクセス
+        "/voice": {
+          target: "https://dev-blog.metalmental.net",
+          changeOrigin: true,
+        },
+        // 先に長いパスを定義しておくこと
+        "/api/fastapi": {
+          target: "http://localhost:8081",
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/api\/fastapi/, "/v1/fastapi"),
+        },
         "/api": {
           target: "http://localhost:8080",
           changeOrigin: true,

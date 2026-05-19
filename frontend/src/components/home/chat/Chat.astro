@@ -1,11 +1,12 @@
 ---
 import SectionHeading from "../../shared/SectionHeading.astro";
+import ChatSection from "./ChatSection";
 ---
 
 <SectionHeading accent="pink" class="mb-16" data-chat-title
   >See Me in Chat</SectionHeading
 >
-<div class="h-[500px]"></div>
+<ChatSection client:idle />
 
 <script>
   import { initSectionHeadingAnimation } from "../../../lib/sectionHeadingAnimation";
