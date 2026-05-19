@@ -1,16 +1,16 @@
-"""VoiceVoxを使用してテキスト音声合成を行う"""
+"""FastAPI Lambda: テキストチャットと音声付きチャットのエンドポイント"""
 
 import multiprocessing
 import os
-import tempfile
-import uuid
 
 import boto3
 from anthropic import AnthropicAWS
-from anthropic.types import TextBlock
 from aws_lambda_powertools import Logger
+from aws_lambda_powertools.logging.formatter import LambdaPowertoolsFormatter
 from fastapi import APIRouter, FastAPI
 from pydantic import BaseModel
+from service.chat_service import ChatService  # ty:ignore[unresolved-import]
+from service.voice_service import VoiceService  # ty:ignore[unresolved-import]
 from voicevox_core import UserDictWord
 from voicevox_core.blocking import (
     Onnxruntime,
@@ -20,17 +20,17 @@ from voicevox_core.blocking import (
     VoiceModelFile,
 )
 
-# ロガー初期化
-logger = Logger()
+formatter = LambdaPowertoolsFormatter(
+    log_record_order=["level", "message", "timestamp", "location"],
+)
+logger = Logger(logger_formatter=formatter)
 
-# 環境変数定義
+
 try:
     ONNX_RUNTIME_PATH = "voicevox/onnxruntime/lib/libvoicevox_onnxruntime.so"
     MODEL_PATH = "voicevox/model/0.vvm"
     OPEN_JTALK_PATH = "voicevox/open_jtalk"
-    MODEL_STYLE_ID = 0  # あまあま
     VOICE_OUTPUT_BUCKET_NAME = os.environ["VOICE_OUTPUT_BUCKET_NAME"]
-    OUTPUT_PREFIX = "voice"
 except KeyError:
     logger.exception("環境変数が設定されていません")
     raise
@@ -66,10 +66,15 @@ synthesizer = Synthesizer(
 with VoiceModelFile.open(MODEL_PATH) as model:
     synthesizer.load_voice_model(model)
 
-anthropic_client = AnthropicAWS()
+chat_service = ChatService(client=AnthropicAWS())
+voice_service = VoiceService(
+    synthesizer=synthesizer,
+    s3_client=s3_client,
+    bucket_name=VOICE_OUTPUT_BUCKET_NAME,
+)
 
-app = FastAPI()
 # Go GinのLayerベースと違い、Dockerベースの場合は/apiは不要
+app = FastAPI()
 router = APIRouter(prefix="/v1/fastapi")
 
 
@@ -78,14 +83,10 @@ class ChatRequest(BaseModel):
 
 
 class ChatResponse(BaseModel):
-    result: str
-
-
-class VoicevoxRequest(BaseModel):
     message: str
 
 
-class VoicevoxResponse(BaseModel):
+class VoiceChatResponse(ChatResponse):
     bucket: str
     key: str
 
@@ -95,45 +96,17 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@router.post("/voicevox")
-def voicevox(request: VoicevoxRequest) -> VoicevoxResponse:
-    # 3. テキスト音声合成
-    wav = synthesizer.tts(request.message, MODEL_STYLE_ID)
-    with tempfile.NamedTemporaryFile() as file:
-        file.write(wav)
-        file.flush()
-
-        # 4. S3にアップロード
-        output_key = f"{OUTPUT_PREFIX}/{uuid.uuid4().hex}.wav"
-        try:
-            s3_client.upload_file(
-                file.name,
-                VOICE_OUTPUT_BUCKET_NAME,
-                output_key,
-            )
-        except Exception:
-            logger.exception(
-                "Failed to upload voice to S3. bucket: %s, key: %s",
-                VOICE_OUTPUT_BUCKET_NAME,
-                output_key,
-            )
-            raise
-
-    return VoicevoxResponse(bucket=VOICE_OUTPUT_BUCKET_NAME, key=output_key)
-
-
 @router.post("/chat")
 def chat(request: ChatRequest) -> ChatResponse:
-    message = anthropic_client.messages.create(
-        model="claude-sonnet-4-6",
-        max_tokens=1024,
-        messages=[{"role": "user", "content": request.message}],
-    )
-    result = next(
-        block.text for block in message.content if isinstance(block, TextBlock)
-    )
-    logger.info("Agent result", extra={"result": result})
-    return ChatResponse(result=result)
+    message = chat_service.generate_message(request.message)
+    return ChatResponse(message=message)
+
+
+@router.post("/chat/voice")
+def chat_with_voice(request: ChatRequest) -> VoiceChatResponse:
+    message = chat_service.generate_message(request.message)
+    bucket, key = voice_service.synthesize_and_upload(message)
+    return VoiceChatResponse(message=message, bucket=bucket, key=key)
 
 
 app.include_router(router)
