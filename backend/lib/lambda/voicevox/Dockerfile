@@ -16,7 +16,7 @@ FROM python:3.13-slim
 
 COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:1.0.0 /lambda-adapter /opt/extensions/lambda-adapter
 
-ENV PYTHONPATH=/var/task
+ENV PYTHONPATH=/var/task/src:/var/task
 ENV PATH=/var/task/bin:$PATH
 WORKDIR /var/task
 

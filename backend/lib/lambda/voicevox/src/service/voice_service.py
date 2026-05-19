@@ -39,6 +39,13 @@ class VoiceService:
             try:
                 # S3にwavファイルをアップロード
                 self._s3_client.upload_file(file.name, self._bucket_name, key)
+                logger.info(
+                    "wav file voice upload",
+                    extra={
+                        "Bucket": self._bucket_name,
+                        "Key": key,
+                    },
+                )
             except Exception:
                 logger.exception(
                     "Failed to upload voice to S3. bucket: %s, key: %s",

@@ -91,18 +91,11 @@ export class ApiStack extends cdk.Stack {
 
     const v1 = this.api.root.addResource("v1");
     const fastapi = v1.addResource("fastapi");
-    fastapi
-      .addResource("chat")
-      .addMethod(
-        "POST",
-        new apigateway.LambdaIntegration(voicevoxLambda, { proxy: true }),
-      );
-    fastapi
-      .addResource("health")
-      .addMethod(
-        "GET",
-        new apigateway.LambdaIntegration(voicevoxLambda, { proxy: true }),
-      );
+    const voicevoxIntegration = new apigateway.LambdaIntegration(voicevoxLambda, { proxy: true });
+    fastapi.addResource("health").addMethod("GET", voicevoxIntegration);
+    const chat = fastapi.addResource("chat");
+    chat.addMethod("POST", voicevoxIntegration);
+    chat.addResource("voice").addMethod("POST", voicevoxIntegration);
 
     this.api.root.addProxy({
       defaultIntegration: new apigateway.LambdaIntegration(blogSearchLambda, {

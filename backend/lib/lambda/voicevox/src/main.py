@@ -1,5 +1,6 @@
 """FastAPI Lambda: テキストチャットと音声付きチャットのエンドポイント"""
 
+import logging
 import multiprocessing
 import os
 
@@ -19,6 +20,9 @@ from voicevox_core.blocking import (
     UserDict,
     VoiceModelFile,
 )
+
+# ルートレベル(外部ライブラリのログ)はWARNINGで設定
+logging.basicConfig(level=logging.WARNING)
 
 formatter = LambdaPowertoolsFormatter(
     log_record_order=["level", "message", "timestamp", "location"],
