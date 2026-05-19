@@ -36,6 +36,8 @@ const voicevoxEcrName = `${stackBaseName}-voicevox-ecr`;
 const voicevoxLambdaName = `${stackBaseName}-voicevox-lambda`;
 const openSearchBatchLambdaName = `${stackBaseName}-opensearch-batch`;
 const openSearchApiLambdaName = `${stackBaseName}-opensearch-api`;
+const claudeApiKeyParam = "claude-platform-api-key";
+const claudeWorkspaceIdParam = "claude-platform-workspace-id";
 
 // voicevox engineアップロード用
 // ★最初にこのS3 Bucketだけ単体でデプロイし、voicevox engine関連のリソースをzipでアップロードしておくこと
@@ -62,6 +64,8 @@ new VoicevoxLambdaStack(app, `${stackBaseName}-VoicevoxLambdaStack`, {
   voicevoxEcrName,
   imageTag,
   createdVoiceOutputBucketName: hostingBucketName,
+  claudeApiKeyParam,
+  claudeWorkspaceIdParam,
 });
 
 new OpenSearchBatchStack(app, `${stackBaseName}-OpenSearchBatchStack`, {
@@ -100,6 +104,7 @@ const apiStack = new ApiStack(app, `${stackBaseName}-ApiStack`, {
   apiPath,
   isProd: isProd(envName),
   openSearchApiLambdaName,
+  voicevoxLambdaName,
 });
 
 const hostingStack = new HostingStack(app, `${stackBaseName}-HostingStack`, {

@@ -6,9 +6,10 @@ import tempfile
 import uuid
 
 import boto3
+from anthropic import AnthropicAWS
+from anthropic.types import TextBlock
 from aws_lambda_powertools import Logger
-from aws_lambda_powertools.utilities.parser import event_parser
-from aws_lambda_powertools.utilities.typing import LambdaContext
+from fastapi import APIRouter, FastAPI
 from pydantic import BaseModel
 from voicevox_core import UserDictWord
 from voicevox_core.blocking import (
@@ -65,18 +66,39 @@ synthesizer = Synthesizer(
 with VoiceModelFile.open(MODEL_PATH) as model:
     synthesizer.load_voice_model(model)
 
+anthropic_client = AnthropicAWS()
 
-class HandlerEvent(BaseModel):
-    """Handler event model"""
+app = FastAPI()
+# Go GinのLayerベースと違い、Dockerベースの場合は/apiは不要
+router = APIRouter(prefix="/v1/fastapi")
 
+
+class ChatRequest(BaseModel):
     message: str
 
 
-@event_parser(model=HandlerEvent)
-def handler(event: HandlerEvent, _context: LambdaContext) -> dict:
-    """Entry Point"""
+class ChatResponse(BaseModel):
+    result: str
+
+
+class VoicevoxRequest(BaseModel):
+    message: str
+
+
+class VoicevoxResponse(BaseModel):
+    bucket: str
+    key: str
+
+
+@router.get("/health")
+def health() -> dict[str, str]:
+    return {"status": "ok"}
+
+
+@router.post("/voicevox")
+def voicevox(request: VoicevoxRequest) -> VoicevoxResponse:
     # 3. テキスト音声合成
-    wav = synthesizer.tts(event.message, MODEL_STYLE_ID)
+    wav = synthesizer.tts(request.message, MODEL_STYLE_ID)
     with tempfile.NamedTemporaryFile() as file:
         file.write(wav)
         file.flush()
@@ -97,4 +119,21 @@ def handler(event: HandlerEvent, _context: LambdaContext) -> dict:
             )
             raise
 
-    return {"bucket": VOICE_OUTPUT_BUCKET_NAME, "key": output_key}
+    return VoicevoxResponse(bucket=VOICE_OUTPUT_BUCKET_NAME, key=output_key)
+
+
+@router.post("/chat")
+def chat(request: ChatRequest) -> ChatResponse:
+    message = anthropic_client.messages.create(
+        model="claude-sonnet-4-6",
+        max_tokens=1024,
+        messages=[{"role": "user", "content": request.message}],
+    )
+    result = next(
+        block.text for block in message.content if isinstance(block, TextBlock)
+    )
+    logger.info("Agent result", extra={"result": result})
+    return ChatResponse(result=result)
+
+
+app.include_router(router)

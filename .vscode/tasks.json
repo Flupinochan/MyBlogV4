@@ -1,6 +1,17 @@
 {
   "tasks": [
     {
+      "command": "cd backend/lib/lambda/voicevox && uv run --env-file .env fastapi run src/main.py --port 8080",
+      "isBackground": true,
+      "label": "Start FastAPI (voicevox)",
+      "presentation": {
+        "panel": "new",
+        "reveal": "always"
+      },
+      "problemMatcher": [],
+      "type": "shell"
+    },
+    {
       "command": "cd backend/lib/lambda/opensearch/ && air",
       "isBackground": true,
       "label": "Start Backend (air)",

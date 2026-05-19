@@ -9,6 +9,7 @@ interface ApiStackProps extends cdk.StackProps {
   apiPath: string;
   isProd: boolean;
   openSearchApiLambdaName: string;
+  voicevoxLambdaName: string;
 }
 
 export class ApiStack extends cdk.Stack {
@@ -81,6 +82,27 @@ export class ApiStack extends cdk.Stack {
       "BlogSearchLambda",
       props.openSearchApiLambdaName,
     );
+
+    const voicevoxLambda = lambda.Function.fromFunctionName(
+      this,
+      "VoicevoxLambda",
+      props.voicevoxLambdaName,
+    );
+
+    const v1 = this.api.root.addResource("v1");
+    const fastapi = v1.addResource("fastapi");
+    fastapi
+      .addResource("chat")
+      .addMethod(
+        "POST",
+        new apigateway.LambdaIntegration(voicevoxLambda, { proxy: true }),
+      );
+    fastapi
+      .addResource("health")
+      .addMethod(
+        "GET",
+        new apigateway.LambdaIntegration(voicevoxLambda, { proxy: true }),
+      );
 
     this.api.root.addProxy({
       defaultIntegration: new apigateway.LambdaIntegration(blogSearchLambda, {

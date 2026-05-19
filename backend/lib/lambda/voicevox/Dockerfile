@@ -1,5 +1,5 @@
 FROM ghcr.io/astral-sh/uv:0.11.3 AS uv
-FROM public.ecr.aws/lambda/python:3.13 AS builder
+FROM python:3.13-slim AS builder
 
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_NO_INSTALLER_METADATA=1
@@ -10,15 +10,18 @@ RUN --mount=from=uv,source=/uv,target=/bin/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv export --frozen --no-emit-workspace --no-dev --no-editable -o requirements.txt && \
-    uv pip install -r requirements.txt --target "${LAMBDA_TASK_ROOT}"
+    uv pip install -r requirements.txt --target /var/task
 
-FROM public.ecr.aws/lambda/python:3.13
+FROM python:3.13-slim
 
-WORKDIR ${LAMBDA_TASK_ROOT}
+COPY --from=public.ecr.aws/awsguru/aws-lambda-adapter:1.0.0 /lambda-adapter /opt/extensions/lambda-adapter
 
-COPY --from=builder ${LAMBDA_TASK_ROOT} ${LAMBDA_TASK_ROOT}
+ENV PYTHONPATH=/var/task
+ENV PATH=/var/task/bin:$PATH
+WORKDIR /var/task
 
+COPY --from=builder /var/task /var/task
 COPY src ./src
 COPY voicevox ./voicevox
 
-CMD ["src/main.handler"]
+CMD ["fastapi", "run", "src/main.py", "--port", "8080"]

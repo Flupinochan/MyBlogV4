@@ -3,6 +3,7 @@ import * as ecr from "aws-cdk-lib/aws-ecr";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as logs from "aws-cdk-lib/aws-logs";
+import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as cdk from "aws-cdk-lib/core";
 import { Construct } from "constructs";
 
@@ -11,6 +12,8 @@ interface VoicevoxLambdaStackProps extends cdk.StackProps {
   voicevoxEcrName: string;
   imageTag: string;
   createdVoiceOutputBucketName: string;
+  claudeApiKeyParam: string;
+  claudeWorkspaceIdParam: string;
 }
 
 export class VoicevoxLambdaStack extends cdk.Stack {
@@ -20,6 +23,16 @@ export class VoicevoxLambdaStack extends cdk.Stack {
 
   constructor(scope: Construct, id: string, props: VoicevoxLambdaStackProps) {
     super(scope, id, props);
+
+    const claudeApiKey = ssm.StringParameter.valueForStringParameter(
+      this,
+      props.claudeApiKeyParam,
+    );
+
+    const claudeWorkspaceId = ssm.StringParameter.valueForStringParameter(
+      this,
+      props.claudeWorkspaceIdParam,
+    );
 
     this.logGroup = new logs.LogGroup(this, "logGroup", {
       logGroupName: `/aws/lambda/${props.voicevoxLambdaName}`,
@@ -46,6 +59,14 @@ export class VoicevoxLambdaStack extends cdk.Stack {
             }),
           ],
         }),
+        ClaudeAgentSdkPolicy: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              actions: ["aws-external-anthropic:*"],
+              resources: ["*"],
+            }),
+          ],
+        }),
       },
     });
 
@@ -61,14 +82,22 @@ export class VoicevoxLambdaStack extends cdk.Stack {
         tagOrDigest: props.imageTag,
       }),
       architecture: lambda.Architecture.X86_64,
-      timeout: Duration.seconds(900),
+      timeout: Duration.seconds(60),
       memorySize: 1024,
       logGroup: this.logGroup,
       loggingFormat: lambda.LoggingFormat.JSON,
+      applicationLogLevelV2: lambda.ApplicationLogLevel.DEBUG,
       role: this.role,
       tracing: lambda.Tracing.ACTIVE,
       environment: {
         VOICE_OUTPUT_BUCKET_NAME: props.createdVoiceOutputBucketName,
+        ANTHROPIC_AWS_API_KEY: claudeApiKey,
+        CLAUDE_CODE_USE_ANTHROPIC_AWS: "1",
+        ANTHROPIC_AWS_WORKSPACE_ID: claudeWorkspaceId,
+        HOME: "/tmp",
+        AWS_LWA_PORT: "8080",
+        AWS_LWA_READINESS_CHECK_PORT: "8080",
+        AWS_LWA_READINESS_CHECK_PATH: "/v1/fastapi/health",
       },
     });
   }
