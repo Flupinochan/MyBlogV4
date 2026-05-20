@@ -38,6 +38,8 @@ const openSearchBatchLambdaName = `${stackBaseName}-opensearch-batch`;
 const openSearchApiLambdaName = `${stackBaseName}-opensearch-api`;
 const claudeApiKeyParam = "claude-platform-api-key";
 const claudeWorkspaceIdParam = "claude-platform-workspace-id";
+const dockerhubUserParam = "dockerhub-user";
+const dockerhubPasswordParam = "dockerhub-password";
 
 // voicevox engineアップロード用
 // ★最初にこのS3 Bucketだけ単体でデプロイし、voicevox engine関連のリソースをzipでアップロードしておくこと
@@ -125,4 +127,6 @@ new HostingPipelineStack(app, `${stackBaseName}-HostingPipelineStack`, {
   hostingDistributionId: hostingStack.distribution.distributionId,
   voicevoxBucketName,
   voicevoxEcrName,
+  dockerhubUserParam,
+  dockerhubPasswordParam,
 });

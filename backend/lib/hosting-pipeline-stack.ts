@@ -17,6 +17,8 @@ interface HostingPipelineStackProps extends cdk.StackProps {
   hostingDistributionId: string;
   voicevoxBucketName: string;
   voicevoxEcrName: string;
+  dockerhubUserParam: string;
+  dockerhubPasswordParam: string;
 }
 
 export class HostingPipelineStack extends cdk.Stack {
@@ -65,6 +67,14 @@ export class HostingPipelineStack extends cdk.Stack {
           type: codebuild.BuildEnvironmentVariableType.PARAMETER_STORE,
           value: "github-zenn-token",
         },
+        DOCKERHUB_USER: {
+          type: codebuild.BuildEnvironmentVariableType.PARAMETER_STORE,
+          value: props.dockerhubUserParam,
+        },
+        DOCKERHUB_PASS: {
+          type: codebuild.BuildEnvironmentVariableType.PARAMETER_STORE,
+          value: props.dockerhubPasswordParam,
+        },
       },
       logging: {
         cloudWatch: {
@@ -99,6 +109,7 @@ export class HostingPipelineStack extends cdk.Stack {
             "on-failure": "ABORT",
             commands: [
               // build and push Docker image for synthesizeVoice Lambda
+              `echo $DOCKERHUB_PASS | docker login -u $DOCKERHUB_USER --password-stdin`,
               `export VOICEVOX_LAMBDA_IMAGE_TAG=$(date -u +%Y%m%d%H%M%S)`,
               `export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)`,
               `export ECR_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${props.voicevoxEcrName}`,
