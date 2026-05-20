@@ -42,6 +42,10 @@
 }
 
 @layer base {
+  html {
+    overflow-x: clip;
+  }
+
   html,
   .custom-scrollbar,
   select::picker(select) {
