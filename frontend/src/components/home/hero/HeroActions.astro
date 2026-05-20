@@ -1,10 +1,14 @@
 ---
+
 ---
 
 <div class="flex w-full items-center gap-8">
   <div class="h-px flex-1 bg-linear-to-l from-slate-500 to-transparent"></div>
   <button
-    class="cursor-pointer bg-transparent p-2 flex flex-col items-center mt-4 transition-all duration-200 ease-out hover:scale-105 hover:text-violet-600 active:scale-95"
+    class="cursor-pointer p-2 flex flex-col items-center mt-4 transition-all duration-200 ease-out
+          text-slate-500 dark:text-slate-300 hover:text-violet-600
+            hover:scale-105 active:scale-95"
+    data-scroll-btn
   >
     <div class="flex flex-col items-center mt-4">
       {
@@ -18,11 +22,15 @@
       <p class="mt-4">SCROLL</p>
     </div>
   </button>
-  <button
-    class="cursor-pointer rounded-md border bg-transparent px-5 py-2 transition-all duration-200 ease-out hover:border-violet-600 hover:text-violet-600 hover:scale-105 active:scale-95"
+  <a
+    aria-label="メールを送信する"
+    href="mailto:flupino@metalmental.net"
+    class="cursor-pointer rounded-4xl border px-5 py-2 transition-all duration-200 ease-out
+          text-slate-500 dark:text-slate-300 border-slate-400 hover:border-violet-600 hover:text-violet-600
+            hover:scale-105 active:scale-95"
   >
     Contact me
-  </button>
+  </a>
   <div class="h-px flex-1 bg-linear-to-r from-slate-500 to-transparent"></div>
 </div>
 
@@ -40,3 +48,14 @@
     }
   }
 </style>
+
+<script>
+  const scrollBtn = document.querySelector("[data-scroll-btn]");
+  if (!scrollBtn) throw new Error("Not found data-scroll-btn data attribute");
+  const target = document.querySelector("[data-chart-title]");
+  if (!target) throw new Error("Not found data-scroll-btn data attribute");
+
+  scrollBtn.addEventListener("click", () => {
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+</script>

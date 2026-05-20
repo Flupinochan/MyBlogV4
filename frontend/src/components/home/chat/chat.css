@@ -1,0 +1,6 @@
+@reference "../../../styles/global.css";
+@variant dark (&:where(.dark, .dark *));
+
+.timeline-gsap {
+  @apply opacity-0 invisible;
+}

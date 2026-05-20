@@ -11,6 +11,7 @@ import { LuVolume2 } from "react-icons/lu";
 import { sendTextMessage, sendVoiceMessage } from "./chatApi";
 import type { TextChatResponse, VoiceChatResponse } from "./chatApi";
 import { showErrorDialog } from "../../../layouts/error-dialog/errorDialog";
+import "./chat.css";
 
 type Message = { role: "user" | "assistant"; content: string };
 
@@ -79,7 +80,7 @@ function ChatContent() {
   return (
     <div className="flex flex-col">
       <div
-        className="custom-scrollbar flex h-[400px] flex-col gap-3 overflow-y-auto rounded-2xl border
+        className="timeline-gsap custom-scrollbar flex h-[360px] flex-col gap-3 overflow-y-auto rounded-2xl border
                     border-slate-200 dark:border-slate-700 bg-white/50 p-4 dark:bg-slate-900/50"
       >
         {messages.length === 0 && (
@@ -130,10 +131,10 @@ function ChatContent() {
           onKeyDown={handleKeyDown}
           placeholder="メッセージを入力…"
           rows={2}
-          className="form-textarea custom-scrollbar"
+          className="timeline-gsap form-textarea custom-scrollbar"
         />
-        <div className="flex items-center justify-between">
-          <div className="flex rounded-xl border border-slate-200 dark:border-slate-800">
+        <div className="timeline-gsap flex items-center justify-between">
+          <div className="flex rounded-xl border border-slate-300 dark:border-slate-700">
             <button
               type="button"
               onClick={() => setWithVoice(false)}
