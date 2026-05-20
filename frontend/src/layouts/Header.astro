@@ -10,24 +10,25 @@ import SunMoon from "../components/icons/SunMoon.astro";
 >
   <nav>
     <ul class="flex">
-      <li class="p-4 textWrapper" data-accent-color="cyan">
+      <li class="p-4 textWrapper active:scale-95" data-accent-color="cyan">
+        <a href="/" class="backgroundImage" data-header-home>Home</a>
+      </li>
+      <li class="p-4 textWrapper active:scale-95" data-accent-color="amber">
         <a href="#" class="backgroundImage">Profile</a>
       </li>
-      <li class="p-4 textWrapper" data-accent-color="amber">
-        <a href="#" class="backgroundImage">Blog</a>
-      </li>
-      <li class="p-4 textWrapper" data-accent-color="rose">
+      <li class="p-4 textWrapper active:scale-95" data-accent-color="rose">
         <a href="#" class="backgroundImage">Tools</a>
       </li>
-      <li class="p-4 textWrapper" data-accent-color="emerald">
+      <li class="p-4 textWrapper active:scale-95" data-accent-color="emerald">
         <a href="#" class="backgroundImage">GitHub</a>
       </li>
     </ul>
   </nav>
   <a
-    href="#"
+    href="/"
     class="text-6xl font-extrabold text-transparent [-webkit-text-stroke:1px_var(--color-slate-800)] dark:[-webkit-text-stroke-color:var(--color-slate-200)] hover:scale-105 active:scale-95 transition-all"
     style="text-box: trim-start cap alphabetic"
+    data-header-title-text
   >
     METAL MENTAL
   </a>
@@ -91,6 +92,26 @@ import SunMoon from "../components/icons/SunMoon.astro";
   header.addEventListener("mouseleave", () => {
     header.style.setProperty("--mouse-x", "-9999px");
     header.style.setProperty("--mouse-y", "-9999px");
+  });
+
+  // /にいる場合はtopへスクロール、そのほかのページでは/にページ遷移
+  const headerTitle = header.querySelector<HTMLAnchorElement>(
+    "[data-header-title-text]",
+  );
+  if (!headerTitle) throw new Error("data-header-title-text element not found");
+  headerTitle.addEventListener("click", (e) => {
+    if (window.location.pathname !== "/") return;
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  const headerHome =
+    header.querySelector<HTMLAnchorElement>("[data-header-home]");
+  if (!headerHome) throw new Error("data-header-home element not found");
+  headerHome.addEventListener("click", (e) => {
+    if (window.location.pathname !== "/") return;
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
   // ダークモード切替
