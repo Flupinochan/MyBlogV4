@@ -91,8 +91,7 @@ class ChatResponse(BaseModel):
 
 
 class VoiceChatResponse(ChatResponse):
-    bucket: str
-    key: str
+    voicePath: str
 
 
 @router.get("/health")
@@ -109,8 +108,8 @@ def chat(request: ChatRequest) -> ChatResponse:
 @router.post("/chat/voice")
 def chat_with_voice(request: ChatRequest) -> VoiceChatResponse:
     message = chat_service.generate_message(request.message)
-    bucket, key = voice_service.synthesize_and_upload(message)
-    return VoiceChatResponse(message=message, bucket=bucket, key=key)
+    voicePath = voice_service.synthesize_and_upload(message)
+    return VoiceChatResponse(message=message, voicePath=voicePath)
 
 
 app.include_router(router)

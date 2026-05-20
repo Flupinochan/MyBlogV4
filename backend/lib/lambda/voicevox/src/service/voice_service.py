@@ -29,7 +29,7 @@ class VoiceService:
         self._s3_client = s3_client
         self._bucket_name = bucket_name
 
-    def synthesize_and_upload(self, text: str) -> tuple[str, str]:
+    def synthesize_and_upload(self, text: str) -> str:
         # テキスト音声合成
         wav = self._synthesizer.tts(text, MODEL_STYLE_ID)
         key = f"{OUTPUT_PREFIX}/{uuid.uuid4().hex}.wav"
@@ -53,4 +53,4 @@ class VoiceService:
                     key,
                 )
                 raise
-        return self._bucket_name, key
+        return key
