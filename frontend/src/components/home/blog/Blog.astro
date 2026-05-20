@@ -10,14 +10,10 @@ import SectionHeading from "../../shared/SectionHeading.astro";
 <BlogSection client:idle />
 
 <script>
-  import { gsap } from "../../../lib/gsap";
   import { initSectionHeadingAnimation } from "../../../lib/sectionHeadingAnimation";
 
   const blogTitleEl = document.querySelector("[data-blog-title]");
-  if (!blogTitleEl) {
-    throw new Error("Blog title element not found");
-  }
-
+  if (!blogTitleEl) throw new Error("Blog title element not found");
   const tl = initSectionHeadingAnimation(blogTitleEl);
 
   tl.to(

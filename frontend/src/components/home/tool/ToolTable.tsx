@@ -713,18 +713,18 @@ export default function ToolTable() {
         {/* SELECT COLUMNS */}
         <button
           popoverTarget="col-visibility-switch-menu"
-          className="tools-columns-open-button rounded-lg border border-violet-500 px-3 py-1.5 cursor-pointer
-                      text-xs font-medium text-violet-600
-                      transition hover:bg-violet-500/20 active:scale-95"
+          className="tools-columns-open-button
+                      transparent-button text-sm font-normal border rounded-lg border-slate-300 dark:border-slate-700
+                      px-3 py-1.5 active:scale-95"
         >
           SELECT COLUMNS
         </button>
 
         {/* FILTER COLUMNS */}
         <button
-          className="tools-columns-open-button rounded-lg border border-violet-500 px-3 py-1.5 cursor-pointer
-                      text-xs font-medium text-violet-600
-                      transition hover:bg-violet-500/20 active:scale-95"
+          className="tools-columns-open-button
+                      transparent-button text-sm font-normal border rounded-lg border-slate-300 dark:border-slate-700
+                      px-3 py-1.5 active:scale-95"
           onClick={() => setFilterColumnsOpen((prev) => !prev)}
         >
           FILTER COLUMNS

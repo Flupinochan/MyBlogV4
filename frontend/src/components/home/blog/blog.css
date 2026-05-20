@@ -1,10 +1,7 @@
 @reference "../../../styles/global.css";
 @variant dark (&:where(.dark, .dark *));
 
-.blog-search {
-  @apply opacity-0 invisible;
-}
-
+.blog-search,
 .blog-carousel {
   @apply opacity-0 invisible;
 }
