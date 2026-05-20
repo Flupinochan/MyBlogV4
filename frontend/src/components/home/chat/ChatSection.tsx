@@ -1,150 +1,178 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
+import { flushSync } from "react-dom";
+import {
+  QueryClient,
+  QueryClientProvider,
+  useMutation,
+} from "@tanstack/react-query";
+import { LuSend } from "react-icons/lu";
+import { LuType } from "react-icons/lu";
+import { LuVolume2 } from "react-icons/lu";
+import { sendTextMessage, sendVoiceMessage } from "./chatApi";
+import type { TextChatResponse, VoiceChatResponse } from "./chatApi";
+import { showErrorDialog } from "../../../layouts/error-dialog/errorDialog";
 
 type Message = { role: "user" | "assistant"; content: string };
 
-async function sendTextMessage(message: string): Promise<string> {
-  const response = await fetch("/api/fastapi/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message }),
-  });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  const data = (await response.json()) as { message: string };
-  return data.message;
-}
+const queryClient = new QueryClient();
 
-async function sendVoiceMessage(
-  message: string,
-): Promise<{ message: string; key: string }> {
-  const response = await fetch("/api/fastapi/chat/voice", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message }),
-  });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  const data = (await response.json()) as {
-    message: string;
-    bucket: string;
-    key: string;
-  };
-  return { message: data.message, key: data.key };
-}
-
-export default function ChatSection() {
+function ChatContent() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | undefined>();
-  const [voiceMode, setVoiceMode] = useState(false);
-  const bottomRef = useRef<HTMLDivElement>(null);
+  const [inputMessage, setInputMessage] = useState("");
+  const [withVoice, setWithVoice] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  const { mutate, isPending, error } = useMutation({
+    mutationFn: ({
+      message,
+      withVoice,
+    }: {
+      message: string;
+      withVoice: boolean;
+    }): Promise<TextChatResponse | VoiceChatResponse> =>
+      withVoice ? sendVoiceMessage({ message }) : sendTextMessage({ message }),
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const trimmed = input.trim();
-    if (!trimmed || isLoading) return;
+  const handleSubmit = () => {
+    const trimmedMessage = inputMessage.trim();
+    if (!trimmedMessage || isPending) return;
 
-    setInput("");
-    setError(undefined);
-    setMessages((prev) => [...prev, { role: "user", content: trimmed }]);
-    setIsLoading(true);
+    setInputMessage("");
+    flushSync(() => {
+      setMessages((prev) => [
+        ...prev,
+        { role: "user", content: trimmedMessage },
+      ]);
+    });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 
-    try {
-      if (voiceMode) {
-        const { message, key } = await sendVoiceMessage(trimmed);
-        setMessages((prev) => [...prev, { role: "assistant", content: message }]);
-        void new Audio(key).play().catch(() =>
-          setError("音声の再生に失敗しました"),
-        );
-      } else {
-        const reply = await sendTextMessage(trimmed);
-        setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "エラーが発生しました");
-    } finally {
-      setIsLoading(false);
-    }
+    mutate(
+      { message: trimmedMessage, withVoice },
+      {
+        onSuccess: (result) => {
+          flushSync(() => {
+            setMessages((prev) => [
+              ...prev,
+              { role: "assistant", content: result.message },
+            ]);
+          });
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+          if ("voicePath" in result) {
+            void new Audio(result.voicePath)
+              .play()
+              .catch((error) =>
+                showErrorDialog(`音声の再生に失敗しました: ${error}`),
+              );
+          }
+        },
+      },
+    );
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      void handleSubmit(e as unknown as React.FormEvent);
+      handleSubmit();
     }
   };
 
   return (
-    <div className="mx-auto flex max-w-2xl flex-col gap-4">
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={() => setVoiceMode((v) => !v)}
-          className={`rounded-xl px-4 py-1.5 text-sm font-medium transition-colors ${
-            voiceMode
-              ? "bg-violet-600 text-white"
-              : "border border-slate-200 text-slate-500 hover:bg-slate-100 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800"
-          }`}
-        >
-          {voiceMode ? "音声モード" : "テキストモード"}
-        </button>
-      </div>
-
-      <div className="flex h-[420px] flex-col gap-3 overflow-y-auto rounded-2xl border border-slate-200 bg-white/50 p-4 dark:border-slate-700 dark:bg-slate-900/50">
+    <div className="flex flex-col">
+      <div
+        className="custom-scrollbar flex h-[400px] flex-col gap-3 overflow-y-auto rounded-2xl border
+                    border-slate-200 dark:border-slate-700 bg-white/50 p-4 dark:bg-slate-900/50"
+      >
         {messages.length === 0 && (
           <p className="m-auto text-sm text-slate-400">
             メッセージを入力して送信してください
           </p>
         )}
         {messages.map((msg, i) => (
-          <div
+          <p
             key={i}
-            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+            className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap ${
+              msg.role === "user"
+                ? "self-end bg-violet-500 text-white"
+                : "self-start bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-50"
+            }`}
           >
-            <span
-              className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap ${
-                msg.role === "user"
-                  ? "bg-violet-600 text-white"
-                  : "bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-100"
-              }`}
-            >
-              {msg.content}
-            </span>
-          </div>
+            {msg.content}
+          </p>
         ))}
-        {isLoading && (
-          <div className="flex justify-start">
-            <span className="rounded-2xl bg-slate-100 px-4 py-2 text-sm text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-              <span className="animate-pulse">...</span>
-            </span>
+        {error && (
+          <p className="max-w-[80%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap self-start bg-rose-300 text-white">
+            {error.message}
+          </p>
+        )}
+        {isPending && (
+          <div
+            className="flex justify-start items-center space-x-1"
+            aria-label="読み込み中"
+          >
+            <div className="h-1 w-1 rounded-full bg-slate-500 animate-pulse" />
+            <div className="h-1 w-1 rounded-full bg-slate-500 animate-pulse [animation-delay:150ms]" />
+            <div className="h-1 w-1 rounded-full bg-slate-500 animate-pulse [animation-delay:300ms]" />
           </div>
         )}
-        {error && (
-          <p className="text-center text-sm text-rose-500">{error}</p>
-        )}
-        <div ref={bottomRef} />
+        <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="flex gap-2">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSubmit();
+        }}
+        className="flex flex-col gap-2 mt-2 text-sm"
+      >
         <textarea
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
+          value={inputMessage}
+          onChange={(e) => setInputMessage(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder="メッセージを入力… (Enter で送信、Shift+Enter で改行)"
+          placeholder="メッセージを入力…"
           rows={2}
-          className="flex-1 resize-none rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm text-slate-800 outline-none focus:border-violet-400 focus:ring-2 focus:ring-violet-400/30 dark:border-slate-700 dark:bg-slate-900 dark:text-slate-100 dark:focus:border-violet-500"
+          className="form-textarea custom-scrollbar"
         />
-        <button
-          type="submit"
-          disabled={isLoading || !input.trim()}
-          className="rounded-xl bg-violet-600 px-5 py-2 text-sm font-medium text-white transition-opacity hover:bg-violet-700 disabled:cursor-not-allowed disabled:opacity-40"
-        >
-          送信
-        </button>
+        <div className="flex items-center justify-between">
+          <div className="flex rounded-xl border border-slate-200 dark:border-slate-800">
+            <button
+              type="button"
+              onClick={() => setWithVoice(false)}
+              className={`gap-1.5 rounded-l-xl px-4 py-1.5 ${
+                !withVoice ? "white-button" : "transparent-button"
+              }`}
+            >
+              <LuType size={14} />
+              テキストのみ
+            </button>
+            <button
+              type="button"
+              onClick={() => setWithVoice(true)}
+              className={`gap-1.5 rounded-r-xl px-4 py-1.5 ${
+                withVoice ? "white-button" : "transparent-button"
+              }`}
+            >
+              <LuVolume2 size={14} />
+              テキスト + 読み上げ
+            </button>
+          </div>
+          <button
+            type="submit"
+            disabled={isPending || !inputMessage.trim()}
+            className="violet-button gap-2 rounded-xl px-5 py-2"
+          >
+            <LuSend size={14} />
+            送信
+          </button>
+        </div>
       </form>
     </div>
+  );
+}
+
+export default function ChatSection() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ChatContent />
+    </QueryClientProvider>
   );
 }
