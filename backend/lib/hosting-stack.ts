@@ -101,9 +101,10 @@ export class HostingStack extends cdk.Stack {
     const apiStack = props.apiStack;
     const apiPath = props.apiPath;
     if (apiStack && apiPath) {
-      const origin = new origins.RestApiOrigin(apiStack.api, {
-        readTimeout: cdk.Duration.seconds(60),
-      });
+      const origin = new origins.HttpOrigin(
+        `${apiStack.api.restApiId}.execute-api.${this.region}.amazonaws.com`,
+        { readTimeout: cdk.Duration.seconds(60) },
+      );
       this.distribution.addBehavior(`/${apiPath}/*`, origin, {
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,

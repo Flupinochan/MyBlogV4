@@ -7,7 +7,7 @@ import (
 )
 
 func RegisterRoutes(r *gin.Engine, h *blogsearch.Handler, s *blogsearch.BlogSearchService) {
-	v1 := r.Group("/api/v1")
+	v1 := r.Group("/v1")
 	{
 		healthcheck.HostHealthCheckRoutes(v1, s)
 		blogsearch.OpenSearchRoutes(v1, h)

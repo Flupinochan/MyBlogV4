@@ -102,7 +102,7 @@ export class OpenSearchApiStack extends cdk.Stack {
         AWS_LAMBDA_EXEC_WRAPPER: "/opt/bootstrap",
         AWS_LWA_PORT: "8080",
         AWS_LWA_READINESS_CHECK_PORT: "8080",
-        AWS_LWA_READINESS_CHECK_PATH: "/api/v1/health/lwa",
+        AWS_LWA_READINESS_CHECK_PATH: "/v1/health/lwa",
       },
       bundling: {
         goBuildFlags: ['-ldflags "-s -w"'],

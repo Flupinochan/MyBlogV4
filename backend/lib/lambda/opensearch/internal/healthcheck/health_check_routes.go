@@ -15,7 +15,7 @@ func HostHealthCheckRoutes(r *gin.RouterGroup, s *blogsearch.BlogSearchService) 
 		hostHandler := func(c *gin.Context) {
 			c.JSON(http.StatusOK, gin.H{"status": "healthy"})
 		}
-		healthGroup.GET("", hostHandler) // /api/v1/health であり、/api/v1/health/ ではないことに注意
+		healthGroup.GET("", hostHandler) // /v1/health であり、/v1/health/ ではないことに注意
 		healthGroup.GET("/host", hostHandler)
 		healthGroup.GET("/lwa", hostHandler)
 
