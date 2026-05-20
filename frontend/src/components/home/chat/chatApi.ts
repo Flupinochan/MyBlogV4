@@ -15,8 +15,10 @@ export interface VoiceChatResponse {
   voicePath: string;
 }
 
-export async function sendTextMessage(request: TextChatRequest): Promise<TextChatResponse> {
-  const response = await fetch("/api/fastapi/chat", {
+export async function sendTextMessage(
+  request: TextChatRequest,
+): Promise<TextChatResponse> {
+  const response = await fetch("/api/v1/fastapi/chat", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),
@@ -25,8 +27,10 @@ export async function sendTextMessage(request: TextChatRequest): Promise<TextCha
   return (await response.json()) as TextChatResponse;
 }
 
-export async function sendVoiceMessage(request: VoiceChatRequest): Promise<VoiceChatResponse> {
-  const response = await fetch("/api/fastapi/chat/voice", {
+export async function sendVoiceMessage(
+  request: VoiceChatRequest,
+): Promise<VoiceChatResponse> {
+  const response = await fetch("/api/v1/fastapi/chat/voice", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(request),

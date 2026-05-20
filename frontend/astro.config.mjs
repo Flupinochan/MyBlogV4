@@ -19,10 +19,10 @@ export default defineConfig({
           changeOrigin: true,
         },
         // 先に長いパスを定義しておくこと
-        "/api/fastapi": {
+        "/api/v1/fastapi": {
           target: "http://localhost:8081",
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/fastapi/, "/v1/fastapi"),
+          rewrite: (path) => path.replace(/^\/api\/v1\/fastapi/, "/v1/fastapi"),
         },
         "/api": {
           target: "http://localhost:8080",
