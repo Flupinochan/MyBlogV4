@@ -129,7 +129,7 @@ function SearchModeSelect({
   return (
     <select
       id="search-mode"
-      className="blog-search cursor-pointer"
+      className="form-input-select blog-search cursor-pointer"
       value={value}
       onChange={(e) => onChange(e.target.value as SearchMode)}
     >
@@ -154,7 +154,7 @@ function TopicSelect({
   return (
     <select
       id="topic-select"
-      className="blog-search cursor-pointer"
+      className="form-input-select blog-search cursor-pointer"
       value={value}
       onChange={(e) => onChange(e.target.value)}
     >
@@ -285,7 +285,7 @@ function BlogCarousel() {
             placeholder="記事を検索..."
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
-            className="w-full blog-search"
+            className="form-input-select blog-search w-full"
           />
           {/* search mode */}
           <SearchModeSelect value={searchMode} onChange={setSearchMode} />
