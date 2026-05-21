@@ -1,10 +1,3 @@
-## ローカルでデプロイする場合
-
-```bash
-cd backend
-./local-deploy.sh
-```
-
 ## 注意点
 
 CodePipelineやCodeBuildの設定を変更する場合はローカルでデプロイすること
