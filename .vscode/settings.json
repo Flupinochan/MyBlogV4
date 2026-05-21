@@ -1,4 +1,11 @@
 {
   "css.lint.unknownAtRules": "ignore",
-  "cSpell.words": ["dockerhub", "embla", "fulltext", "reinit", "slint"]
+  "cSpell.words": [
+    "dockerhub",
+    "embla",
+    "fulltext",
+    "pipefail",
+    "reinit",
+    "slint"
+  ]
 }
