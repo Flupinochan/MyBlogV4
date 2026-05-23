@@ -28,6 +28,10 @@
 | HostingStack         | S3 + CloudFront (frontend)                                                     |
 | HostingPipelineStack | CodePipeline (frontend deploy)                                                 |
 
+### API Design Policy
+
+**Backend-first (Code-first)**: Pydantic models in `lib/lambda/voicevox/src/main.py` are the Single Source of Truth for the API schema. FastAPI auto-generates the OpenAPI spec from them — do not write OpenAPI YAML by hand. Frontend TypeScript types are derived from this spec via `openapi-typescript`.
+
 ### Lambda Functions
 
 | Entry Point                               | Role                               |

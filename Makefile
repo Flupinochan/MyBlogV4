@@ -2,7 +2,7 @@
 SHELL := /bin/bash
 .SHELLFLAGS := -eu -o pipefail -c
 
-.PHONY: help fastapi gin astro deploy-all deploy-target _deploy
+.PHONY: help fastapi gin astro deploy-all deploy-target _deploy gen-openapi gen-ts-types gen-api-types
 
 ##@ local run command
 
@@ -13,13 +13,25 @@ help:
 		| awk 'BEGIN {FS = ":.*?## "} /^##@/ { printf "\n%s\n\n", substr($$0, 5) } /^[a-zA-Z_-]+:.*?## / { printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2 }'
 
 
-fastapi: ## FastAPIバックエンド起動
+gen-openapi: ## FastAPI → openapi.json を生成
+	mkdir -p $(CURDIR)/frontend/src/types
+	cd backend/lib/lambda/voicevox && PYTHONPATH=src uv run --env-file .env python -c \
+		"import json; from main import app; print(json.dumps(app.openapi(), indent=2))" \
+		> $(CURDIR)/frontend/src/types/openapi.json
+
+gen-ts-types: ## openapi.json → TypeScript 型を生成
+	cd frontend && bunx openapi-typescript src/types/openapi.json \
+		-o src/types/api.generated.ts
+
+gen-api-types: gen-openapi gen-ts-types ## 型の完全再生成 (OpenAPI → TypeScript)
+
+fastapi: gen-openapi ## FastAPIバックエンド起動
 	cd backend/lib/lambda/voicevox && PYTHONPATH=src uv run --env-file .env fastapi run src/main.py --port 8081
 
 gin: ## Goバックエンド起動
 	cd backend/lib/lambda/opensearch/ && air
 
-astro: ## Astroフロントエンド起動
+astro: gen-ts-types ## Astroフロントエンド起動
 	cd frontend/ && bun run dev
 
 ##@ deploy command

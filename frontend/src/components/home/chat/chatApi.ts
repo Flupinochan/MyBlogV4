@@ -1,19 +1,49 @@
-export interface TextChatRequest {
-  message: string;
+/// <reference types="dom-chromium-ai" />
+
+export async function detectLanguage(text: string): Promise<string> {
+  const availability = await LanguageDetector.availability();
+  if (availability === "unavailable")
+    throw new Error("LanguageDetector is unavailable");
+  const detector = await LanguageDetector.create();
+  const results = await detector.detect(text);
+  const detected = results[0]?.detectedLanguage;
+  if (!detected) throw new Error("Language detection failed");
+  return detected;
 }
 
-export interface TextChatResponse {
-  message: string;
+const summarizerOptions: SummarizerCreateOptions = {
+  expectedInputLanguages: ["ja", "en"],
+  outputLanguage: "ja",
+  type: "headline",
+  length: "short",
+  format: "plain-text",
+  preference: "auto",
+};
+
+export async function generateChatTitle(
+  text: string,
+  detectedLang?: string,
+): Promise<string> {
+  const options = detectedLang
+    ? {
+        ...summarizerOptions,
+        expectedInputLanguages: [detectedLang],
+        outputLanguage: detectedLang,
+      }
+    : summarizerOptions;
+  const availability = await Summarizer.availability(options);
+  if (availability === "unavailable")
+    throw new Error("Summarizer is unavailable");
+  const summarizer = await Summarizer.create(options);
+  return summarizer.summarize(text);
 }
 
-export interface VoiceChatRequest {
-  message: string;
-}
+import type { components } from "../../../types/api.generated";
 
-export interface VoiceChatResponse {
-  message: string;
-  voicePath: string;
-}
+export type TextChatRequest = components["schemas"]["ChatRequest"];
+export type VoiceChatRequest = components["schemas"]["ChatRequest"];
+export type TextChatResponse = components["schemas"]["ChatResponse"];
+export type VoiceChatResponse = components["schemas"]["VoiceChatResponse"];
 
 export async function sendTextMessage(
   request: TextChatRequest,
