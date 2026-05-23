@@ -33,6 +33,10 @@ const items = [
     color: "var(--color-violet-500)",
   },
 ];
+
+const firstItem = items[0];
+const lastItem = items.at(-1);
+if (!firstItem || !lastItem) throw new Error("Timeline items must not be empty");
 ---
 
 <SectionHeading accent="cyan" class="mb-16" data-timeline-title
@@ -43,7 +47,7 @@ const items = [
   <div
     id="tl-start"
     class="text-center font-semibold pb-3"
-    style={`color: ${items[0].color}`}
+    style={`color: ${firstItem.color}`}
   >
     高校卒業
   </div>
@@ -70,7 +74,7 @@ const items = [
   <div
     id="tl-end"
     class="text-center font-semibold pt-3 mt-5"
-    style={`color: ${items[items.length - 1].color}`}
+    style={`color: ${lastItem.color}`}
   >
     現在
   </div>
@@ -171,6 +175,8 @@ const items = [
     // observe対策として一度削除
     while (gradient.firstChild) gradient.removeChild(gradient.firstChild);
     rowColors.forEach((color, idx) => {
+      const rowBottomY = rowBottomYs[idx];
+      if (rowBottomY === undefined) throw new Error(`rowBottomYs[${idx}] is undefined`);
       const stop = document.createElementNS(
         "http://www.w3.org/2000/svg",
         "stop",
@@ -178,7 +184,7 @@ const items = [
       // rowごとのrowBottomYsにstopを設定
       stop.setAttribute(
         "offset",
-        String(Math.min(1, Math.max(0, rowBottomYs[idx] / wrapHeight))),
+        String(Math.min(1, Math.max(0, rowBottomY / wrapHeight))),
       );
       stop.style.stopColor = color;
       gradient.appendChild(stop);
@@ -188,16 +194,17 @@ const items = [
     d += ` l 0 20`; // 下へ20px線を引く (gap-30 mt-35 mb-5 と合わせて調整)
     d += ` l -${wrapCenterX - strokeWidthHalf} 0`;
     for (let i = 0; i < rowBottomYs.length; i++) {
+      const rowBottomY = rowBottomYs[i];
+      if (rowBottomY === undefined) throw new Error(`rowBottomYs[${i}] is undefined`);
       const isEven = i % 2 === 0;
       const entryX = isEven ? strokeWidthHalf : wrapWidth - strokeWidthHalf;
       const exitX = isEven ? wrapWidth - strokeWidthHalf : strokeWidthHalf;
-      const entryY =
-        i === 0 ? rowBottomYs[i] : rowBottomYs[i] - strokeWidthHalf;
+      const entryY = i === 0 ? rowBottomY : rowBottomY - strokeWidthHalf;
       d += ` L ${entryX} ${entryY}`;
       if (i < rowBottomYs.length - 1) {
-        d += ` L ${exitX} ${rowBottomYs[i] - strokeWidthHalf}`;
+        d += ` L ${exitX} ${rowBottomY - strokeWidthHalf}`;
       } else {
-        d += ` L ${wrapCenterX} ${rowBottomYs[i]}`;
+        d += ` L ${wrapCenterX} ${rowBottomY}`;
       }
     }
     d += ` L ${wrapCenterX} ${endTopY}`; // 現在の要素のtopへ線を引く
