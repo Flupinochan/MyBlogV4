@@ -60,7 +60,9 @@ export async function getRepositoryCountByLanguage(): Promise<
         count: 0,
         color: lang.color || DEFAULT_COLOR,
       };
-      languageStats[lang.name].count += 1;
+      const stat = languageStats[lang.name];
+      if (stat === undefined) throw new Error(`Language stat not found: ${lang.name}`);
+      stat.count += 1;
     }
   }
 

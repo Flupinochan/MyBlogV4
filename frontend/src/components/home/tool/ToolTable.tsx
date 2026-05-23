@@ -798,6 +798,7 @@ export default function ToolTable() {
           >
             {virtualizer.getVirtualItems().map((virtualRow) => {
               const row = rows[virtualRow.index];
+              if (row === undefined) throw new Error(`Row not found at index ${virtualRow.index}`);
               return (
                 <div
                   key={virtualRow.key}

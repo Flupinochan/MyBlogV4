@@ -30,6 +30,7 @@ function Model() {
 
     // shape keyの初期化
     const index = mesh.morphTargetDictionary[shapeKeyRef.current!];
+    if (index === undefined) throw new Error(`Shape key not found: ${shapeKeyRef.current!}`);
     mesh.morphTargetInfluences[index] = 1;
 
     // デフォルトのアニメーションを再生

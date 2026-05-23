@@ -89,7 +89,11 @@ async function fetchBlogs({
   const params = new URLSearchParams({ limit: String(limit) });
   if (cursor != null) params.set("cursor", JSON.stringify(cursor));
   if (query) params.set("query", query);
-  if (topics.length > 0) params.set("topic", topics[0]);
+  if (topics.length > 0) {
+    const topic = topics[0];
+    if (topic === undefined) throw new Error("topics[0] is undefined");
+    params.set("topic", topic);
+  }
   const pipeline = HYBRID_PIPELINES[searchMode];
   params.set("search_mode", pipeline ? "hybrid" : searchMode);
   if (pipeline) params.set("search_pipeline", pipeline);

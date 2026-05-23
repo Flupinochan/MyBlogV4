@@ -51,6 +51,7 @@ export class StackChart {
       .nice();
 
     const [yMin, yMax] = this.yScale.domain();
+    if (yMin === undefined || yMax === undefined) throw new Error("yScale domain is not set");
     const yTickValues = d3.range(2).map((i) => yMin + ((yMax - yMin) / 1) * i);
 
     this.xAxis = svg
@@ -105,11 +106,15 @@ export class StackChart {
 
   private interpolateCommitTotal(date: Date): number {
     const idx = this.bisectDate(this.commitData, date);
-    if (idx === 0) return this.commitData[0].total;
-    if (idx >= this.commitData.length)
-      return this.commitData[this.commitData.length - 1].total;
+    const first = this.commitData[0];
+    if (first === undefined) throw new Error("commitData is empty");
+    if (idx === 0) return first.total;
+    const last = this.commitData[this.commitData.length - 1];
+    if (last === undefined) throw new Error("commitData is empty");
+    if (idx >= this.commitData.length) return last.total;
     const d0 = this.commitData[idx - 1];
     const d1 = this.commitData[idx];
+    if (d0 === undefined || d1 === undefined) throw new Error("commitData index out of bounds");
     const t =
       (date.getTime() - new Date(d0.date).getTime()) /
       (new Date(d1.date).getTime() - new Date(d0.date).getTime());
