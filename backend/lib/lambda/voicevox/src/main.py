@@ -1,4 +1,4 @@
-"""FastAPI Lambda: テキストチャットと音声付きチャットのエンドポイント"""
+"""FastAPI: テキストと音声付きチャットBackend"""
 
 import logging
 import multiprocessing
@@ -111,5 +111,5 @@ def chat_with_voice(request: ChatRequest) -> VoiceChatResponse:
     voicePath = voice_service.synthesize_and_upload(message)
     return VoiceChatResponse(message=message, voicePath=voicePath)
 
-
+# FastAPIのOpenAPI自動生成の仕組み上、moduleレベルでの標準出力は避けること
 app.include_router(router)
