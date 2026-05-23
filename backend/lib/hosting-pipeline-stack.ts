@@ -63,6 +63,8 @@ export class HostingPipelineStack extends cdk.Stack {
         // husky対策
         CI: { value: "true" },
         HUSKY: { value: "0" },
+        // OpenAPI自動生成時にmain.pyを実行するが、VOICE_OUTPUT_BUCKET_NAMEが未定義だとエラーになるためダミー値でエラーを回避
+        VOICE_OUTPUT_BUCKET_NAME: { value: "dummy" },
         GITHUB_TOKEN: {
           type: codebuild.BuildEnvironmentVariableType.PARAMETER_STORE,
           value: "github-zenn-token",
@@ -131,6 +133,14 @@ export class HostingPipelineStack extends cdk.Stack {
             commands: [
               "cd $CODEBUILD_SRC_DIR/frontend",
               `bun install --frozen-lockfile --ignore-scripts`,
+              // 型ドリフト検出: コミット済みの生成ファイルとmain.pyから再生成した結果を比較
+              "cd $CODEBUILD_SRC_DIR",
+              "cp frontend/src/types/openapi.json /tmp/openapi.json.orig",
+              "cp frontend/src/types/api.generated.ts /tmp/api.generated.ts.orig",
+              "make gen-api-types",
+              `diff /tmp/openapi.json.orig frontend/src/types/openapi.json || { echo "ERROR: openapi.json is out of sync. Run make gen-api-types locally."; exit 1; }`,
+              `diff /tmp/api.generated.ts.orig frontend/src/types/api.generated.ts || { echo "ERROR: api.generated.ts is out of sync. Run make gen-api-types locally."; exit 1; }`,
+              "cd $CODEBUILD_SRC_DIR/frontend",
               `bun run build -- --mode ${props.envName}`,
             ],
           },

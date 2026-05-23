@@ -15,8 +15,10 @@ help:
 
 gen-openapi: ## FastAPI → openapi.json を生成
 	mkdir -p $(CURDIR)/frontend/src/types
-	cd backend/lib/lambda/voicevox && PYTHONPATH=src uv run --env-file .env python -c \
-		"import json; from main import app; print(json.dumps(app.openapi(), indent=2))" \
+	cd backend/lib/lambda/voicevox && PYTHONPATH=src uv run \
+		$(if $(wildcard $(CURDIR)/backend/lib/lambda/voicevox/.env),--env-file $(CURDIR)/backend/lib/lambda/voicevox/.env,) \
+		python -c \
+		"import sys, json; sys.stdout, _s = sys.stderr, sys.stdout; from main import app; sys.stdout = _s; print(json.dumps(app.openapi(), indent=2))" \
 		> $(CURDIR)/frontend/src/types/openapi.json
 
 gen-ts-types: ## openapi.json → TypeScript 型を生成
