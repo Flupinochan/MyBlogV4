@@ -1,3 +1,5 @@
+import { FiSidebar } from "react-icons/fi";
+import { IoIosAddCircle } from "react-icons/io";
 import { useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import {
@@ -5,69 +7,141 @@ import {
   QueryClientProvider,
   useMutation,
 } from "@tanstack/react-query";
+
 import { LuSend } from "react-icons/lu";
 import { LuType } from "react-icons/lu";
 import { LuVolume2 } from "react-icons/lu";
-import { sendTextMessage, sendVoiceMessage } from "./chatApi";
+import {
+  sendTextMessage,
+  sendVoiceMessage,
+  detectLanguage,
+  generateChatTitle,
+} from "./chatApi";
 import type { TextChatResponse, VoiceChatResponse } from "./chatApi";
 import { showErrorDialog } from "../../../layouts/error-dialog/errorDialog";
 import "./chat.css";
 
 type Message = { role: "user" | "assistant"; content: string };
+type History = { id: string; name: string; messages: Message[] };
+
+type ChatDetectInput = {
+  message: string;
+  withVoice: boolean;
+  isFirst: boolean;
+};
+
+type ChatDetectResult = {
+  chatResult: TextChatResponse | VoiceChatResponse;
+  lang: string | undefined;
+};
 
 const queryClient = new QueryClient();
 
 function ChatContent() {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const { current: initialId } = useRef(new Date().toISOString());
+  const [histories, setHistories] = useState<History[]>([
+    { id: initialId, name: "新しいチャット", messages: [] },
+  ]);
+  const [currentHistoryId, setCurrentHistoryId] = useState<string>(initialId);
+  const currentHistory = histories.find((h) => h.id === currentHistoryId)!;
+  const messages = currentHistory.messages;
   const [inputMessage, setInputMessage] = useState("");
   const [withVoice, setWithVoice] = useState(false);
+  const [isNavOpen, setIsNavOpen] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const { mutate, isPending, error } = useMutation({
-    mutationFn: ({
-      message,
-      withVoice,
-    }: {
-      message: string;
-      withVoice: boolean;
-    }): Promise<TextChatResponse | VoiceChatResponse> =>
-      withVoice ? sendVoiceMessage({ message }) : sendTextMessage({ message }),
+  const updateMessages = (updater: (prev: Message[]) => Message[]) => {
+    setHistories((prev) =>
+      prev.map((h) =>
+        h.id === currentHistoryId ? { ...h, messages: updater(h.messages) } : h,
+      ),
+    );
+  };
+
+  const chatDetectMutation = useMutation<
+    ChatDetectResult,
+    Error,
+    ChatDetectInput
+  >({
+    mutationFn: async ({ message, withVoice, isFirst }) => {
+      const [chatResult, lang] = await Promise.all([
+        withVoice
+          ? sendVoiceMessage({ message })
+          : sendTextMessage({ message }),
+        isFirst && "LanguageDetector" in self
+          ? detectLanguage(message).catch(() => undefined)
+          : Promise.resolve(undefined),
+      ]);
+      return { chatResult, lang };
+    },
   });
 
   const handleSubmit = () => {
     const trimmedMessage = inputMessage.trim();
-    if (!trimmedMessage || isPending) return;
+    if (!trimmedMessage || chatDetectMutation.isPending) return;
 
+    const isFirst = messages.length === 0;
     setInputMessage("");
     flushSync(() => {
-      setMessages((prev) => [
-        ...prev,
-        { role: "user", content: trimmedMessage },
-      ]);
+      setHistories((prev) =>
+        prev.map((h) => {
+          if (h.id !== currentHistoryId) return h;
+          return {
+            ...h,
+            name: isFirst ? trimmedMessage.slice(0, 20) : h.name,
+            messages: [
+              ...h.messages,
+              { role: "user", content: trimmedMessage },
+            ],
+          };
+        }),
+      );
     });
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 
-    mutate(
-      { message: trimmedMessage, withVoice },
+    chatDetectMutation.mutate(
+      { message: trimmedMessage, withVoice, isFirst },
       {
-        onSuccess: (result) => {
+        onSuccess: async ({ chatResult, lang }) => {
           flushSync(() => {
-            setMessages((prev) => [
+            updateMessages((prev) => [
               ...prev,
-              { role: "assistant", content: result.message },
+              { role: "assistant", content: chatResult.message },
             ]);
           });
           messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-          if ("voicePath" in result) {
-            void new Audio(result.voicePath)
-              .play()
-              .catch((error) =>
-                showErrorDialog(`音声の再生に失敗しました: ${error}`),
-              );
+          if ("voicePath" in chatResult) {
+            try {
+              await new Audio(chatResult.voicePath).play();
+            } catch (error) {
+              showErrorDialog(`音声の再生に失敗しました: ${error}`);
+            }
+          }
+          if (!isFirst || !("Summarizer" in self)) return;
+          try {
+            const text = `User: ${trimmedMessage}\nAssistant: ${chatResult.message}`;
+            const title = await generateChatTitle(text, lang);
+            if (!title) return;
+            setHistories((prev) =>
+              prev.map((h) =>
+                h.id === currentHistoryId ? { ...h, name: title } : h,
+              ),
+            );
+          } catch (e) {
+            console.error("チャットタイトルの生成に失敗しました:", e);
           }
         },
       },
     );
+  };
+
+  const handleNewHistory = () => {
+    const newId = new Date().toISOString();
+    setHistories((prev) => [
+      ...prev,
+      { id: newId, name: "新しいチャット", messages: [] },
+    ]);
+    setCurrentHistoryId(newId);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
@@ -80,42 +154,90 @@ function ChatContent() {
   return (
     <div className="flex flex-col">
       <div
-        className="timeline-gsap custom-scrollbar flex h-[360px] flex-col gap-3 overflow-y-auto rounded-2xl border
-                    border-slate-200 dark:border-slate-700 bg-white/50 p-4 dark:bg-slate-900/50"
+        className="flex flex-row h-[360px] timeline-gsap
+                      rounded-2xl border border-slate-200 dark:border-slate-700 bg-white/50 dark:bg-slate-900/50"
       >
-        {messages.length === 0 && (
-          <p className="m-auto text-sm text-slate-400">
-            メッセージを入力して送信してください
-          </p>
-        )}
-        {messages.map((msg, i) => (
-          <p
-            key={i}
-            className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap ${
-              msg.role === "user"
-                ? "self-end bg-violet-500 text-white"
-                : "self-start bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-50"
-            }`}
+        <nav
+          className={`flex flex-col p-2 gap-1 border-r border-slate-300 dark:border-slate-600 ${isNavOpen ? "w-50" : "w-14"} transition-[width] duration-300`}
+        >
+          <button
+            className={`nav-item flex h-10 justify-end`}
+            onClick={() => setIsNavOpen((prev) => !prev)}
           >
-            {msg.content}
-          </p>
-        ))}
-        {error && (
-          <p className="max-w-[80%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap self-start bg-rose-300 text-white">
-            {error.message}
-          </p>
-        )}
-        {isPending && (
-          <div
-            className="flex justify-start items-center space-x-1"
-            aria-label="読み込み中"
+            <FiSidebar className="h-full w-auto shrink-0" />
+          </button>
+          <button
+            className="nav-item flex h-10 flex-row gap-2"
+            onClick={handleNewHistory}
           >
-            <div className="h-1 w-1 rounded-full bg-slate-500 animate-pulse" />
-            <div className="h-1 w-1 rounded-full bg-slate-500 animate-pulse [animation-delay:150ms]" />
-            <div className="h-1 w-1 rounded-full bg-slate-500 animate-pulse [animation-delay:300ms]" />
-          </div>
-        )}
-        <div ref={messagesEndRef} />
+            <IoIosAddCircle className="h-full w-auto shrink-0" />
+            <p
+              className={`whitespace-nowrap transition-opacity duration-200 ${isNavOpen ? "opacity-100 delay-150" : "opacity-0"}`}
+            >
+              新規作成
+            </p>
+          </button>
+          <ul
+            className="history-list custom-scrollbar space-y-1 overflow-y-auto flex-1 min-h-0"
+            style={
+              {
+                "--active-anchor": `--hist-${currentHistoryId.replace(/[:.]/g, "-")}`,
+              } as React.CSSProperties
+            }
+          >
+            {[...histories]
+              .sort((a, b) => b.id.localeCompare(a.id))
+              .map((h) => (
+                <li
+                  key={h.id}
+                  style={
+                    {
+                      anchorName: `--hist-${h.id.replace(/[:.]/g, "-")}`,
+                    } as React.CSSProperties
+                  }
+                  className="nav-item relative z-10"
+                  onClick={() => setCurrentHistoryId(h.id)}
+                >
+                  {h.name}
+                </li>
+              ))}
+          </ul>
+        </nav>
+        <div className="custom-scrollbar flex w-full flex-col gap-3 overflow-y-auto p-4">
+          {messages.length === 0 && (
+            <p className="m-auto text-sm text-slate-400">
+              メッセージを入力して送信してください
+            </p>
+          )}
+          {messages.map((msg, i) => (
+            <p
+              key={i}
+              className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap ${
+                msg.role === "user"
+                  ? "self-end bg-violet-500 text-white"
+                  : "self-start bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-50"
+              }`}
+            >
+              {msg.content}
+            </p>
+          ))}
+          {chatDetectMutation.error && (
+            <p className="max-w-[80%] rounded-2xl px-4 py-2 text-sm whitespace-pre-wrap self-start bg-rose-300 text-white">
+              {chatDetectMutation.error.message}
+            </p>
+          )}
+          {chatDetectMutation.isPending && (
+            <div
+              className="flex justify-start items-center space-x-1"
+              aria-label="読み込み中"
+            >
+              <div className="h-1 w-1 rounded-full bg-slate-500 animate-pulse" />
+              <div className="h-1 w-1 rounded-full bg-slate-500 animate-pulse [animation-delay:150ms]" />
+              <div className="h-1 w-1 rounded-full bg-slate-500 animate-pulse [animation-delay:300ms]" />
+            </div>
+          )}
+          <div ref={messagesEndRef} />
+        </div>
       </div>
 
       <form
@@ -158,7 +280,7 @@ function ChatContent() {
           </div>
           <button
             type="submit"
-            disabled={isPending || !inputMessage.trim()}
+            disabled={chatDetectMutation.isPending || !inputMessage.trim()}
             className="violet-button gap-2 rounded-xl px-5 py-2"
           >
             <LuSend size={14} />

@@ -4,3 +4,25 @@
 .timeline-gsap {
   @apply opacity-0 invisible;
 }
+
+.nav-item {
+  @apply p-2 truncate w-full rounded-md cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800 transition-all;
+}
+
+.history-list {
+  @apply relative;
+}
+.history-list::before {
+  content: "";
+  @apply absolute pointer-events-none z-0 rounded-md
+         bg-slate-200
+         transition-all duration-300 ease-out;
+  position-anchor: var(--active-anchor);
+  top: anchor(top);
+  left: anchor(left);
+  right: anchor(right);
+  bottom: anchor(bottom);
+}
+:where(.dark, .dark *) .history-list::before {
+  @apply bg-slate-800;
+}
