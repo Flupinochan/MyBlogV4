@@ -1,0 +1,7 @@
+#!/bin/sh
+
+if git diff --cached --name-only | grep -q "backend/lib/lambda/voicevox/src/main.py"; then
+  echo "main.py changed — regenerating OpenAPI types..."
+  make gen-api-types
+  git add frontend/src/types/openapi.json frontend/src/types/api.generated.ts
+fi
