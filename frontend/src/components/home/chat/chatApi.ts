@@ -38,33 +38,34 @@ export async function generateChatTitle(
   return summarizer.summarize(text);
 }
 
-import type { components } from "../../../types/api.generated";
+import createClient from "openapi-fetch";
+import createQueryClient from "openapi-react-query";
+import type { components, paths } from "../../../types/api.generated";
 
 export type TextChatRequest = components["schemas"]["ChatRequest"];
 export type VoiceChatRequest = components["schemas"]["ChatRequest"];
 export type TextChatResponse = components["schemas"]["ChatResponse"];
 export type VoiceChatResponse = components["schemas"]["VoiceChatResponse"];
 
+const client = createClient<paths>({ baseUrl: "/api" });
+export const $api = createQueryClient(client);
+
 export async function sendTextMessage(
   request: TextChatRequest,
 ): Promise<TextChatResponse> {
-  const response = await fetch("/api/v1/fastapi/chat", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(request),
+  const { data, error } = await client.POST("/v1/fastapi/chat", {
+    body: request,
   });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return (await response.json()) as TextChatResponse;
+  if (error) throw new Error("chat request failed");
+  return data;
 }
 
 export async function sendVoiceMessage(
   request: VoiceChatRequest,
 ): Promise<VoiceChatResponse> {
-  const response = await fetch("/api/v1/fastapi/chat/voice", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(request),
+  const { data, error } = await client.POST("/v1/fastapi/chat/voice", {
+    body: request,
   });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
-  return (await response.json()) as VoiceChatResponse;
+  if (error) throw new Error("voice chat request failed");
+  return data;
 }
