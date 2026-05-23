@@ -121,7 +121,8 @@ export class HostingPipelineStack extends cdk.Stack {
               `docker push $ECR_URI:$VOICEVOX_LAMBDA_IMAGE_TAG`,
               "cd $CODEBUILD_SRC_DIR/backend",
               // install uv
-              "pip install uv",
+              "curl -LsSf https://astral.sh/uv/install.sh | sh",
+              "ln -s $HOME/.local/bin/uv /usr/local/bin/uv",
               // deploy backend
               `bun install --frozen-lockfile --ignore-scripts`,
               `bun run cdk -- deploy --all --parallel --ci --require-approval never --context env=${props.envName} --context voicevoxLambdaImageTag=$VOICEVOX_LAMBDA_IMAGE_TAG`,
