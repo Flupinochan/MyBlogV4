@@ -6,7 +6,7 @@ export type TopicBucket = components["schemas"]["TopicBucket"];
 export type BlogListResponse = components["schemas"]["ListBlogsBody"];
 export type TopicsResponse = components["schemas"]["ListTopicsOutputBody"];
 
-const client = createClient<paths>({ baseUrl: "/api" });
+const client = createClient<paths>({ baseUrl: "/opensearch-api" });
 
 export async function fetchBlogs(params: {
   limit: number;

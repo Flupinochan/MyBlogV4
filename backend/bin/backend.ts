@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib/core";
-import { ApiStack } from "../lib/api-stack";
+import { BlogSearchApiStack } from "../lib/blog-search-api-stack";
 import { HostingPipelineStack } from "../lib/hosting-pipeline-stack";
 import { HostingStack } from "../lib/hosting-stack";
+import { VoicevoxApiStack } from "../lib/voicevox-api-stack";
 import { OpenSearchApiStack } from "../lib/lambda/opensearch/opensearch-api-stack";
 import { OpenSearchBatchStack } from "../lib/lambda/opensearch/opensearch-batch-stack";
 import { VoicevoxBucketStack } from "../lib/lambda/voicevox/voicevox-bucket";
@@ -17,7 +18,8 @@ const envName =
 const cfg = getEnvConfig(envName);
 const stackPrefixName = "myblogv4";
 const stackBaseName = `${envName}-${stackPrefixName}`;
-const apiPath = "api";
+const blogSearchApiPath = "opensearch-api";
+const voicevoxApiPath = "voicevox-api";
 const hostingRepoName = "MyBlogV4";
 const certificateArnParam = "certificate-arn";
 const githubConnectionArnParam = "github-connection-arn";
@@ -101,11 +103,17 @@ new OpenSearchApiStack(app, `${stackBaseName}-OpenSearchApiStack`, {
   modelIdEmbedding: cfg.modelIdEmbedding,
 });
 
-const apiStack = new ApiStack(app, `${stackBaseName}-ApiStack`, {
+const blogSearchApiStack = new BlogSearchApiStack(app, `${stackBaseName}-BlogSearchApiStack`, {
   domainName: cfg.hostingDomainName,
-  apiPath,
+  blogSearchApiPath,
   isProd: isProd(envName),
   openSearchApiLambdaName,
+});
+
+const voicevoxApiStack = new VoicevoxApiStack(app, `${stackBaseName}-VoicevoxApiStack`, {
+  domainName: cfg.hostingDomainName,
+  voicevoxApiPath,
+  isProd: isProd(envName),
   voicevoxLambdaName,
 });
 
@@ -114,8 +122,10 @@ const hostingStack = new HostingStack(app, `${stackBaseName}-HostingStack`, {
   hostingBucketName,
   domainName: cfg.hostingDomainName,
   certificateArnParam,
-  apiStack,
-  apiPath,
+  blogSearchApiStack,
+  blogSearchApiPath,
+  voicevoxApiStack,
+  voicevoxApiPath,
 });
 
 new HostingPipelineStack(app, `${stackBaseName}-HostingPipelineStack`, {

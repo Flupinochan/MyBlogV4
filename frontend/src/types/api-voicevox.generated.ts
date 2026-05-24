@@ -4,7 +4,7 @@
  */
 
 export interface paths {
-    "/v1/fastapi/health": {
+    "/v1/health": {
         parameters: {
             query?: never;
             header?: never;
@@ -12,7 +12,7 @@ export interface paths {
             cookie?: never;
         };
         /** Health */
-        get: operations["health_v1_fastapi_health_get"];
+        get: operations["health_v1_health_get"];
         put?: never;
         post?: never;
         delete?: never;
@@ -21,7 +21,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/fastapi/chat": {
+    "/v1/chat": {
         parameters: {
             query?: never;
             header?: never;
@@ -31,14 +31,14 @@ export interface paths {
         get?: never;
         put?: never;
         /** Chat */
-        post: operations["chat_v1_fastapi_chat_post"];
+        post: operations["chat_v1_chat_post"];
         delete?: never;
         options?: never;
         head?: never;
         patch?: never;
         trace?: never;
     };
-    "/v1/fastapi/chat/voice": {
+    "/v1/chat/voice": {
         parameters: {
             query?: never;
             header?: never;
@@ -48,7 +48,7 @@ export interface paths {
         get?: never;
         put?: never;
         /** Chat With Voice */
-        post: operations["chat_with_voice_v1_fastapi_chat_voice_post"];
+        post: operations["chat_with_voice_v1_chat_voice_post"];
         delete?: never;
         options?: never;
         head?: never;
@@ -103,7 +103,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    health_v1_fastapi_health_get: {
+    health_v1_health_get: {
         parameters: {
             query?: never;
             header?: never;
@@ -125,7 +125,7 @@ export interface operations {
             };
         };
     };
-    chat_v1_fastapi_chat_post: {
+    chat_v1_chat_post: {
         parameters: {
             query?: never;
             header?: never;
@@ -158,7 +158,7 @@ export interface operations {
             };
         };
     };
-    chat_with_voice_v1_fastapi_chat_voice_post: {
+    chat_with_voice_v1_chat_voice_post: {
         parameters: {
             query?: never;
             header?: never;

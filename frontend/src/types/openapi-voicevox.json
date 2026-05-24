@@ -5,10 +5,10 @@
     "version": "0.1.0"
   },
   "paths": {
-    "/v1/fastapi/health": {
+    "/v1/health": {
       "get": {
         "summary": "Health",
-        "operationId": "health_v1_fastapi_health_get",
+        "operationId": "health_v1_health_get",
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -19,7 +19,7 @@
                     "type": "string"
                   },
                   "type": "object",
-                  "title": "Response Health V1 Fastapi Health Get"
+                  "title": "Response Health V1 Health Get"
                 }
               }
             }
@@ -27,10 +27,10 @@
         }
       }
     },
-    "/v1/fastapi/chat": {
+    "/v1/chat": {
       "post": {
         "summary": "Chat",
-        "operationId": "chat_v1_fastapi_chat_post",
+        "operationId": "chat_v1_chat_post",
         "requestBody": {
           "content": {
             "application/json": {
@@ -65,10 +65,10 @@
         }
       }
     },
-    "/v1/fastapi/chat/voice": {
+    "/v1/chat/voice": {
       "post": {
         "summary": "Chat With Voice",
-        "operationId": "chat_with_voice_v1_fastapi_chat_voice_post",
+        "operationId": "chat_with_voice_v1_chat_voice_post",
         "requestBody": {
           "content": {
             "application/json": {

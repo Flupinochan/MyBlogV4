@@ -47,13 +47,13 @@ export type VoiceChatRequest = components["schemas"]["ChatRequest"];
 export type TextChatResponse = components["schemas"]["ChatResponse"];
 export type VoiceChatResponse = components["schemas"]["VoiceChatResponse"];
 
-const client = createClient<paths>({ baseUrl: "/api" });
+const client = createClient<paths>({ baseUrl: "/voicevox-api" });
 export const $api = createQueryClient(client);
 
 export async function sendTextMessage(
   request: TextChatRequest,
 ): Promise<TextChatResponse> {
-  const { data, error } = await client.POST("/v1/fastapi/chat", {
+  const { data, error } = await client.POST("/v1/chat", {
     body: request,
   });
   if (error) throw new Error("chat request failed");
@@ -63,7 +63,7 @@ export async function sendTextMessage(
 export async function sendVoiceMessage(
   request: VoiceChatRequest,
 ): Promise<VoiceChatResponse> {
-  const { data, error } = await client.POST("/v1/fastapi/chat/voice", {
+  const { data, error } = await client.POST("/v1/chat/voice", {
     body: request,
   });
   if (error) throw new Error("voice chat request failed");

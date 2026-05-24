@@ -4,19 +4,18 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as logs from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 
-interface ApiStackProps extends cdk.StackProps {
+interface VoicevoxApiStackProps extends cdk.StackProps {
   domainName: string;
-  apiPath: string;
+  voicevoxApiPath: string;
   isProd: boolean;
-  openSearchApiLambdaName: string;
   voicevoxLambdaName: string;
 }
 
-export class ApiStack extends cdk.Stack {
+export class VoicevoxApiStack extends cdk.Stack {
   public readonly api: apigateway.RestApi;
   public readonly logGroup: logs.LogGroup;
 
-  constructor(scope: Construct, id: string, props: ApiStackProps) {
+  constructor(scope: Construct, id: string, props: VoicevoxApiStackProps) {
     super(scope, id, props);
 
     this.logGroup = new logs.LogGroup(this, "ApiLogGroup", {
@@ -25,7 +24,7 @@ export class ApiStack extends cdk.Stack {
     });
 
     this.api = new apigateway.RestApi(this, "Api", {
-      restApiName: `MyBlogV4-${props.domainName}`,
+      restApiName: `MyBlogV4-Voicevox-${props.domainName}`,
       cloudWatchRole: true,
       defaultCorsPreflightOptions: {
         allowOrigins: [
@@ -42,7 +41,7 @@ export class ApiStack extends cdk.Stack {
         ],
       },
       deployOptions: {
-        stageName: props.apiPath,
+        stageName: props.voicevoxApiPath,
         loggingLevel: apigateway.MethodLoggingLevel.INFO,
         dataTraceEnabled: true,
         accessLogDestination: new apigateway.LogGroupLogDestination(
@@ -77,28 +76,14 @@ export class ApiStack extends cdk.Stack {
       responseHeaders,
     });
 
-    const blogSearchLambda = lambda.Function.fromFunctionName(
-      this,
-      "BlogSearchLambda",
-      props.openSearchApiLambdaName,
-    );
-
     const voicevoxLambda = lambda.Function.fromFunctionName(
       this,
       "VoicevoxLambda",
       props.voicevoxLambdaName,
     );
 
-    const v1 = this.api.root.addResource("v1");
-    const fastapi = v1.addResource("fastapi");
-    const voicevoxIntegration = new apigateway.LambdaIntegration(voicevoxLambda, { proxy: true });
-    fastapi.addResource("health").addMethod("GET", voicevoxIntegration);
-    const chat = fastapi.addResource("chat");
-    chat.addMethod("POST", voicevoxIntegration);
-    chat.addResource("voice").addMethod("POST", voicevoxIntegration);
-
     this.api.root.addProxy({
-      defaultIntegration: new apigateway.LambdaIntegration(blogSearchLambda, {
+      defaultIntegration: new apigateway.LambdaIntegration(voicevoxLambda, {
         proxy: true,
       }),
       anyMethod: true,

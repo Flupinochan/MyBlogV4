@@ -79,7 +79,7 @@ voice_service = VoiceService(
 
 # Go GinのLayerベースと違い、Dockerベースの場合は/apiは不要
 app = FastAPI()
-router = APIRouter(prefix="/v1/fastapi")
+router = APIRouter(prefix="/v1")
 
 
 class ChatRequest(BaseModel):

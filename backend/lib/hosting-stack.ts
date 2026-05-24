@@ -6,15 +6,17 @@ import * as s3 from "aws-cdk-lib/aws-s3";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as cdk from "aws-cdk-lib/core";
 import { Construct } from "constructs";
-import { ApiStack } from "./api-stack";
+import * as apigateway from "aws-cdk-lib/aws-apigateway";
 
 interface HostingStackProps extends cdk.StackProps {
   envName: string;
   hostingBucketName: string;
   domainName: string;
   certificateArnParam: string;
-  apiStack?: ApiStack;
-  apiPath?: string;
+  blogSearchApiStack?: { api: apigateway.RestApi };
+  blogSearchApiPath?: string;
+  voicevoxApiStack?: { api: apigateway.RestApi };
+  voicevoxApiPath?: string;
 }
 
 export class HostingStack extends cdk.Stack {
@@ -98,14 +100,28 @@ export class HostingStack extends cdk.Stack {
       ],
     });
 
-    const apiStack = props.apiStack;
-    const apiPath = props.apiPath;
-    if (apiStack && apiPath) {
+    const { blogSearchApiStack, blogSearchApiPath } = props;
+    if (blogSearchApiStack && blogSearchApiPath) {
       const origin = new origins.HttpOrigin(
-        `${apiStack.api.restApiId}.execute-api.${this.region}.amazonaws.com`,
+        `${blogSearchApiStack.api.restApiId}.execute-api.${this.region}.amazonaws.com`,
         { readTimeout: cdk.Duration.seconds(60) },
       );
-      this.distribution.addBehavior(`/${apiPath}/*`, origin, {
+      this.distribution.addBehavior(`/${blogSearchApiPath}/*`, origin, {
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+        originRequestPolicy:
+          cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      });
+    }
+
+    const { voicevoxApiStack, voicevoxApiPath } = props;
+    if (voicevoxApiStack && voicevoxApiPath) {
+      const voicevoxOrigin = new origins.HttpOrigin(
+        `${voicevoxApiStack.api.restApiId}.execute-api.${this.region}.amazonaws.com`,
+        { readTimeout: cdk.Duration.seconds(60) },
+      );
+      this.distribution.addBehavior(`/${voicevoxApiPath}/*`, voicevoxOrigin, {
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
         cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
         originRequestPolicy:

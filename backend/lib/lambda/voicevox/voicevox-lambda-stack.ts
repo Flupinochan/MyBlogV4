@@ -100,7 +100,7 @@ export class VoicevoxLambdaStack extends cdk.Stack {
         AWS_LAMBDA_LOG_FORMAT: "JSON",
         AWS_LWA_PORT: "8080",
         AWS_LWA_READINESS_CHECK_PORT: "8080",
-        AWS_LWA_READINESS_CHECK_PATH: "/v1/fastapi/health",
+        AWS_LWA_READINESS_CHECK_PATH: "/v1/health",
       },
     });
   }
