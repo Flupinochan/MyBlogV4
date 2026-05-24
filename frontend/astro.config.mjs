@@ -18,16 +18,15 @@ export default defineConfig({
           target: "https://dev-blog.metalmental.net",
           changeOrigin: true,
         },
-        // 先に長いパスを定義しておくこと
-        "/api/v1/fastapi": {
+        "/voicevox-api": {
           target: "http://localhost:8081",
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/v1\/fastapi/, "/v1/fastapi"),
+          rewrite: (path) => path.replace(/^\/voicevox-api/, ""),
         },
-        "/api": {
+        "/opensearch-api": {
           target: "http://localhost:8080",
           changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api/, ""),
+          rewrite: (path) => path.replace(/^\/opensearch-api/, ""),
         },
       },
     },
