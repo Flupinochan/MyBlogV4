@@ -61,8 +61,8 @@ export interface components {
     schemas: {
         /** ChatRequest */
         ChatRequest: {
-            /** Message */
-            message: string;
+            /** Messages */
+            messages: components["schemas"]["Message"][];
         };
         /** ChatResponse */
         ChatResponse: {
@@ -73,6 +73,16 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** Message */
+        Message: {
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant";
+            /** Content */
+            content: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -91,8 +101,8 @@ export interface components {
         VoiceChatResponse: {
             /** Message */
             message: string;
-            /** Voicepath */
-            voicePath: string;
+            /** Voice Path */
+            voice_path: string;
         };
     };
     responses: never;

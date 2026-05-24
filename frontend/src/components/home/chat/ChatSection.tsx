@@ -17,15 +17,16 @@ import {
   detectLanguage,
   generateChatTitle,
 } from "./chatApi";
-import type { TextChatResponse, VoiceChatResponse } from "./chatApi";
+import type { ChatRequest, TextChatResponse, VoiceChatResponse } from "./chatApi";
 import { showErrorDialog } from "../../../layouts/error-dialog/errorDialog";
 import "./chat.css";
 
-type Message = { role: "user" | "assistant"; content: string };
+type MessageParam = ChatRequest["messages"][number];
+type Message = Omit<MessageParam, "content"> & { content: string };
 type History = { id: string; name: string; messages: Message[] };
 
 type ChatDetectInput = {
-  message: string;
+  messages: Message[];
   withVoice: boolean;
   isFirst: boolean;
 };
@@ -63,13 +64,13 @@ function ChatContent() {
     Error,
     ChatDetectInput
   >({
-    mutationFn: async ({ message, withVoice, isFirst }) => {
+    mutationFn: async ({ messages, withVoice, isFirst }) => {
       const [chatResult, lang] = await Promise.all([
         withVoice
-          ? sendVoiceMessage({ message })
-          : sendTextMessage({ message }),
+          ? sendVoiceMessage({ messages })
+          : sendTextMessage({ messages }),
         isFirst && "LanguageDetector" in self
-          ? detectLanguage(message).catch(() => undefined)
+          ? detectLanguage(messages[messages.length - 1]?.content ?? "").catch(() => undefined)
           : Promise.resolve(undefined),
       ]);
       return { chatResult, lang };
@@ -100,7 +101,7 @@ function ChatContent() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
 
     chatDetectMutation.mutate(
-      { message: trimmedMessage, withVoice, isFirst },
+      { messages: [...messages, { role: "user", content: trimmedMessage }], withVoice, isFirst },
       {
         onSuccess: async ({ chatResult, lang }) => {
           flushSync(() => {
@@ -110,9 +111,9 @@ function ChatContent() {
             ]);
           });
           messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-          if ("voicePath" in chatResult) {
+          if ("voice_path" in chatResult) {
             try {
-              await new Audio(chatResult.voicePath).play();
+              await new Audio(chatResult.voice_path).play();
             } catch (error) {
               showErrorDialog(`音声の再生に失敗しました: ${error}`);
             }

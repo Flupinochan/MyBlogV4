@@ -13,15 +13,17 @@ export default defineConfig({
     // Connect to the backend go gin server
     server: {
       proxy: {
-        // voiceはs3上にあるため直接dev環境にアクセス
-        "/voice": {
-          target: "https://dev-blog.metalmental.net",
-          changeOrigin: true,
-        },
         "/voicevox-api": {
           target: "http://localhost:8081",
           changeOrigin: true,
           rewrite: (path) => path.replace(/^\/voicevox-api/, ""),
+        },
+        // voiceはs3上にあるため直接dev環境にアクセス
+        // voicevoxとvoice両方マッチする可能性があるため注意
+        // 長いパスの方は上に定義
+        "/voice": {
+          target: "https://dev-blog.metalmental.net",
+          changeOrigin: true,
         },
         "/opensearch-api": {
           target: "http://localhost:8080",

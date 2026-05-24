@@ -1,7 +1,9 @@
 """Claude AIを使用してチャットメッセージを生成するサービス"""
 
+from collections.abc import Iterable
+
 from anthropic import AnthropicAWS
-from anthropic.types import TextBlock
+from anthropic.types import MessageParam, TextBlock
 from aws_lambda_powertools import Logger
 
 logger = Logger(child=True)
@@ -14,11 +16,11 @@ class ChatService:
     def __init__(self, client: AnthropicAWS) -> None:
         self._client = client
 
-    def generate_message(self, message: str) -> str:
+    def generate_message(self, messages: Iterable[MessageParam]) -> str:
         response = self._client.messages.create(
             model=MODEL,
             max_tokens=MAX_TOKEN,
-            messages=[{"role": "user", "content": message}],
+            messages=messages,
         )
         message = next(
             block.text for block in response.content if isinstance(block, TextBlock)

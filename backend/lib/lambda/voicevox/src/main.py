@@ -3,9 +3,11 @@
 import logging
 import multiprocessing
 import os
+from typing import Literal
 
 import boto3
 from anthropic import AnthropicAWS
+from anthropic.types import MessageParam
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.logging.formatter import LambdaPowertoolsFormatter
 from fastapi import APIRouter, FastAPI
@@ -82,8 +84,13 @@ app = FastAPI()
 router = APIRouter(prefix="/v1")
 
 
+class Message(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
 class ChatRequest(BaseModel):
-    message: str
+    messages: list[Message]
 
 
 class ChatResponse(BaseModel):
@@ -91,7 +98,7 @@ class ChatResponse(BaseModel):
 
 
 class VoiceChatResponse(ChatResponse):
-    voicePath: str
+    voice_path: str
 
 
 @router.get("/health")
@@ -101,15 +108,20 @@ def health() -> dict[str, str]:
 
 @router.post("/chat")
 def chat(request: ChatRequest) -> ChatResponse:
-    message = chat_service.generate_message(request.message)
+    message = chat_service.generate_message(
+        [MessageParam(role=m.role, content=m.content) for m in request.messages],
+    )
     return ChatResponse(message=message)
 
 
 @router.post("/chat/voice")
 def chat_with_voice(request: ChatRequest) -> VoiceChatResponse:
-    message = chat_service.generate_message(request.message)
-    voicePath = voice_service.synthesize_and_upload(message)
-    return VoiceChatResponse(message=message, voicePath=voicePath)
+    message = chat_service.generate_message(
+        [MessageParam(role=m.role, content=m.content) for m in request.messages],
+    )
+    voice_path = voice_service.synthesize_and_upload(message)
+    return VoiceChatResponse(message=message, voice_path=voice_path)
+
 
 # FastAPIのOpenAPI自動生成の仕組み上、moduleレベルでの標準出力は避けること
 app.include_router(router)

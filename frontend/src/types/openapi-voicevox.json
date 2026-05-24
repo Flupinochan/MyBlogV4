@@ -108,14 +108,17 @@
     "schemas": {
       "ChatRequest": {
         "properties": {
-          "message": {
-            "type": "string",
-            "title": "Message"
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/Message"
+            },
+            "type": "array",
+            "title": "Messages"
           }
         },
         "type": "object",
         "required": [
-          "message"
+          "messages"
         ],
         "title": "ChatRequest"
       },
@@ -144,6 +147,28 @@
         },
         "type": "object",
         "title": "HTTPValidationError"
+      },
+      "Message": {
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "role",
+          "content"
+        ],
+        "title": "Message"
       },
       "ValidationError": {
         "properties": {
@@ -191,15 +216,15 @@
             "type": "string",
             "title": "Message"
           },
-          "voicePath": {
+          "voice_path": {
             "type": "string",
-            "title": "Voicepath"
+            "title": "Voice Path"
           }
         },
         "type": "object",
         "required": [
           "message",
-          "voicePath"
+          "voice_path"
         ],
         "title": "VoiceChatResponse"
       }

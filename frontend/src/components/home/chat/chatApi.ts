@@ -42,8 +42,7 @@ import createClient from "openapi-fetch";
 import createQueryClient from "openapi-react-query";
 import type { components, paths } from "../../../types/api-voicevox.generated";
 
-export type TextChatRequest = components["schemas"]["ChatRequest"];
-export type VoiceChatRequest = components["schemas"]["ChatRequest"];
+export type ChatRequest = components["schemas"]["ChatRequest"];
 export type TextChatResponse = components["schemas"]["ChatResponse"];
 export type VoiceChatResponse = components["schemas"]["VoiceChatResponse"];
 
@@ -51,7 +50,7 @@ const client = createClient<paths>({ baseUrl: "/voicevox-api" });
 export const $api = createQueryClient(client);
 
 export async function sendTextMessage(
-  request: TextChatRequest,
+  request: ChatRequest,
 ): Promise<TextChatResponse> {
   const { data, error } = await client.POST("/v1/chat", {
     body: request,
@@ -61,7 +60,7 @@ export async function sendTextMessage(
 }
 
 export async function sendVoiceMessage(
-  request: VoiceChatRequest,
+  request: ChatRequest,
 ): Promise<VoiceChatResponse> {
   const { data, error } = await client.POST("/v1/chat/voice", {
     body: request,
