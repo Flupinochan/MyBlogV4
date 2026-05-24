@@ -40,7 +40,7 @@ export async function generateChatTitle(
 
 import createClient from "openapi-fetch";
 import createQueryClient from "openapi-react-query";
-import type { components, paths } from "../../../types/api.generated";
+import type { components, paths } from "../../../types/api-voicevox.generated";
 
 export type TextChatRequest = components["schemas"]["ChatRequest"];
 export type VoiceChatRequest = components["schemas"]["ChatRequest"];

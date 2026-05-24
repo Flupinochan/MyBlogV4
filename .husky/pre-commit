@@ -1,7 +1,13 @@
 #!/bin/sh
 
 if git diff --cached --name-only | grep -q "backend/lib/lambda/voicevox/src/main.py"; then
-  echo "main.py changed — regenerating OpenAPI types..."
-  make gen-api-types
-  git add frontend/src/types/openapi.json frontend/src/types/api.generated.ts
+  echo "FastAPI changed — regenerating OpenAPI types..."
+  make gen-api-types-voicevox
+  git add frontend/src/types/openapi-voicevox.json frontend/src/types/api-voicevox.generated.ts
+fi
+
+if git diff --cached --name-only | grep -q "backend/lib/lambda/opensearch/"; then
+  echo "Huma changed — regenerating OpenAPI types..."
+  make gen-api-types-opensearch
+  git add frontend/src/types/openapi-opensearch.json frontend/src/types/api-opensearch.generated.ts
 fi

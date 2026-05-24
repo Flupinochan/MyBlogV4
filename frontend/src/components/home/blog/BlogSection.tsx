@@ -9,41 +9,12 @@ import {
 import EmblaCarousel from "./carousel/EmblaCarousel";
 import { type EmblaOptionsType } from "embla-carousel";
 import "./blog.css";
-
-// ── Types ────────────────────────────────────────────────────────────────────
-interface BlogListItem {
-  slug: string;
-  url: string;
-  title: string;
-  emoji: string;
-  type: "tech" | "idea";
-  topics: string[];
-  summary: string;
-  created_at: string;
-  // /api/v1/blogs?query=xxx
-  // queryした際のみscore/highlightsが存在
-  score?: number;
-  // highlightはcontentベースで利用しており、markdown形式のため利用しない
-  highlights?: Record<string, string[]>;
-}
-
-// /api/v1/blogs のレスポンス
-interface BlogListResponse {
-  success: boolean;
-  data: BlogListItem[];
-  next_cursor: unknown;
-}
-
-interface TopicBucket {
-  key: string;
-  doc_count: number;
-}
-
-// /api/v1/topics のレスポンス
-interface TopicsResponse {
-  success: boolean;
-  data: TopicBucket[];
-}
+import {
+  fetchBlogs,
+  fetchTopics,
+  type BlogListItem,
+  type TopicBucket,
+} from "./blogApi";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const INITIAL_LIMIT = 10;
@@ -61,19 +32,7 @@ const CAROUSEL_OPTIONS: EmblaOptionsType = {
 const queryClient = new QueryClient();
 
 // ── Fetch ────────────────────────────────────────────────────────────────────
-async function fetchTopics(): Promise<TopicsResponse> {
-  try {
-    const response = await fetch("/api/v1/topics");
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
-  } catch (error) {
-    throw new Error(
-      `Failed to fetch topics: ${error instanceof Error ? error.message : String(error)}`,
-    );
-  }
-}
-
-async function fetchBlogs({
+async function fetchBlogsWithMode({
   cursor,
   limit,
   query,
@@ -85,28 +44,19 @@ async function fetchBlogs({
   query: string;
   topics: string[];
   searchMode: SearchMode;
-}): Promise<BlogListResponse> {
-  const params = new URLSearchParams({ limit: String(limit) });
-  if (cursor != null) params.set("cursor", JSON.stringify(cursor));
-  if (query) params.set("query", query);
-  if (topics.length > 0) {
-    const topic = topics[0];
-    if (topic === undefined) throw new Error("topics[0] is undefined");
-    params.set("topic", topic);
-  }
+}) {
   const pipeline = HYBRID_PIPELINES[searchMode];
-  params.set("search_mode", pipeline ? "hybrid" : searchMode);
-  if (pipeline) params.set("search_pipeline", pipeline);
-
-  try {
-    const response = await fetch(`/api/v1/blogs?${params}`);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    return response.json();
-  } catch (error) {
-    throw new Error(
-      `Failed to fetch blogs: ${error instanceof Error ? error.message : String(error)}`,
-    );
-  }
+  return fetchBlogs({
+    limit,
+    cursor,
+    query: query || undefined,
+    topic: topics[0],
+    search_mode: (pipeline ? "hybrid" : searchMode) as
+      | "fulltext"
+      | "vector"
+      | "hybrid",
+    search_pipeline: pipeline,
+  });
 }
 
 // ── Utils ────────────────────────────────────────────────────────────────────
@@ -217,7 +167,7 @@ function BlogCard({ blog }: { blog: BlogListItem }) {
         <div className="flex items-center justify-between flex-wrap gap-2">
           {/* topics */}
           <div className="flex flex-wrap gap-1">
-            {blog.topics.map((topic) => (
+            {(blog.topics ?? []).map((topic) => (
               <Badge key={topic} color="violet" rounded="full">
                 {topic}
               </Badge>
@@ -257,7 +207,7 @@ function BlogCarousel() {
   } = useInfiniteQuery({
     queryKey: ["blogs", query, selectedTopics, searchMode],
     queryFn: ({ pageParam }) =>
-      fetchBlogs({
+      fetchBlogsWithMode({
         cursor: pageParam,
         limit: pageParam === null ? INITIAL_LIMIT : LOAD_MORE_LIMIT,
         query,
@@ -271,7 +221,7 @@ function BlogCarousel() {
 
   // 検索時のみ scoreでソート
   // 非検索時は created_atでソート (API側のソート順) を維持
-  const rawBlogs = data?.pages.flatMap((page) => page.data) ?? [];
+  const rawBlogs = data?.pages.flatMap((page) => page.data ?? []) ?? [];
   const isSearching = query.length > 0;
   const blogs = isSearching
     ? [...rawBlogs].sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
@@ -295,7 +245,7 @@ function BlogCarousel() {
           <SearchModeSelect value={searchMode} onChange={setSearchMode} />
           {/* topic */}
           <TopicSelect
-            topics={topicsData?.data ?? []}
+            topics={topicsData?.data ?? [] as TopicBucket[]}
             value={selectedTopics[0] ?? ""}
             onChange={(v) => setSelectedTopics(v ? [v] : [])}
           />
