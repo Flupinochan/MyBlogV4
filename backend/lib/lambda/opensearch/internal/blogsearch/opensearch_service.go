@@ -4,12 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"log/slog"
 	"net/http"
 
+	"github.com/danielgtaylor/huma/v2"
 	"github.com/opensearch-project/opensearch-go/v2/opensearchapi"
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/genai"
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/middleware"
@@ -36,7 +36,7 @@ func (s *BlogSearchService) Ping(ctx context.Context) error {
 	defer res.Body.Close()
 
 	if res.IsError() {
-		return fmt.Errorf("ping failed with status: %w", middleware.ErrServer)
+		return huma.Error500InternalServerError("unhealthy")
 	}
 	return nil
 }
@@ -54,7 +54,7 @@ func (s *BlogSearchService) GetBlogBySlug(ctx context.Context, slug string) (*Bl
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		return nil, fmt.Errorf("failed to encode query: %w", errors.Join(err, middleware.ErrServer))
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 
 	searchReq := opensearchapi.SearchRequest{
@@ -64,21 +64,21 @@ func (s *BlogSearchService) GetBlogBySlug(ctx context.Context, slug string) (*Bl
 
 	res, err := searchReq.Do(ctx, s.blogsearchRepo.client)
 	if err != nil {
-		return nil, fmt.Errorf("opensearch request failed: %w", errors.Join(err, middleware.ErrServer))
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 	defer res.Body.Close()
 
 	if res.IsError() {
-		return nil, fmt.Errorf("opensearch error response: %s: %w", res.String(), middleware.ErrServer)
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 
 	var osRes SearchResponse[BlogDocument]
 	if err := json.NewDecoder(res.Body).Decode(&osRes); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", errors.Join(err, middleware.ErrServer))
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 
 	if len(osRes.Hits.Hits) == 0 {
-		return nil, fmt.Errorf("blog not found for slug %q: %w", slug, middleware.ErrNotFound)
+		return nil, huma.Error404NotFound("resource not found")
 	}
 
 	return &osRes.Hits.Hits[0].Source, nil
@@ -173,7 +173,7 @@ func (s *BlogSearchService) ListBlogs(ctx context.Context, params ListBlogsParam
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(searchReqBody); err != nil {
-		return nil, fmt.Errorf("failed to encode search request: %w", errors.Join(err, middleware.ErrServer))
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 
 	// Send request to OpenSearch
@@ -184,12 +184,12 @@ func (s *BlogSearchService) ListBlogs(ctx context.Context, params ListBlogsParam
 
 	res, err := searchReq.Do(ctx, s.blogsearchRepo.client)
 	if err != nil {
-		return nil, fmt.Errorf("opensearch request failed: %w", errors.Join(err, middleware.ErrServer))
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 	defer res.Body.Close()
 
 	if res.IsError() {
-		return nil, fmt.Errorf("opensearch error response: %s: %w", res.String(), middleware.ErrServer)
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 
 	// Decode response
@@ -197,7 +197,7 @@ func (s *BlogSearchService) ListBlogs(ctx context.Context, params ListBlogsParam
 	decoder := json.NewDecoder(res.Body)
 	decoder.UseNumber()
 	if err := decoder.Decode(&osRes); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", errors.Join(err, middleware.ErrServer))
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 
 	if len(osRes.Hits.Hits) > 0 {
@@ -253,7 +253,7 @@ func (s *BlogSearchService) ListBlogsVector(c context.Context, params ListBlogsP
 	vector, err := s.genaiRepo.GenerateEmbedding(c, params.Query)
 	if err != nil {
 		logger.Error("failed to embed query", slog.Any("error", err))
-		return nil, fmt.Errorf("failed to embed query: %w", errors.Join(err, middleware.ErrServer))
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 
 	var filterQuery map[string]any
@@ -295,7 +295,7 @@ func (s *BlogSearchService) ListBlogsVector(c context.Context, params ListBlogsP
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(searchReqBody); err != nil {
-		return nil, fmt.Errorf("failed to encode vector search request: %w", errors.Join(err, middleware.ErrServer))
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 
 	searchReq := opensearchapi.SearchRequest{
@@ -305,19 +305,19 @@ func (s *BlogSearchService) ListBlogsVector(c context.Context, params ListBlogsP
 
 	res, err := searchReq.Do(c, s.blogsearchRepo.client)
 	if err != nil {
-		return nil, fmt.Errorf("opensearch vector search request failed: %w", errors.Join(err, middleware.ErrServer))
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 	defer res.Body.Close()
 
 	if res.IsError() {
-		return nil, fmt.Errorf("opensearch vector search error: %s: %w", res.String(), middleware.ErrServer)
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 
 	var osRes SearchResponse[BlogListItem]
 	decoder := json.NewDecoder(res.Body)
 	decoder.UseNumber()
 	if err := decoder.Decode(&osRes); err != nil {
-		return nil, fmt.Errorf("failed to decode vector search response: %w", errors.Join(err, middleware.ErrServer))
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 
 	result := &ListBlogsResult{
@@ -350,7 +350,7 @@ func (s *BlogSearchService) ListBlogsHybrid(ctx context.Context, params ListBlog
 
 	vector, err := s.genaiRepo.GenerateEmbedding(ctx, params.Query)
 	if err != nil {
-		return nil, fmt.Errorf("failed to embed query: %w", errors.Join(err, middleware.ErrServer))
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 
 	var filterQuery map[string]any
@@ -408,7 +408,7 @@ func (s *BlogSearchService) ListBlogsHybrid(ctx context.Context, params ListBlog
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(searchReqBody); err != nil {
-		return nil, fmt.Errorf("failed to encode hybrid search request: %w", errors.Join(err, middleware.ErrServer))
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 
 	// opensearch-go v2.3.0 は SearchRequest に SearchPipeline フィールドがないため
@@ -416,27 +416,27 @@ func (s *BlogSearchService) ListBlogsHybrid(ctx context.Context, params ListBlog
 	url := fmt.Sprintf("/%s/_search?search_pipeline=%s", s.blogsearchRepo.aliasNameEmbedding, params.SearchPipeline)
 	httpReq, err := http.NewRequestWithContext(ctx, http.MethodPost, url, &buf)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create hybrid search request: %w", errors.Join(err, middleware.ErrServer))
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 
 	httpReq.Header.Set("Content-Type", "application/json")
 
 	res, err := s.blogsearchRepo.client.Transport.Perform(httpReq)
 	if err != nil {
-		return nil, fmt.Errorf("opensearch hybrid search request failed: %w", errors.Join(err, middleware.ErrServer))
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode >= 400 {
-		body, _ := io.ReadAll(res.Body)
-		return nil, fmt.Errorf("opensearch hybrid search error [%d]: %s: %w", res.StatusCode, string(body), middleware.ErrServer)
+		_, _ = io.ReadAll(res.Body)
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 
 	var osRes SearchResponse[BlogListItem]
 	decoder := json.NewDecoder(res.Body)
 	decoder.UseNumber()
 	if err := decoder.Decode(&osRes); err != nil {
-		return nil, fmt.Errorf("failed to decode hybrid search response: %w", errors.Join(err, middleware.ErrServer))
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 
 	result := &ListBlogsResult{
@@ -474,7 +474,7 @@ func (s *BlogSearchService) ListTopics(ctx context.Context) ([]TopicBucket, erro
 
 	var buf bytes.Buffer
 	if err := json.NewEncoder(&buf).Encode(query); err != nil {
-		return nil, fmt.Errorf("failed to encode query: %w", errors.Join(err, middleware.ErrServer))
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 
 	searchReq := opensearchapi.SearchRequest{
@@ -484,17 +484,17 @@ func (s *BlogSearchService) ListTopics(ctx context.Context) ([]TopicBucket, erro
 
 	res, err := searchReq.Do(ctx, s.blogsearchRepo.client)
 	if err != nil {
-		return nil, fmt.Errorf("opensearch request failed: %w", errors.Join(err, middleware.ErrServer))
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 	defer res.Body.Close()
 
 	if res.IsError() {
-		return nil, fmt.Errorf("opensearch error response: %s: %w", res.String(), middleware.ErrServer)
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 
 	var osRes AggsResponse
 	if err := json.NewDecoder(res.Body).Decode(&osRes); err != nil {
-		return nil, fmt.Errorf("failed to decode response: %w", errors.Join(err, middleware.ErrServer))
+		return nil, huma.Error500InternalServerError("an unexpected error occurred")
 	}
 
 	return osRes.Aggregations.AllTopics.Buckets, nil

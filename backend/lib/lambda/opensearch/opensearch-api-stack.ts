@@ -95,7 +95,7 @@ export class OpenSearchApiStack extends cdk.Stack {
         ALIAS_NAME_EMBEDDING: props.aliasNameEmbedding,
         MODEL_ID: props.modelId,
         MODEL_ID_EMBEDDING: props.modelIdEmbedding,
-        GIN_MODE: "release",
+        MODE: "release",
         LOG_LEVEL: "0", // DEBUG:-4、INFO:0、WARN:4、ERROR:8
         AWS_LAMBDA_LOG_LEVEL: "INFO",
         AWS_LAMBDA_LOG_FORMAT: "JSON",

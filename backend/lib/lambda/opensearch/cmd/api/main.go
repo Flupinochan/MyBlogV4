@@ -8,7 +8,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/danielgtaylor/huma/v2"
+	"github.com/danielgtaylor/huma/v2/adapters/humago"
 	"github.com/joho/godotenv"
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/blogsearch"
 	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/config"
@@ -21,30 +22,22 @@ import (
 // API Design Reference
 // https://gin-gonic.com/ja/docs/routing/api-design/
 
-func setupRouter() error {
-	ginMode := gin.Mode()
-	gin.SetMode(ginMode)
-
-	// Load .env file in non-production environments
-	if ginMode != gin.ReleaseMode {
-		err := godotenv.Load()
-		if err != nil {
+func setupServer() error {
+	if os.Getenv("MODE") != "release" {
+		if err := godotenv.Load(); err != nil {
 			return fmt.Errorf("error loading .env file: %w", err)
 		}
 	}
 
-	// Load Configuration (Environment Variables)
 	cfg, err := config.GetAppConfig()
 	if err != nil {
 		return fmt.Errorf("failed to get App config: %w", err)
 	}
 
-	// Logger Initialization
 	mylogger.InitLogger(cfg.Level)
 
 	slog.Info("Application started")
 
-	// OpenSearch Client Initialization
 	client, err := blogsearch.NewOpenSearchClient(&blogsearch.OpenSearchConfig{
 		Address:  cfg.Address,
 		Username: cfg.Username,
@@ -65,20 +58,15 @@ func setupRouter() error {
 	blogSearchService := blogsearch.NewBlogSearchService(genaiRepo, blogSearchRepo)
 	h := blogsearch.NewHandler(blogSearchService)
 
-	// Gin Router Initialization with Middleware
-	r := gin.New()
-	// r.RedirectTrailingSlash = false
-	r.Use(gin.Recovery())
-	r.Use(middleware.LoggerMiddleware(slog.Default()))
-	r.Use(middleware.ErrorHandler())
+	mux := http.NewServeMux()
+	api := humago.New(mux, huma.DefaultConfig("Blog Search API", "1.0.0"))
+	api.UseMiddleware(middleware.LoggerMiddleware(slog.Default()))
 
-	// Register routes
-	router.RegisterRoutes(r, h, blogSearchService)
+	router.RegisterRoutes(api, h, blogSearchService)
 
-	// Run the server (Using "localhost:8080" instead of "127.0.0.1:8080")
 	server := &http.Server{
 		Addr:              "0.0.0.0:8080",
-		Handler:           r,
+		Handler:           mux,
 		ReadHeaderTimeout: 5 * time.Second,
 		ReadTimeout:       10 * time.Second,
 		WriteTimeout:      10 * time.Second,
@@ -86,15 +74,11 @@ func setupRouter() error {
 		MaxHeaderBytes:    1 << 20,
 		ErrorLog:          log.New(os.Stderr, "http: ", log.LstdFlags),
 	}
-	server.ListenAndServe()
-
-	return nil
+	return server.ListenAndServe()
 }
 
 func main() {
-	err := setupRouter()
-	if err != nil {
-		slog.Error("Failed to set up router", slog.Any("error", err))
-		return
+	if err := setupServer(); err != nil {
+		slog.Error("Failed to set up server", slog.Any("error", err))
 	}
 }

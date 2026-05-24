@@ -1,18 +1,33 @@
 package blogsearch
 
 import (
-	"github.com/gin-gonic/gin"
+	"net/http"
+
+	"github.com/danielgtaylor/huma/v2"
 )
 
-func OpenSearchRoutes(r *gin.RouterGroup, h *Handler) {
-	blogGroup := r.Group("/blogs")
-	{
-		blogGroup.GET("/:slug", h.GetBlogBySlug)
-		blogGroup.GET("", h.ListBlogs)
-	}
+func OpenSearchRoutes(api huma.API, h *Handler) {
+	huma.Register(api, huma.Operation{
+		OperationID: "get-blog-by-slug",
+		Method:      http.MethodGet,
+		Path:        "/blogs/{slug}",
+		Summary:     "Get a blog post by slug",
+		Tags:        []string{"blogs"},
+	}, h.GetBlogBySlug)
 
-	topicGroup := r.Group("/topics")
-	{
-		topicGroup.GET("", h.ListTopics)
-	}
+	huma.Register(api, huma.Operation{
+		OperationID: "list-blogs",
+		Method:      http.MethodGet,
+		Path:        "/blogs",
+		Summary:     "List blog posts",
+		Tags:        []string{"blogs"},
+	}, h.ListBlogs)
+
+	huma.Register(api, huma.Operation{
+		OperationID: "list-topics",
+		Method:      http.MethodGet,
+		Path:        "/topics",
+		Summary:     "List all topics",
+		Tags:        []string{"topics"},
+	}, h.ListTopics)
 }

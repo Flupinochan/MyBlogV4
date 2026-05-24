@@ -3,9 +3,10 @@ package middleware
 import (
 	"context"
 	"log/slog"
+	"strconv"
 	"time"
 
-	"github.com/gin-gonic/gin"
+	"github.com/danielgtaylor/huma/v2"
 	"github.com/google/uuid"
 )
 
@@ -21,66 +22,53 @@ func GetLogger(ctx context.Context) *slog.Logger {
 	return slog.Default()
 }
 
-func LoggerMiddleware(logger *slog.Logger) gin.HandlerFunc {
-	return func(c *gin.Context) {
+func LoggerMiddleware(logger *slog.Logger) func(huma.Context, func(huma.Context)) {
+	return func(ctx huma.Context, next func(huma.Context)) {
 		start := time.Now()
-
-		// request_id生成
 		reqID := uuid.NewString()
-
-		// リクエスト単位のloggerを作成
 		reqLogger := logger.With(
 			slog.String("request_id", reqID),
-			slog.String("method", c.Request.Method),
-			slog.String("path", c.Request.URL.Path),
+			slog.String("method", ctx.Method()),
+			slog.String("path", ctx.URL().Path),
 		)
 
 		// loggerをcontextにセット
 		// ★仕組みとしては各処理でcontextからloggerを取り出して使う
-		ctx := context.WithValue(c.Request.Context(), loggerKey, reqLogger)
-		c.Request = c.Request.WithContext(ctx)
+		ctx = huma.WithValue(ctx, loggerKey, reqLogger)
 
-		// リクエスト前
-		c.Next()
+		next(ctx)
 
-		// リクエスト後
-		status := c.Writer.Status()
+		status := ctx.Status()
+		latency := time.Since(start)
+
+		var contentLength int64 = -1
+		if cl := ctx.Header("Content-Length"); cl != "" {
+			if n, err := strconv.ParseInt(cl, 10, 64); err == nil {
+				contentLength = n
+			}
+		}
 
 		switch {
-		case len(c.Errors) > 0:
-			for _, err := range c.Errors {
-				reqLogger.Error("request completed with errors",
-					slog.Duration("latency", time.Since(start)),
-					slog.String("client_ip", c.ClientIP()),
-					slog.String("host", c.Request.Host),
-					slog.Int64("content_length", c.Request.ContentLength),
-					slog.Int("status", status),
-					slog.Int("body_size", c.Writer.Size()),
-					slog.String("error_message", err.Error()),
-				)
-			}
 		case status >= 500:
 			reqLogger.Error("request completed with server error",
-				slog.Duration("latency", time.Since(start)),
-				slog.String("client_ip", c.ClientIP()),
-				slog.String("host", c.Request.Host),
-				slog.Int64("content_length", c.Request.ContentLength),
 				slog.Int("status", status),
-				slog.Int("body_size", c.Writer.Size()),
+				slog.Duration("latency", latency),
+				slog.String("client_ip", ctx.Header("X-Forwarded-For")),
+				slog.String("host", ctx.Host()),
+				slog.Int64("content_length", contentLength),
 			)
 		case status >= 400:
 			reqLogger.Warn("request completed with client error",
-				slog.Duration("latency", time.Since(start)),
-				slog.String("client_ip", c.ClientIP()),
-				slog.String("host", c.Request.Host),
-				slog.Int64("content_length", c.Request.ContentLength),
 				slog.Int("status", status),
-				slog.Int("body_size", c.Writer.Size()),
+				slog.Duration("latency", latency),
+				slog.String("client_ip", ctx.Header("X-Forwarded-For")),
+				slog.String("host", ctx.Host()),
+				slog.Int64("content_length", contentLength),
 			)
 		default:
 			reqLogger.Info("request completed successfully",
-				slog.Duration("latency", time.Since(start)),
 				slog.Int("status", status),
+				slog.Duration("latency", latency),
 			)
 		}
 	}

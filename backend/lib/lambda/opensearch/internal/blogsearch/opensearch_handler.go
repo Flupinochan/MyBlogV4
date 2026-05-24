@@ -2,11 +2,10 @@ package blogsearch
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
-	"net/http"
 
-	"github.com/gin-gonic/gin"
-	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/middleware"
+	"github.com/danielgtaylor/huma/v2"
 )
 
 type Handler struct {
@@ -17,109 +16,106 @@ func NewHandler(s *BlogSearchService) *Handler {
 	return &Handler{s: s}
 }
 
-type GetBlogBySlugUri struct {
-	Slug string `uri:"slug" binding:"required,min=1,max=100"`
+type GetBlogBySlugInput struct {
+	Slug string `path:"slug" minLength:"1" maxLength:"100" doc:"Blog slug"`
 }
 
-func (h *Handler) GetBlogBySlug(c *gin.Context) {
-	var uri GetBlogBySlugUri
-	if err := c.ShouldBindUri(&uri); err != nil {
-		_ = c.Error(middleware.ErrClient)
-		return
-	}
+type GetBlogBySlugOutput struct {
+	Body *BlogDocument
+}
 
-	blog, err := h.s.GetBlogBySlug(c.Request.Context(), uri.Slug)
+func (h *Handler) GetBlogBySlug(ctx context.Context, input *GetBlogBySlugInput) (*GetBlogBySlugOutput, error) {
+	blog, err := h.s.GetBlogBySlug(ctx, input.Slug)
 	if err != nil {
-		_ = c.Error(err)
-		return
+		return nil, err
 	}
-
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": blog})
+	return &GetBlogBySlugOutput{Body: blog}, nil
 }
 
-type ListBlogsQuery struct {
-	Limit          int    `form:"limit"            binding:"omitempty,min=1,max=100"`
-	Cursor         string `form:"cursor"           binding:"omitempty,max=200"`
-	Topic          string `form:"topic"            binding:"omitempty,max=100"`
-	Type           string `form:"type"             binding:"omitempty,oneof=tech idea"`
-	Query          string `form:"query"            binding:"omitempty,max=500"`
-	SearchMode     string `form:"search_mode"      binding:"omitempty,oneof=fulltext vector hybrid"`
-	SearchPipeline string `form:"search_pipeline"  binding:"omitempty,max=100"`
+type ListBlogsInput struct {
+	Limit          int    `query:"limit"           minimum:"1" maximum:"100" default:"20" doc:"Number of results (default 20)"`
+	Cursor         string `query:"cursor"          maxLength:"200"            doc:"Pagination cursor [created_at_ms, id]"`
+	Topic          string `query:"topic"           maxLength:"100"            doc:"Filter by topic"`
+	Type           string `query:"type"            enum:"tech,idea"           doc:"Filter by blog type"`
+	Query          string `query:"query"           maxLength:"500"            doc:"Full-text search query"`
+	SearchMode     string `query:"search_mode"     enum:"fulltext,vector,hybrid" doc:"Search mode (default: fulltext)"`
+	SearchPipeline string `query:"search_pipeline" maxLength:"100"            doc:"OpenSearch pipeline name for hybrid search"`
 }
 
-type ListBlogsResponse struct {
-	Success    bool                   `json:"success"`
+type ListBlogsBody struct {
 	Data       []BlogSearchResultItem `json:"data"`
-	NextCursor any                    `json:"next_cursor"`
+	NextCursor *json.RawMessage       `json:"next_cursor" nullable:"true" doc:"null or [timestamp_ms, id]"`
 }
 
-func (h *Handler) ListBlogs(c *gin.Context) {
-	var query ListBlogsQuery
-	if err := c.ShouldBindQuery(&query); err != nil {
-		_ = c.Error(middleware.ErrClient)
-		return
-	}
+type ListBlogsOutput struct {
+	Body ListBlogsBody
+}
 
+func encodeNextCursor(cursor []any) *json.RawMessage {
+	if len(cursor) == 0 {
+		return nil
+	}
+	b, err := json.Marshal(cursor)
+	if err != nil {
+		return nil
+	}
+	raw := json.RawMessage(b)
+	return &raw
+}
+
+func (h *Handler) ListBlogs(ctx context.Context, input *ListBlogsInput) (*ListBlogsOutput, error) {
 	var cursorObj []any
-	if query.Cursor != "" {
-		decoder := json.NewDecoder(bytes.NewReader([]byte(query.Cursor)))
+	if input.Cursor != "" {
+		decoder := json.NewDecoder(bytes.NewReader([]byte(input.Cursor)))
 		decoder.UseNumber()
-		if err := decoder.Decode(&cursorObj); err != nil {
-			_ = c.Error(middleware.ErrClient)
-			return
+		if err := decoder.Decode(&cursorObj); err != nil || len(cursorObj) != 2 {
+			return nil, huma.Error400BadRequest("invalid cursor format")
 		}
-		// 弱めだがバリデーション
-		// cursorは以下のようなcreated_atと_idの配列
-		// [1723897971000, "LalN-50BVfQTAJDUMj24"]
-		if len(cursorObj) != 2 {
-			_ = c.Error(middleware.ErrClient)
-			return
-		}
-	}
-
-	// デフォルトは20件
-	if query.Limit == 0 {
-		query.Limit = 20
 	}
 
 	params := ListBlogsParams{
-		Limit:          query.Limit,
+		Limit:          input.Limit,
 		Cursor:         cursorObj,
-		Topic:          query.Topic,
-		Type:           query.Type,
-		Query:          query.Query,
-		SearchPipeline: query.SearchPipeline,
+		Topic:          input.Topic,
+		Type:           input.Type,
+		Query:          input.Query,
+		SearchPipeline: input.SearchPipeline,
 	}
 
-	var result *ListBlogsResult
-	var err error
+	var (
+		result *ListBlogsResult
+		err    error
+	)
 	switch {
-	case query.SearchMode == "vector" && query.Query != "":
-		result, err = h.s.ListBlogsVector(c.Request.Context(), params)
-	case query.SearchMode == "hybrid" && query.Query != "" && query.SearchPipeline != "":
-		result, err = h.s.ListBlogsHybrid(c.Request.Context(), params)
+	case input.SearchMode == "vector" && input.Query != "":
+		result, err = h.s.ListBlogsVector(ctx, params)
+	case input.SearchMode == "hybrid" && input.Query != "" && input.SearchPipeline != "":
+		result, err = h.s.ListBlogsHybrid(ctx, params)
 	default:
-		result, err = h.s.ListBlogs(c.Request.Context(), params)
+		result, err = h.s.ListBlogs(ctx, params)
 	}
 	if err != nil {
-		_ = c.Error(err)
-		return
+		return nil, err
 	}
 
-	c.JSON(http.StatusOK, ListBlogsResponse{
-		Success:    true,
+	return &ListBlogsOutput{Body: ListBlogsBody{
 		Data:       result.Blogs,
-		NextCursor: result.NextCursor,
-	})
+		NextCursor: encodeNextCursor(result.NextCursor),
+	}}, nil
 }
 
-func (h *Handler) ListTopics(c *gin.Context) {
-	topics, err := h.s.ListTopics(c.Request.Context())
-
-	if err != nil {
-		_ = c.Error(err)
-		return
+type ListTopicsOutput struct {
+	Body struct {
+		Data []TopicBucket `json:"data"`
 	}
+}
 
-	c.JSON(http.StatusOK, gin.H{"success": true, "data": topics})
+func (h *Handler) ListTopics(ctx context.Context, _ *struct{}) (*ListTopicsOutput, error) {
+	topics, err := h.s.ListTopics(ctx)
+	if err != nil {
+		return nil, err
+	}
+	out := &ListTopicsOutput{}
+	out.Body.Data = topics
+	return out, nil
 }
