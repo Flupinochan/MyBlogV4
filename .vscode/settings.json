@@ -1,11 +1,25 @@
 {
   "css.lint.unknownAtRules": "ignore",
   "cSpell.words": [
+    "adbin",
+    "adnum",
+    "adrelid",
+    "attisdropped",
+    "attname",
+    "attnum",
+    "attrdef",
+    "attrelid",
+    "atttypid",
+    "atttypmod",
     "dockerhub",
     "embla",
     "fulltext",
+    "getenv",
     "pipefail",
+    "pkey",
+    "regclass",
     "reinit",
-    "slint"
+    "slint",
+    "timedatectl"
   ]
 }
