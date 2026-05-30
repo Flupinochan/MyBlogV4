@@ -9,7 +9,7 @@ from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from sqlalchemy.orm import selectinload
 
-from service.models import ConversationOrm, MessageOrm
+from models import ConversationOrm, MessageOrm
 
 logger = Logger(child=True)
 

@@ -13,9 +13,9 @@ from aws_lambda_powertools import Logger
 from aws_lambda_powertools.logging.formatter import LambdaPowertoolsFormatter
 from fastapi import APIRouter, FastAPI, Header, HTTPException
 from pydantic import BaseModel
-from service.chat_service import ChatService  # ty:ignore[unresolved-import]
-from service.db_service import DbService  # ty:ignore[unresolved-import]
-from service.voice_service import VoiceService  # ty:ignore[unresolved-import]
+from services.chat_service import ChatService  # ty:ignore[unresolved-import]
+from services.db_service import DbService  # ty:ignore[unresolved-import]
+from services.voice_service import VoiceService  # ty:ignore[unresolved-import]
 from sqlalchemy.ext.asyncio import create_async_engine
 from voicevox_core import UserDictWord
 from voicevox_core.blocking import (
