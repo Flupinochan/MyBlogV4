@@ -1,4 +1,4 @@
-# Database (Atlas + PostgreSQL)
+# Database (Atlas + Neon PostgreSQL)
 
 ## ファイル構成
 
