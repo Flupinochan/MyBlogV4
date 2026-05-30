@@ -10,7 +10,7 @@ import * as ssm from "aws-cdk-lib/aws-ssm";
 import { Construct } from "constructs";
 import * as path from "path";
 
-interface OpenSearchBatchStackProps extends cdk.StackProps {
+interface OpenSearchBatchLambdaStackProps extends cdk.StackProps {
   openSearchBatchLambdaName: string;
   openSearchUrlParam: string;
   openSearchPortParam: string;
@@ -29,13 +29,13 @@ interface OpenSearchBatchStackProps extends cdk.StackProps {
   blogBranchName: string;
 }
 
-export class OpenSearchBatchStack extends cdk.Stack {
+export class OpenSearchBatchLambdaStack extends cdk.Stack {
   public readonly function: lambda.Function;
   public readonly logGroup: logs.LogGroup;
   public readonly role: iam.Role;
   public readonly pipeline: codepipeline.Pipeline;
 
-  constructor(scope: Construct, id: string, props: OpenSearchBatchStackProps) {
+  constructor(scope: Construct, id: string, props: OpenSearchBatchLambdaStackProps) {
     super(scope, id, props);
 
     const openSearchUrl = ssm.StringParameter.valueForStringParameter(

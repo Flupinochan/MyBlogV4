@@ -7,7 +7,7 @@ import * as ssm from "aws-cdk-lib/aws-ssm";
 import { Construct } from "constructs";
 import * as path from "path";
 
-interface OpenSearchApiStackProps extends cdk.StackProps {
+interface OpenSearchApiLambdaStackProps extends cdk.StackProps {
   openSearchApiFunctionName: string;
   openSearchUrlParam: string;
   openSearchPortParam: string;
@@ -19,12 +19,12 @@ interface OpenSearchApiStackProps extends cdk.StackProps {
   modelIdEmbedding: string;
 }
 
-export class OpenSearchApiStack extends cdk.Stack {
+export class OpenSearchApiLambdaStack extends cdk.Stack {
   public readonly function: lambda.Function;
   public readonly logGroup: logs.LogGroup;
   public readonly role: iam.Role;
 
-  constructor(scope: Construct, id: string, props: OpenSearchApiStackProps) {
+  constructor(scope: Construct, id: string, props: OpenSearchApiLambdaStackProps) {
     super(scope, id, props);
 
     const openSearchUrl = ssm.StringParameter.valueForStringParameter(

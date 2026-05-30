@@ -4,18 +4,18 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as logs from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 
-interface VoicevoxApiStackProps extends cdk.StackProps {
+interface VoicevoxApiGatewayStackProps extends cdk.StackProps {
   domainName: string;
   voicevoxApiPath: string;
   isProd: boolean;
   voicevoxLambdaName: string;
 }
 
-export class VoicevoxApiStack extends cdk.Stack {
+export class VoicevoxApiGatewayStack extends cdk.Stack {
   public readonly api: apigateway.RestApi;
   public readonly logGroup: logs.LogGroup;
 
-  constructor(scope: Construct, id: string, props: VoicevoxApiStackProps) {
+  constructor(scope: Construct, id: string, props: VoicevoxApiGatewayStackProps) {
     super(scope, id, props);
 
     this.logGroup = new logs.LogGroup(this, "ApiLogGroup", {

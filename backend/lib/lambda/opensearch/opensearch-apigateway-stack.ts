@@ -4,18 +4,18 @@ import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as logs from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 
-interface BlogSearchApiStackProps extends cdk.StackProps {
+interface OpenSearchApiGatewayStackProps extends cdk.StackProps {
   domainName: string;
   blogSearchApiPath: string;
   isProd: boolean;
   openSearchApiLambdaName: string;
 }
 
-export class BlogSearchApiStack extends cdk.Stack {
+export class OpenSearchApiGatewayStack extends cdk.Stack {
   public readonly api: apigateway.RestApi;
   public readonly logGroup: logs.LogGroup;
 
-  constructor(scope: Construct, id: string, props: BlogSearchApiStackProps) {
+  constructor(scope: Construct, id: string, props: OpenSearchApiGatewayStackProps) {
     super(scope, id, props);
 
     this.logGroup = new logs.LogGroup(this, "ApiLogGroup", {

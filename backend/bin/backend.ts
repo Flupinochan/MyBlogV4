@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib/core";
-import { BlogSearchApiStack } from "../lib/blog-search-api-stack";
+import { OpenSearchApiGatewayStack } from "../lib/lambda/opensearch/opensearch-apigateway-stack";
 import { HostingPipelineStack } from "../lib/hosting-pipeline-stack";
 import { HostingStack } from "../lib/hosting-stack";
-import { VoicevoxApiStack } from "../lib/voicevox-api-stack";
-import { OpenSearchApiStack } from "../lib/lambda/opensearch/opensearch-api-stack";
-import { OpenSearchBatchStack } from "../lib/lambda/opensearch/opensearch-batch-stack";
-import { VoicevoxBucketStack } from "../lib/lambda/voicevox/voicevox-bucket";
+import { VoicevoxApiGatewayStack } from "../lib/lambda/voicevox/voicevox-apigateway-stack";
+import { OpenSearchApiLambdaStack } from "../lib/lambda/opensearch/opensearch-api-lambda-stack";
+import { OpenSearchBatchLambdaStack } from "../lib/lambda/opensearch/opensearch-batch-lambda-stack";
+import { VoicevoxBucketStack } from "../lib/lambda/voicevox/voicevox-bucket-stack";
 import { VoicevoxEcrStack } from "../lib/lambda/voicevox/voicevox-ecr-stack";
-import { VoicevoxLambdaStack } from "../lib/lambda/voicevox/voicevox-lambda-stack";
+import { VoicevoxApiLambdaStack } from "../lib/lambda/voicevox/voicevox-api-lambda-stack";
 import { getEnvConfig, isProd } from "./env";
 
 const app = new cdk.App();
@@ -64,7 +64,7 @@ const imageTag =
 //   throw new Error("SYNTHESIZE_VOICE_IMAGE_REF is required");
 // }
 
-new VoicevoxLambdaStack(app, `${stackBaseName}-VoicevoxLambdaStack`, {
+new VoicevoxApiLambdaStack(app, `${stackBaseName}-VoicevoxLambdaStack`, {
   voicevoxLambdaName,
   voicevoxEcrName,
   imageTag,
@@ -74,7 +74,7 @@ new VoicevoxLambdaStack(app, `${stackBaseName}-VoicevoxLambdaStack`, {
   postgresqlUrlParam,
 });
 
-new OpenSearchBatchStack(app, `${stackBaseName}-OpenSearchBatchStack`, {
+new OpenSearchBatchLambdaStack(app, `${stackBaseName}-OpenSearchBatchStack`, {
   openSearchBatchLambdaName,
   openSearchUrlParam: cfg.openSearchUrlParam,
   openSearchPortParam: cfg.openSearchPortParam,
@@ -93,7 +93,7 @@ new OpenSearchBatchStack(app, `${stackBaseName}-OpenSearchBatchStack`, {
   blogBranchName,
 });
 
-new OpenSearchApiStack(app, `${stackBaseName}-OpenSearchApiStack`, {
+new OpenSearchApiLambdaStack(app, `${stackBaseName}-OpenSearchApiStack`, {
   openSearchApiFunctionName: openSearchApiLambdaName,
   openSearchUrlParam: cfg.openSearchUrlParam,
   openSearchPortParam: cfg.openSearchPortParam,
@@ -105,14 +105,14 @@ new OpenSearchApiStack(app, `${stackBaseName}-OpenSearchApiStack`, {
   modelIdEmbedding: cfg.modelIdEmbedding,
 });
 
-const blogSearchApiStack = new BlogSearchApiStack(app, `${stackBaseName}-BlogSearchApiStack`, {
+const blogSearchApiStack = new OpenSearchApiGatewayStack(app, `${stackBaseName}-BlogSearchApiStack`, {
   domainName: cfg.hostingDomainName,
   blogSearchApiPath,
   isProd: isProd(envName),
   openSearchApiLambdaName,
 });
 
-const voicevoxApiStack = new VoicevoxApiStack(app, `${stackBaseName}-VoicevoxApiStack`, {
+const voicevoxApiStack = new VoicevoxApiGatewayStack(app, `${stackBaseName}-VoicevoxApiStack`, {
   domainName: cfg.hostingDomainName,
   voicevoxApiPath,
   isProd: isProd(envName),

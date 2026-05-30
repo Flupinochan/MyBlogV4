@@ -7,7 +7,7 @@ import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as cdk from "aws-cdk-lib/core";
 import { Construct } from "constructs";
 
-interface VoicevoxLambdaStackProps extends cdk.StackProps {
+interface VoicevoxApiLambdaStackProps extends cdk.StackProps {
   voicevoxLambdaName: string;
   voicevoxEcrName: string;
   imageTag: string;
@@ -17,12 +17,12 @@ interface VoicevoxLambdaStackProps extends cdk.StackProps {
   postgresqlUrlParam: string;
 }
 
-export class VoicevoxLambdaStack extends cdk.Stack {
+export class VoicevoxApiLambdaStack extends cdk.Stack {
   public readonly function: lambda.DockerImageFunction;
   public readonly logGroup: logs.LogGroup;
   public readonly role: iam.Role;
 
-  constructor(scope: Construct, id: string, props: VoicevoxLambdaStackProps) {
+  constructor(scope: Construct, id: string, props: VoicevoxApiLambdaStackProps) {
     super(scope, id, props);
 
     const claudeApiKey = ssm.StringParameter.valueForStringParameter(

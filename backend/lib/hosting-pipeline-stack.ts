@@ -66,6 +66,7 @@ export class HostingPipelineStack extends cdk.Stack {
         // OpenAPI自動生成時にmain.pyを実行するが、以下の環境変数が未定義だとエラーになるためダミー値でエラーを回避
         VOICE_OUTPUT_BUCKET_NAME: { value: "dummy" },
         ANTHROPIC_AWS_WORKSPACE_ID: { value: "dummy" },
+        POSTGRESQL_URL: { value: "dummy" },
         GITHUB_TOKEN: {
           type: codebuild.BuildEnvironmentVariableType.PARAMETER_STORE,
           value: "github-zenn-token",
