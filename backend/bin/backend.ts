@@ -40,6 +40,7 @@ const openSearchBatchLambdaName = `${stackBaseName}-opensearch-batch`;
 const openSearchApiLambdaName = `${stackBaseName}-opensearch-api`;
 const claudeApiKeyParam = "claude-platform-api-key";
 const claudeWorkspaceIdParam = "claude-platform-workspace-id";
+const postgresqlUrlParam = "myblogv4-postgresql-url";
 const dockerhubUserParam = "dockerhub-user";
 const dockerhubPasswordParam = "dockerhub-password";
 
@@ -70,6 +71,7 @@ new VoicevoxLambdaStack(app, `${stackBaseName}-VoicevoxLambdaStack`, {
   createdVoiceOutputBucketName: hostingBucketName,
   claudeApiKeyParam,
   claudeWorkspaceIdParam,
+  postgresqlUrlParam,
 });
 
 new OpenSearchBatchStack(app, `${stackBaseName}-OpenSearchBatchStack`, {

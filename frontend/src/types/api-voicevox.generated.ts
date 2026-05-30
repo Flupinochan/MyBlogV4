@@ -55,6 +55,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get Conversations */
+        get: operations["get_conversations_v1_conversations_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/conversations/{conversation_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update Conversation Title */
+        patch: operations["update_conversation_title_v1_conversations__conversation_id__patch"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -63,11 +97,43 @@ export interface components {
         ChatRequest: {
             /** Messages */
             messages: components["schemas"]["Message"][];
+            /** User Id */
+            user_id: string;
+            /** Conversation Id */
+            conversation_id?: string | null;
         };
         /** ChatResponse */
         ChatResponse: {
             /** Message */
             message: string;
+            /** Conversation Id */
+            conversation_id: string;
+        };
+        /** ConversationMessage */
+        ConversationMessage: {
+            /** Id */
+            id: string;
+            /**
+             * Role
+             * @enum {string}
+             */
+            role: "user" | "assistant";
+            /** Content */
+            content: string;
+        };
+        /** ConversationResponse */
+        ConversationResponse: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Messages */
+            messages: components["schemas"]["ConversationMessage"][];
         };
         /** HTTPValidationError */
         HTTPValidationError: {
@@ -83,6 +149,11 @@ export interface components {
             role: "user" | "assistant";
             /** Content */
             content: string;
+        };
+        /** UpdateTitleRequest */
+        UpdateTitleRequest: {
+            /** Title */
+            title: string;
         };
         /** ValidationError */
         ValidationError: {
@@ -101,6 +172,8 @@ export interface components {
         VoiceChatResponse: {
             /** Message */
             message: string;
+            /** Conversation Id */
+            conversation_id: string;
             /** Voice Path */
             voice_path: string;
         };
@@ -189,6 +262,72 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["VoiceChatResponse"];
                 };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_conversations_v1_conversations_get: {
+        parameters: {
+            query?: never;
+            header: {
+                "x-user-id": string;
+            };
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ConversationResponse"][];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    update_conversation_title_v1_conversations__conversation_id__patch: {
+        parameters: {
+            query?: never;
+            header: {
+                "x-user-id": string;
+            };
+            path: {
+                conversation_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateTitleRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Validation Error */
             422: {

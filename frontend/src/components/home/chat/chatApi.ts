@@ -1,5 +1,18 @@
 /// <reference types="dom-chromium-ai" />
 
+import createClient from "openapi-fetch";
+import createQueryClient from "openapi-react-query";
+import type { components, paths } from "../../../types/api-voicevox.generated";
+
+export type ChatRequest = components["schemas"]["ChatRequest"];
+export type TextChatResponse = components["schemas"]["ChatResponse"];
+export type VoiceChatResponse = components["schemas"]["VoiceChatResponse"];
+export type ConversationResponse =
+  components["schemas"]["ConversationResponse"];
+
+const client = createClient<paths>({ baseUrl: "/voicevox-api" });
+export const $api = createQueryClient(client);
+
 export async function detectLanguage(text: string): Promise<string> {
   const availability = await LanguageDetector.availability();
   if (availability === "unavailable")
@@ -38,17 +51,6 @@ export async function generateChatTitle(
   return summarizer.summarize(text);
 }
 
-import createClient from "openapi-fetch";
-import createQueryClient from "openapi-react-query";
-import type { components, paths } from "../../../types/api-voicevox.generated";
-
-export type ChatRequest = components["schemas"]["ChatRequest"];
-export type TextChatResponse = components["schemas"]["ChatResponse"];
-export type VoiceChatResponse = components["schemas"]["VoiceChatResponse"];
-
-const client = createClient<paths>({ baseUrl: "/voicevox-api" });
-export const $api = createQueryClient(client);
-
 export async function sendTextMessage(
   request: ChatRequest,
 ): Promise<TextChatResponse> {
@@ -67,4 +69,29 @@ export async function sendVoiceMessage(
   });
   if (error) throw new Error("voice chat request failed");
   return data;
+}
+
+export async function getConversations(
+  userId: string,
+): Promise<ConversationResponse[]> {
+  const { data, error } = await client.GET("/v1/conversations", {
+    params: { header: { "x-user-id": userId } },
+  });
+  if (error) throw new Error("failed to fetch conversations");
+  return data ?? [];
+}
+
+export async function updateConversationTitle(
+  conversationId: string,
+  userId: string,
+  title: string,
+): Promise<void> {
+  const { error } = await client.PATCH("/v1/conversations/{conversation_id}", {
+    params: {
+      path: { conversation_id: conversationId },
+      header: { "x-user-id": userId },
+    },
+    body: { title },
+  });
+  if (error) throw new Error("failed to update conversation title");
 }

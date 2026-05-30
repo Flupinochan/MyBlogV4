@@ -102,6 +102,100 @@
           }
         }
       }
+    },
+    "/v1/conversations": {
+      "get": {
+        "summary": "Get Conversations",
+        "operationId": "get_conversations_v1_conversations_get",
+        "parameters": [
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ConversationResponse"
+                  },
+                  "title": "Response Get Conversations V1 Conversations Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/conversations/{conversation_id}": {
+      "patch": {
+        "summary": "Update Conversation Title",
+        "operationId": "update_conversation_title_v1_conversations__conversation_id__patch",
+        "parameters": [
+          {
+            "name": "conversation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "Conversation Id"
+            }
+          },
+          {
+            "name": "x-user-id",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "title": "X-User-Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateTitleRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -114,11 +208,27 @@
             },
             "type": "array",
             "title": "Messages"
+          },
+          "user_id": {
+            "type": "string",
+            "title": "User Id"
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id"
           }
         },
         "type": "object",
         "required": [
-          "messages"
+          "messages",
+          "user_id"
         ],
         "title": "ChatRequest"
       },
@@ -127,13 +237,77 @@
           "message": {
             "type": "string",
             "title": "Message"
+          },
+          "conversation_id": {
+            "type": "string",
+            "title": "Conversation Id"
           }
         },
         "type": "object",
         "required": [
-          "message"
+          "message",
+          "conversation_id"
         ],
         "title": "ChatResponse"
+      },
+      "ConversationMessage": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "user",
+              "assistant"
+            ],
+            "title": "Role"
+          },
+          "content": {
+            "type": "string",
+            "title": "Content"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "role",
+          "content"
+        ],
+        "title": "ConversationMessage"
+      },
+      "ConversationResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "title": "Id"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          },
+          "messages": {
+            "items": {
+              "$ref": "#/components/schemas/ConversationMessage"
+            },
+            "type": "array",
+            "title": "Messages"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "title",
+          "updated_at",
+          "messages"
+        ],
+        "title": "ConversationResponse"
       },
       "HTTPValidationError": {
         "properties": {
@@ -169,6 +343,19 @@
           "content"
         ],
         "title": "Message"
+      },
+      "UpdateTitleRequest": {
+        "properties": {
+          "title": {
+            "type": "string",
+            "title": "Title"
+          }
+        },
+        "type": "object",
+        "required": [
+          "title"
+        ],
+        "title": "UpdateTitleRequest"
       },
       "ValidationError": {
         "properties": {
@@ -216,6 +403,10 @@
             "type": "string",
             "title": "Message"
           },
+          "conversation_id": {
+            "type": "string",
+            "title": "Conversation Id"
+          },
           "voice_path": {
             "type": "string",
             "title": "Voice Path"
@@ -224,6 +415,7 @@
         "type": "object",
         "required": [
           "message",
+          "conversation_id",
           "voice_path"
         ],
         "title": "VoiceChatResponse"

@@ -14,6 +14,7 @@ interface VoicevoxLambdaStackProps extends cdk.StackProps {
   createdVoiceOutputBucketName: string;
   claudeApiKeyParam: string;
   claudeWorkspaceIdParam: string;
+  postgresqlUrlParam: string;
 }
 
 export class VoicevoxLambdaStack extends cdk.Stack {
@@ -32,6 +33,11 @@ export class VoicevoxLambdaStack extends cdk.Stack {
     const claudeWorkspaceId = ssm.StringParameter.valueForStringParameter(
       this,
       props.claudeWorkspaceIdParam,
+    );
+
+    const postgresqlUrl = ssm.StringParameter.valueForStringParameter(
+      this,
+      props.postgresqlUrlParam,
     );
 
     this.logGroup = new logs.LogGroup(this, "logGroup", {
@@ -94,6 +100,7 @@ export class VoicevoxLambdaStack extends cdk.Stack {
         ANTHROPIC_AWS_API_KEY: claudeApiKey,
         CLAUDE_CODE_USE_ANTHROPIC_AWS: "1",
         ANTHROPIC_AWS_WORKSPACE_ID: claudeWorkspaceId,
+        POSTGRESQL_URL: postgresqlUrl,
         HOME: "/tmp",
         POWERTOOLS_LOG_LEVEL: "INFO",
         AWS_LAMBDA_LOG_LEVEL: "INFO",
