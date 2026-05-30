@@ -1,14 +1,26 @@
+// HCL Settings: https://atlasgo.io/atlas-schema/projects
+// CLI: https://atlasgo.io/cli-reference
+// Free function: https://atlasgo.io/features
 atlas {
   cloud {
-    project = "myblogv4"
+    org = "metalmental"
   }
 }
 
 env "prod" {
   url = getenv("POSTGRESQL_URL")
-  migration {
-    dir              = "atlas://myblogv4"
-    format           = atlas
-    revisions_schema = "public"
+  dev = "docker://postgres/16/dev"
+  schema {
+    src = "file://schema"
+    repo {
+      name = "myblogv4"
+    }
+  }
+  lint {
+    review = ALWAYS
+  }
+  data {
+    mode     = SYNC
+    max_rows = 1000
   }
 }
