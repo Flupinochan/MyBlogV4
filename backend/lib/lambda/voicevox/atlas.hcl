@@ -10,13 +10,13 @@ atlas {
 data "external_schema" "sqlalchemy" {
   program = [
     "uv", "run",
-    "--directory", "../lib/lambda/voicevox",
+    "--directory", ".",
     "python3", "load_schema.py",
   ]
 }
 
 env "prod" {
-  url = getenv("POSTGRESQL_URL")
+  url = getenv("ATLAS_DB_URL")
   dev = "docker://postgres/16/dev"
   schema {
     src = data.external_schema.sqlalchemy.url

@@ -3,11 +3,10 @@
 ## ファイル構成
 
 ```bash
-db/
+lib/lambda/voicevox/
 ├── atlas.hcl               # Atlas設定
-└── schema/
-    ├── conversations.sql   # conversations テーブル定義
-    └── messages.sql        # messages テーブル定義
+└── src/
+    └── models.py           # SQLAlchemy モデル (Schema Source of Truth)
 ```
 
 ## 前提
@@ -26,18 +25,18 @@ atlas login
 docker ps
 
 # 環境変数の設定
-export POSTGRESQL_URL="postgresql://user:pass@ep-xxx-xxx.region.aws.neon.tech/neondb?sslmode=require"
+export ATLAS_DB_URL="postgresql://user:pass@ep-xxx-xxx.region.aws.neon.tech/neondb?sslmode=require"
 
 ## .envから読み込む場合
-cd backend/db
+cd backend/lib/lambda/voicevox
 set -a && source .env && set +a
 ```
 
 ## Declarative Schema Migrations
 
-### 1. `schema/` 配下に SQL を作成・編集
+### 1. `src/models.py` の SQLAlchemy モデルを編集
 
-テーブル追加・カラム変更などあるべき状態を `schema/*.sql` に記載
+テーブル追加・カラム変更などあるべき状態を SQLAlchemy モデルに記載
 
 ### 2. Atlasスキーマに一致するようにDatabaseを更新
 
