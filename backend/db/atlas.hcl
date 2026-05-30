@@ -7,11 +7,19 @@ atlas {
   }
 }
 
+data "external_schema" "sqlalchemy" {
+  program = [
+    "uv", "run",
+    "--directory", "../lib/lambda/voicevox",
+    "python3", "load_schema.py",
+  ]
+}
+
 env "prod" {
   url = getenv("POSTGRESQL_URL")
   dev = "docker://postgres/16/dev"
   schema {
-    src = "file://schema"
+    src = data.external_schema.sqlalchemy.url
     repo {
       name = "myblogv4"
     }

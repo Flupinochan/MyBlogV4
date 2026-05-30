@@ -16,6 +16,9 @@ db/
 # Atlas CLI のインストール
 curl -sSf https://atlasgo.sh | sh
 
+# Atlas SQLAlchemy Provider のインストール
+uv tool install atlas-provider-sqlalchemy
+
 # Atlas Cloud へのログイン
 atlas login
 

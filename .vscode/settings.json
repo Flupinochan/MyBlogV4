@@ -20,6 +20,7 @@
     "regclass",
     "reinit",
     "slint",
+    "sqlalchemy",
     "timedatectl"
   ]
 }
