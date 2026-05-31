@@ -3,6 +3,7 @@
 import logging
 import multiprocessing
 import os
+from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import Annotated, Literal
 
@@ -11,8 +12,12 @@ from anthropic import AnthropicAWS
 from anthropic.types import MessageParam
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.logging.formatter import LambdaPowertoolsFormatter
-from contextlib import asynccontextmanager
-from fastapi import APIRouter, FastAPI, Header, HTTPException
+from dependencies import (  # ty:ignore[unresolved-import]
+    get_chat_service,
+    get_db_service,
+    get_voice_service,
+)
+from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException
 from pydantic import BaseModel
 from services.chat_service import ChatService  # ty:ignore[unresolved-import]
 from services.db_service import DbService  # ty:ignore[unresolved-import]
@@ -77,21 +82,18 @@ synthesizer = Synthesizer(
 with VoiceModelFile.open(MODEL_PATH) as model:
     synthesizer.load_voice_model(model)
 
-engine = None
-chat_service = ChatService(client=AnthropicAWS())
-voice_service = VoiceService(
-    synthesizer=synthesizer,
-    s3_client=s3_client,
-    bucket_name=VOICE_OUTPUT_BUCKET_NAME,
-)
-db_service = None
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global engine, db_service
     engine = create_async_engine(POSTGRESQL_URL, echo=False)
-    db_service = DbService(engine=engine)
+    app.state.engine = engine
+    app.state.chat_service = ChatService(client=AnthropicAWS())
+    app.state.voice_service = VoiceService(
+        synthesizer=synthesizer,
+        s3_client=s3_client,
+        bucket_name=VOICE_OUTPUT_BUCKET_NAME,
+    )
+    app.state.db_service = DbService(engine=engine)
     yield
     await engine.dispose()
 
@@ -144,10 +146,17 @@ def health() -> dict[str, str]:
 
 
 @router.post("/chat")
-async def chat(request: ChatRequest) -> ChatResponse:
+async def chat(
+    request: ChatRequest,
+    chat_service: Annotated[ChatService, Depends(get_chat_service)],
+    db_service: Annotated[DbService, Depends(get_db_service)],
+) -> ChatResponse:
     conversation_id = request.conversation_id
     if conversation_id is None:
-        conversation_id = await db_service.create_conversation(request.user_id, "新しいチャット")
+        conversation_id = await db_service.create_conversation(
+            request.user_id,
+            "新しいチャット",
+        )
 
     user_msg_position = len(request.messages) - 1
     new_user_msg = request.messages[-1]
@@ -168,10 +177,18 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
 
 @router.post("/chat/voice")
-async def chat_with_voice(request: ChatRequest) -> VoiceChatResponse:
+async def chat_with_voice(
+    request: ChatRequest,
+    chat_service: Annotated[ChatService, Depends(get_chat_service)],
+    db_service: Annotated[DbService, Depends(get_db_service)],
+    voice_service: Annotated[VoiceService, Depends(get_voice_service)],
+) -> VoiceChatResponse:
     conversation_id = request.conversation_id
     if conversation_id is None:
-        conversation_id = await db_service.create_conversation(request.user_id, "新しいチャット")
+        conversation_id = await db_service.create_conversation(
+            request.user_id,
+            "新しいチャット",
+        )
 
     user_msg_position = len(request.messages) - 1
     new_user_msg = request.messages[-1]
@@ -189,12 +206,17 @@ async def chat_with_voice(request: ChatRequest) -> VoiceChatResponse:
         ],
     )
 
-    return VoiceChatResponse(message=message, voice_path=voice_path, conversation_id=conversation_id)
+    return VoiceChatResponse(
+        message=message,
+        voice_path=voice_path,
+        conversation_id=conversation_id,
+    )
 
 
 @router.get("/conversations")
 async def get_conversations(
     x_user_id: Annotated[str, Header()],
+    db_service: Annotated[DbService, Depends(get_db_service)],
 ) -> list[ConversationResponse]:
     conversations = await db_service.get_conversations_with_messages(x_user_id)
     return [
@@ -202,7 +224,10 @@ async def get_conversations(
             id=c.id,
             title=c.title,
             updated_at=c.updated_at,
-            messages=[ConversationMessage(id=m.id, role=m.role, content=m.content) for m in c.messages],
+            messages=[
+                ConversationMessage(id=m.id, role=m.role, content=m.content)
+                for m in c.messages
+            ],
         )
         for c in conversations
     ]
@@ -213,9 +238,12 @@ async def update_conversation_title(
     conversation_id: str,
     request: UpdateTitleRequest,
     x_user_id: Annotated[str, Header()],
+    db_service: Annotated[DbService, Depends(get_db_service)],
 ) -> None:
     updated = await db_service.update_conversation_title(
-        conversation_id, x_user_id, request.title
+        conversation_id,
+        x_user_id,
+        request.title,
     )
     if not updated:
         raise HTTPException(status_code=404)
