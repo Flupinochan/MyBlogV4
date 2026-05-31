@@ -3,13 +3,17 @@
 import logging
 import multiprocessing
 import os
+from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 import boto3
 from anthropic import AnthropicAWS
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.logging.formatter import LambdaPowertoolsFormatter
-from fastapi import APIRouter, FastAPI
+from fastapi import APIRouter, FastAPI, Request
+from fastapi.encoders import jsonable_encoder
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
 from routers import chat, conversation, health  # ty:ignore[unresolved-import]
 from services.chat_service import ChatService  # ty:ignore[unresolved-import]
 from services.db_service import DbService  # ty:ignore[unresolved-import]
@@ -76,8 +80,13 @@ with VoiceModelFile.open(MODEL_PATH) as model:
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-    engine = create_async_engine(POSTGRESQL_URL, echo=False)
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    engine = create_async_engine(
+        POSTGRESQL_URL,
+        echo=False,
+        pool_pre_ping=True,
+        pool_recycle=300,
+    )
     app.state.engine = engine
     app.state.chat_service = ChatService(client=AnthropicAWS())
     app.state.voice_service = VoiceService(
@@ -92,6 +101,18 @@ async def lifespan(app: FastAPI):
 
 # Go GinのLayerベースと違い、Dockerベースの場合は/apiは不要
 app = FastAPI(lifespan=lifespan)
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(
+    _request: Request,
+    exc: RequestValidationError,
+) -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content=jsonable_encoder({"detail": exc.errors(), "body": exc.body}),
+    )
+
 
 # FastAPIのOpenAPI自動生成の仕組み上、moduleレベルでの標準出力は避けること
 v1 = APIRouter(prefix="/v1")

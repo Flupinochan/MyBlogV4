@@ -207,16 +207,22 @@
               "$ref": "#/components/schemas/Message"
             },
             "type": "array",
+            "maxItems": 100,
+            "minItems": 1,
             "title": "Messages"
           },
           "user_id": {
             "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
             "title": "User Id"
           },
           "conversation_id": {
             "anyOf": [
               {
-                "type": "string"
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 1
               },
               {
                 "type": "null"
@@ -334,6 +340,8 @@
           },
           "content": {
             "type": "string",
+            "maxLength": 2000,
+            "minLength": 1,
             "title": "Content"
           }
         },
@@ -348,6 +356,8 @@
         "properties": {
           "title": {
             "type": "string",
+            "maxLength": 100,
+            "minLength": 1,
             "title": "Title"
           }
         },
