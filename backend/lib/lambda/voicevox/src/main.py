@@ -11,6 +11,7 @@ from anthropic import AnthropicAWS
 from anthropic.types import MessageParam
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.logging.formatter import LambdaPowertoolsFormatter
+from contextlib import asynccontextmanager
 from fastapi import APIRouter, FastAPI, Header, HTTPException
 from pydantic import BaseModel
 from services.chat_service import ChatService  # ty:ignore[unresolved-import]
@@ -76,17 +77,27 @@ synthesizer = Synthesizer(
 with VoiceModelFile.open(MODEL_PATH) as model:
     synthesizer.load_voice_model(model)
 
-engine = create_async_engine(POSTGRESQL_URL, echo=False)
+engine = None
 chat_service = ChatService(client=AnthropicAWS())
 voice_service = VoiceService(
     synthesizer=synthesizer,
     s3_client=s3_client,
     bucket_name=VOICE_OUTPUT_BUCKET_NAME,
 )
-db_service = DbService(engine=engine)
+db_service = None
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    global engine, db_service
+    engine = create_async_engine(POSTGRESQL_URL, echo=False)
+    db_service = DbService(engine=engine)
+    yield
+    await engine.dispose()
+
 
 # Go GinのLayerベースと違い、Dockerベースの場合は/apiは不要
-app = FastAPI()
+app = FastAPI(lifespan=lifespan)
 router = APIRouter(prefix="/v1")
 
 
