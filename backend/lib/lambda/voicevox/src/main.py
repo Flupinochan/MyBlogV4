@@ -4,21 +4,13 @@ import logging
 import multiprocessing
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime
-from typing import Annotated, Literal
 
 import boto3
 from anthropic import AnthropicAWS
-from anthropic.types import MessageParam
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.logging.formatter import LambdaPowertoolsFormatter
-from dependencies import (  # ty:ignore[unresolved-import]
-    get_chat_service,
-    get_db_service,
-    get_voice_service,
-)
-from fastapi import APIRouter, Depends, FastAPI, Header, HTTPException
-from pydantic import BaseModel
+from fastapi import APIRouter, FastAPI
+from routers import chat, conversation, health  # ty:ignore[unresolved-import]
 from services.chat_service import ChatService  # ty:ignore[unresolved-import]
 from services.db_service import DbService  # ty:ignore[unresolved-import]
 from services.voice_service import VoiceService  # ty:ignore[unresolved-import]
@@ -100,154 +92,10 @@ async def lifespan(app: FastAPI):
 
 # Go GinのLayerベースと違い、Dockerベースの場合は/apiは不要
 app = FastAPI(lifespan=lifespan)
-router = APIRouter(prefix="/v1")
-
-
-class Message(BaseModel):
-    role: Literal["user", "assistant"]
-    content: str
-
-
-class ChatRequest(BaseModel):
-    messages: list[Message]
-    user_id: str
-    conversation_id: str | None = None
-
-
-class ChatResponse(BaseModel):
-    message: str
-    conversation_id: str
-
-
-class VoiceChatResponse(ChatResponse):
-    voice_path: str
-
-
-class ConversationMessage(BaseModel):
-    id: str
-    role: Literal["user", "assistant"]
-    content: str
-
-
-class ConversationResponse(BaseModel):
-    id: str
-    title: str
-    updated_at: datetime
-    messages: list[ConversationMessage]
-
-
-class UpdateTitleRequest(BaseModel):
-    title: str
-
-
-@router.get("/health")
-def health() -> dict[str, str]:
-    return {"status": "ok"}
-
-
-@router.post("/chat")
-async def chat(
-    request: ChatRequest,
-    chat_service: Annotated[ChatService, Depends(get_chat_service)],
-    db_service: Annotated[DbService, Depends(get_db_service)],
-) -> ChatResponse:
-    conversation_id = request.conversation_id
-    if conversation_id is None:
-        conversation_id = await db_service.create_conversation(
-            request.user_id,
-            "新しいチャット",
-        )
-
-    user_msg_position = len(request.messages) - 1
-    new_user_msg = request.messages[-1]
-
-    message = chat_service.generate_message(
-        [MessageParam(role=m.role, content=m.content) for m in request.messages],
-    )
-
-    await db_service.save_messages(
-        conversation_id,
-        [
-            (new_user_msg.role, new_user_msg.content, user_msg_position),
-            ("assistant", message, user_msg_position + 1),
-        ],
-    )
-
-    return ChatResponse(message=message, conversation_id=conversation_id)
-
-
-@router.post("/chat/voice")
-async def chat_with_voice(
-    request: ChatRequest,
-    chat_service: Annotated[ChatService, Depends(get_chat_service)],
-    db_service: Annotated[DbService, Depends(get_db_service)],
-    voice_service: Annotated[VoiceService, Depends(get_voice_service)],
-) -> VoiceChatResponse:
-    conversation_id = request.conversation_id
-    if conversation_id is None:
-        conversation_id = await db_service.create_conversation(
-            request.user_id,
-            "新しいチャット",
-        )
-
-    user_msg_position = len(request.messages) - 1
-    new_user_msg = request.messages[-1]
-
-    message = chat_service.generate_message(
-        [MessageParam(role=m.role, content=m.content) for m in request.messages],
-    )
-    voice_path = voice_service.synthesize_and_upload(message)
-
-    await db_service.save_messages(
-        conversation_id,
-        [
-            (new_user_msg.role, new_user_msg.content, user_msg_position),
-            ("assistant", message, user_msg_position + 1),
-        ],
-    )
-
-    return VoiceChatResponse(
-        message=message,
-        voice_path=voice_path,
-        conversation_id=conversation_id,
-    )
-
-
-@router.get("/conversations")
-async def get_conversations(
-    x_user_id: Annotated[str, Header()],
-    db_service: Annotated[DbService, Depends(get_db_service)],
-) -> list[ConversationResponse]:
-    conversations = await db_service.get_conversations_with_messages(x_user_id)
-    return [
-        ConversationResponse(
-            id=c.id,
-            title=c.title,
-            updated_at=c.updated_at,
-            messages=[
-                ConversationMessage(id=m.id, role=m.role, content=m.content)
-                for m in c.messages
-            ],
-        )
-        for c in conversations
-    ]
-
-
-@router.patch("/conversations/{conversation_id}", status_code=204)
-async def update_conversation_title(
-    conversation_id: str,
-    request: UpdateTitleRequest,
-    x_user_id: Annotated[str, Header()],
-    db_service: Annotated[DbService, Depends(get_db_service)],
-) -> None:
-    updated = await db_service.update_conversation_title(
-        conversation_id,
-        x_user_id,
-        request.title,
-    )
-    if not updated:
-        raise HTTPException(status_code=404)
-
 
 # FastAPIのOpenAPI自動生成の仕組み上、moduleレベルでの標準出力は避けること
-app.include_router(router)
+v1 = APIRouter(prefix="/v1")
+v1.include_router(health.router)
+v1.include_router(chat.router)
+v1.include_router(conversation.router)
+app.include_router(v1)
