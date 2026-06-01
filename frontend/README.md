@@ -13,16 +13,30 @@ Inside of your Astro project, you'll see the following folders and files:
 ```text
 /
 ├── public/
-│   └── favicon.svg
-├── src
-│   ├── assets
-│   │   └── astro.svg
-│   ├── components
-│   │   └── Welcome.astro
-│   ├── layouts
-│   │   └── Layout.astro
-│   └── pages
-│       └── index.astro
+│   ├── favicon.ico
+│   ├── favicon.svg
+│   ├── gltf.glb
+│   └── voice/
+│       └── hello.wav
+├── src/
+│   ├── assets/
+│   │   ├── astro.svg
+│   │   └── background.svg
+│   ├── components/
+│   │   ├── Button.astro
+│   │   ├── Welcome.astro
+│   │   ├── avatar/
+│   │   │   ├── Avatar.tsx
+│   │   │   ├── shapeKey.ts
+│   │   │   └── useShapeKeyEffect.ts
+│   │   └── layout/
+│   │       └── Flex.astro
+│   ├── layouts/
+│   │   └── Layout.astro
+│   ├── pages/
+│   │   └── index.astro
+│   └── styles/
+│       └── global.css
 └── package.json
 ```
 
