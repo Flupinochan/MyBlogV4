@@ -1,0 +1,34 @@
+client: "Browser / Client" {
+  shape: person
+}
+
+cloudfront: "CloudFront Distribution" {
+  shape: image
+  icon: https://icons.terrastruct.com/aws%2FNetworking%20&%20Content%20Delivery%2FAmazon-CloudFront_light-bg.svg
+}
+
+hosting_bucket: "hosting bucket\n(audio output)" {
+  shape: image
+  icon: https://icons.terrastruct.com/aws%2FStorage%2FAmazon-Simple-Storage-Service-S3.svg
+}
+
+voicevox_api_gateway: "voicevox API" {
+  shape: image
+  icon: https://icons.terrastruct.com/aws%2FMobile%2FAmazon-API-Gateway_light-bg.svg
+}
+
+voicevox_lambda: "synthesizeVoice" {
+  shape: image
+  icon: https://icons.terrastruct.com/aws%2FCompute%2FAWS-Lambda_light-bg.svg
+}
+
+voicevox_ecr: "voicevox image\nrepository" {
+  shape: image
+  icon: https://icons.terrastruct.com/aws%2FCompute%2FAmazon-EC2-Container-Registry_light-bg.svg
+}
+
+client -> cloudfront: "HTTPS request"
+cloudfront -> voicevox_api_gateway: "/voicevox-api/* behavior"
+voicevox_api_gateway -> voicevox_lambda: "proxy invoke"
+voicevox_lambda -> voicevox_ecr: "pull image"
+voicevox_lambda -> hosting_bucket: "read/write audio"

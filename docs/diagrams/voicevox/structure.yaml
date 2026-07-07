@@ -1,0 +1,53 @@
+view: voicevox
+stacks:
+  - backend/lib/lambda/voicevox/voicevox-bucket-stack.ts
+  - backend/lib/lambda/voicevox/voicevox-ecr-stack.ts
+  - backend/lib/lambda/voicevox/voicevox-api-lambda-stack.ts
+  - backend/lib/lambda/voicevox/voicevox-apigateway-stack.ts
+  - backend/lib/hosting-stack.ts
+notes:
+  - "Runtime request path only. The image build/push pipeline (HostingPipelineStack's"
+  - "CodeBuild: pulls voicevox-bucket-stack's engine assets, builds & pushes to ECR,"
+  - "then runs cdk deploy) is a separate deploy-time concern and is not shown here."
+  - "voicevox-bucket-stack.ts (engine asset storage used only by that pipeline) is"
+  - "excluded for the same reason."
+nodes:
+  - id: client
+    construct: external
+    name: Browser / Client
+  - id: cloudfront
+    construct: cloudfront.Distribution
+    name: CloudFront Distribution
+    group: shared
+  - id: hosting_bucket
+    construct: s3.Bucket
+    name: hosting bucket (audio output)
+    group: shared
+  - id: voicevox_api_gateway
+    construct: apigateway.RestApi
+    name: voicevox API
+    group: voicevox
+  - id: voicevox_lambda
+    construct: lambda.DockerImageFunction
+    name: synthesizeVoice
+    group: voicevox
+  - id: voicevox_ecr
+    construct: ecr.Repository
+    name: voicevox image repository
+    group: voicevox
+edges:
+  - from: client
+    to: cloudfront
+    label: HTTPS request
+  - from: cloudfront
+    to: voicevox_api_gateway
+    label: "/voicevox-api/* behavior"
+  - from: voicevox_api_gateway
+    to: voicevox_lambda
+    label: proxy invoke
+  - from: voicevox_lambda
+    to: voicevox_ecr
+    label: pull image
+  - from: voicevox_lambda
+    to: hosting_bucket
+    label: read/write audio
