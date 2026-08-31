@@ -1,6 +1,7 @@
 import { Canvas, useThree } from "@react-three/fiber";
 import * as THREE from "three";
-import { useGLTF, useAnimations } from "@react-three/drei";
+import { useGLTF, useAnimations, OrbitControls } from "@react-three/drei";
+import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useEffect, useRef } from "react";
 import { shapeKeyNames, type ShapeKeyName } from "./shapeKey.js";
 import { useShapeKeyEffect, type FaceMesh } from "./useShapeKeyEffect.js";
@@ -10,7 +11,7 @@ const SHADOW_CAMERA_BOUNDS = 2.5;
 function Model() {
   const { scene, animations, nodes } = useGLTF("/gltf.glb");
   const { actions } = useAnimations(animations, scene);
-  const { camera } = useThree();
+  const { camera, controls, scene: rootScene } = useThree();
   const shapeKeyRef = useRef<ShapeKeyName>(shapeKeyNames[0]);
   // 顔のメッシュを取得
   const mesh = nodes.head as unknown as FaceMesh;
@@ -24,9 +25,23 @@ function Model() {
       }
     });
 
-    // カメラ初期化
-    camera.position.set(1, 0, 2.5); // x, y, z
-    camera.lookAt(1, 0, 0);
+    // アバターの中心を回転軸に設定
+    rootScene.updateMatrixWorld(true);
+    const center = new THREE.Box3()
+      .setFromObject(scene)
+      .getCenter(new THREE.Vector3());
+    const cameraOffset = new THREE.Vector3().setFromSphericalCoords(
+      2.5,
+      Math.PI / 2 + Math.PI / 18,
+      -Math.PI / 12,
+    );
+    camera.position.copy(center).add(cameraOffset);
+    camera.lookAt(center);
+    const orbitControls = controls as OrbitControlsImpl | null;
+    if (orbitControls) {
+      orbitControls.target.copy(center);
+      orbitControls.update();
+    }
 
     // shape keyの初期化
     const index = mesh.morphTargetDictionary[shapeKeyRef.current!];
@@ -37,7 +52,7 @@ function Model() {
     // デフォルトのアニメーションを再生
     const idleActionName = "idle";
     actions[idleActionName]?.play();
-  }, [actions, camera, mesh]);
+  }, [actions, camera, controls, mesh, rootScene, scene]);
 
   useShapeKeyEffect({ mesh, shapeKeyRef });
 
@@ -59,7 +74,7 @@ function Model() {
 
   return (
     // アバター位置
-    <group position={[1, -0.55, 1]} scale={0.8}>
+    <group position={[1, -0.55, 1]} scale={1.2}>
       <primitive object={scene} />
     </group>
   );
@@ -97,6 +112,8 @@ export default function App() {
         shadow-bias={-0.0005}
         shadow-normalBias={0.02}
       />
+
+      <OrbitControls makeDefault enableZoom={false} enablePan={false} />
 
       <Model />
 
