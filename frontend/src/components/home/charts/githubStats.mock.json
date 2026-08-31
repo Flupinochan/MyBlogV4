@@ -11,6 +11,11 @@
       "color": "#3572A5"
     },
     {
+      "name": "Java",
+      "count": 5,
+      "color": "#007396"
+    },
+    {
       "name": "Rust",
       "count": 3,
       "color": "#dea584"
@@ -24,6 +29,11 @@
       "name": "Dart",
       "count": 1,
       "color": "#00B4AB"
+    },
+    {
+      "name": "Go",
+      "count": 0,
+      "color": "#00ADD8"
     }
   ],
   "languageBytes": [
@@ -38,18 +48,18 @@
       "color": "#00B4AB"
     },
     {
-      "name": "Python",
-      "bytes": 185303,
-      "color": "#3572A5"
-    },
-    {
       "name": "C#",
       "bytes": 39294,
       "color": "#178600"
     },
     {
-      "name": "Rust",
+      "name": "Go",
       "bytes": 28512,
+      "color": "#00ADD8"
+    },
+    {
+      "name": "Rust",
+      "bytes": 15000,
       "color": "#dea584"
     }
   ],

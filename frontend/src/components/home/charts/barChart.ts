@@ -71,7 +71,9 @@ export class BarChart {
    * @param mergedLangStats ソート済みのデータ
    */
   updateAxes(mergedLangStats: MergedLangStats[]) {
-    this.xScale.domain(mergedLangStats.map((d) => d.langName));
+    this.xScale.domain(
+      mergedLangStats.filter((d) => d.repoBytes > 0).map((d) => d.langName)
+    );
   }
 
   // d3jsのBarはrectのため、アニメーションするためにpathに変換

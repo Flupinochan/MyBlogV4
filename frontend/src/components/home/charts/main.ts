@@ -77,6 +77,7 @@ const hideDuration = 0.3;
 const showDuration = 0.8;
 const hideEase = "power2.in";
 const showEase = "power2.out";
+const noTargetFadeDuration = 0.15;
 
 // 親要素svg
 const svgMain = d3
@@ -139,7 +140,6 @@ const elements = gMain
 // color, border定義
 elements
   .append("path")
-  .attr("class", "opacity-0")
   .attr("d", (d) => {
     // endAngle = startAngleにして非表示
     return d3.arc<any>().innerRadius(0).outerRadius(radius)({
@@ -147,6 +147,7 @@ elements
       endAngle: d.startAngle,
     })!;
   })
+  .attr("opacity", 0)
   .attr("fill", (d) => d.data.langColor)
   .attr("fill-opacity", 0.2)
   .attr("stroke", (d) => d.data.langColor)
@@ -158,8 +159,9 @@ const labels = elements
   .append("text")
   .attr(
     "class",
-    "opacity-0 text-xs fill-current select-none [text-anchor:middle]",
-  );
+    "text-xs fill-current select-none [text-anchor:middle]",
+  )
+  .attr("opacity", 0);
 // language name
 labels
   .append("tspan")
@@ -189,13 +191,15 @@ export const isAnimating = atom(false);
 export const initChartAnimation = () => {
   const innerTl = gsap.timeline();
   elements.each(function (data, index) {
+    if (data.data.repoCount <= 0) return;
+
     const path = d3.select(this).select("path");
     const label = d3.select(this).select("text");
     const staggerStep = 0.15;
     innerTl.to(
       path.node(),
       {
-        autoAlpha: 1,
+        opacity: 1,
         duration: 0.1,
       },
       index * staggerStep,
@@ -221,13 +225,27 @@ export const initChartAnimation = () => {
     innerTl.to(
       label.node(),
       {
-        autoAlpha: 1,
+        opacity: 1,
         duration: 0.3,
       },
       index * staggerStep + 0.3,
     );
   });
   return innerTl;
+};
+
+const getChartLanguages = (type: ChartType): Set<string> => {
+  if (type === ChartType.Bar) {
+    return new Set(barChart.xScale.domain());
+  } else if (type === ChartType.Pie) {
+    return new Set(
+      pieChart.pieData
+        .filter((d) => d.data.repoCount > 0)
+        .map((d) => d.data.langName),
+    );
+  } else {
+    return new Set(mergedLangStats.map((d) => d.langName));
+  }
 };
 
 // Graph切り替え時のGSAPアニメーション
@@ -246,6 +264,8 @@ const updateChart = (type: ChartType) => {
   } else if (type === ChartType.Pie) {
     mergedLangStats.sort((a, b) => b.repoCount - a.repoCount);
   }
+
+  const targetLanguages = getChartLanguages(type);
 
   const masterTl = gsap.timeline({
     // アニメーション開始前処理
@@ -294,6 +314,9 @@ const updateChart = (type: ChartType) => {
     const textNode = d3.select(g).select("text").node() as SVGTextElement;
     const nameLabel = d3.select(textNode).select(".name-label").node();
     const percentLabel = d3.select(textNode).select(".percent-label").node();
+    const gElement = d3.select(g);
+
+    const hasTransitionTarget = targetLanguages.has(d.data.langName);
 
     if (type === ChartType.Pie) {
       const target = pieChart.getTarget(d);
@@ -301,115 +324,141 @@ const updateChart = (type: ChartType) => {
       // BartとStackの軸を非表示
       stackChart.hideAxis(elementTl, hideDuration, hideEase);
       barChart.hideAxis(elementTl, hideDuration, hideEase);
-      // g
-      elementTl.to(
-        g,
-        { x: width / 2, y: height / 2, duration: showDuration, ease: showEase },
-        0,
-      );
-      // path
-      elementTl.to(
-        pathNode,
-        {
-          morphSVG: target.path,
-          attr: {
-            fill: d.data.langColor,
-            stroke: d.data.langColor,
-          },
-          duration: showDuration,
-          ease: showEase,
-        },
-        0,
-      );
-      // text position
-      elementTl.to(
-        textNode,
-        {
-          x: target.labelX,
-          y: target.labelY,
-          duration: showDuration,
-          ease: showEase,
-        },
-        0,
-      );
-      // Label (tspan) opacity
-      elementTl.to(
-        nameLabel,
-        {
-          attr: { dy: "-0.2em" },
-          opacity: 1,
-          duration: showDuration,
-          ease: showEase,
-        },
-        0,
-      );
-      elementTl.to(
-        percentLabel,
-        { opacity: 1, duration: showDuration, ease: showEase },
-        0,
-      );
-    } else if (type === ChartType.Bar) {
-      const target = barChart.getTarget(d.data);
 
+      if (hasTransitionTarget) {
+        // g
+        elementTl.to(
+          g,
+          {
+            x: width / 2,
+            y: height / 2,
+            opacity: 1,
+            duration: showDuration,
+            ease: showEase,
+          },
+          0,
+        );
+        // path
+        elementTl.to(
+          pathNode,
+          {
+            opacity: 1,
+            morphSVG: target.path,
+            attr: {
+              fill: d.data.langColor,
+              stroke: d.data.langColor,
+            },
+            duration: showDuration,
+            ease: showEase,
+          },
+          0,
+        );
+        // text position
+        elementTl.to(
+          textNode,
+          {
+            opacity: 1,
+            x: target.labelX,
+            y: target.labelY,
+            duration: showDuration,
+            ease: showEase,
+          },
+          0,
+        );
+        // Label (tspan) opacity
+        elementTl.to(
+          nameLabel,
+          {
+            attr: { dy: "-0.2em" },
+            opacity: 1,
+            duration: showDuration,
+            ease: showEase,
+          },
+          0,
+        );
+        elementTl.to(
+          percentLabel,
+          { opacity: 1, duration: showDuration, ease: showEase },
+          0,
+        );
+      } else {
+        elementTl.to(
+          gElement.node(),
+          { opacity: 0, duration: noTargetFadeDuration, ease: hideEase },
+          0,
+        );
+      }
+    } else if (type === ChartType.Bar) {
       // Stackの軸を非表示
       stackChart.hideAxis(elementTl, hideDuration, hideEase);
       // Barの軸を表示
       barChart.showAxis(elementTl, showDuration, showEase);
-      // g
-      elementTl.to(
-        g,
-        {
-          x: target.elementX,
-          y: target.elementY,
-          duration: showDuration,
-          ease: showEase,
-        },
-        0,
-      );
-      // path
-      elementTl.to(
-        pathNode,
-        {
-          // -8～8の値でアニメーションのパス移動を制御可能
-          // グラフの形は動的なため手動で設定せず、デフォルトのautoを利用
-          morphSVG: { shape: target.path, shapeIndex: "auto" },
-          attr: {
-            fill: d.data.langColor,
-            stroke: d.data.langColor,
+
+      if (hasTransitionTarget) {
+        const target = barChart.getTarget(d.data);
+
+        // g
+        elementTl.to(
+          g,
+          {
+            x: target.elementX,
+            y: target.elementY,
+            opacity: 1,
+            duration: showDuration,
+            ease: showEase,
           },
-          duration: showDuration,
-          ease: showEase,
-        },
-        0,
-      );
-      // text position
-      elementTl.to(
-        textNode,
-        {
-          x: target.labelX,
-          y: target.labelY,
-          duration: showDuration,
-          ease: showEase,
-        },
-        0,
-      );
-      // Label (tspan) opacity
-      // percentLabelは非表示
-      elementTl.to(
-        percentLabel,
-        { opacity: 0, duration: hideDuration, ease: hideEase },
-        0,
-      );
-      elementTl.to(
-        nameLabel,
-        {
-          opacity: 1,
-          attr: { dy: "0.35em" },
-          duration: showDuration,
-          ease: showEase,
-        },
-        0,
-      );
+          0,
+        );
+        // path
+        elementTl.to(
+          pathNode,
+          {
+            opacity: 1,
+            morphSVG: { shape: target.path, shapeIndex: "auto" },
+            attr: {
+              fill: d.data.langColor,
+              stroke: d.data.langColor,
+            },
+            duration: showDuration,
+            ease: showEase,
+          },
+          0,
+        );
+        // text position
+        elementTl.to(
+          textNode,
+          {
+            opacity: 1,
+            x: target.labelX,
+            y: target.labelY,
+            duration: showDuration,
+            ease: showEase,
+          },
+          0,
+        );
+        // Label (tspan) opacity
+        elementTl.to(
+          percentLabel,
+          { opacity: 0, duration: hideDuration, ease: hideEase },
+          0,
+        );
+        elementTl.to(
+          nameLabel,
+          {
+            opacity: 1,
+            attr: { dy: "0.35em" },
+            duration: showDuration,
+            ease: showEase,
+          },
+          0,
+        );
+      } else {
+        elementTl.to(
+          gElement.node(),
+          { opacity: 0, duration: noTargetFadeDuration, ease: hideEase },
+          0,
+        );
+      }
     } else if (type === ChartType.Stack) {
       const stableIndex = stackOrder.findIndex(
         (m) => m.langName === d.data.langName,
@@ -420,49 +469,60 @@ const updateChart = (type: ChartType) => {
       barChart.hideAxis(elementTl, hideDuration, hideEase);
       // Stackの軸を表示
       stackChart.showAxis(elementTl, showDuration, showEase);
-      // g
-      elementTl.to(
-        g,
-        { x: 0, y: 0, duration: showDuration, ease: showEase },
-        0,
-      );
-      // path
-      elementTl.to(
-        pathNode,
-        {
-          morphSVG: target.path,
-          attr: {
-            fill: stackChart.fillColor,
-            fillOpacity: 0.5,
-            stroke: "none",
+
+      if (hasTransitionTarget) {
+        // g
+        elementTl.to(
+          g,
+          { x: 0, y: 0, opacity: 1, duration: showDuration, ease: showEase },
+          0,
+        );
+        // path
+        elementTl.to(
+          pathNode,
+          {
+            opacity: 1,
+            morphSVG: target.path,
+            attr: {
+              fill: stackChart.fillColor,
+              fillOpacity: 0.5,
+              stroke: "none",
+            },
+            duration: showDuration,
+            ease: showEase,
           },
-          duration: showDuration,
-          ease: showEase,
-        },
-        0,
-      );
-      // text position
-      elementTl.to(
-        textNode,
-        {
-          x: target.labelX,
-          y: target.labelY,
-          duration: showDuration,
-          ease: showEase,
-        },
-        0,
-      );
-      // Label (tspan) opacity 非表示
-      elementTl.to(
-        nameLabel,
-        { opacity: 0, duration: hideDuration, ease: hideEase },
-        0,
-      );
-      elementTl.to(
-        percentLabel,
-        { opacity: 0, duration: hideDuration, ease: hideEase },
-        0,
-      );
+          0,
+        );
+        // text position
+        elementTl.to(
+          textNode,
+          {
+            opacity: 1,
+            x: target.labelX,
+            y: target.labelY,
+            duration: showDuration,
+            ease: showEase,
+          },
+          0,
+        );
+        // Label (tspan) opacity 非表示
+        elementTl.to(
+          nameLabel,
+          { opacity: 0, duration: hideDuration, ease: hideEase },
+          0,
+        );
+        elementTl.to(
+          percentLabel,
+          { opacity: 0, duration: hideDuration, ease: hideEase },
+          0,
+        );
+      } else {
+        elementTl.to(
+          gElement.node(),
+          { opacity: 0, duration: noTargetFadeDuration, ease: hideEase },
+          0,
+        );
+      }
     }
   });
   masterTl.add(elementTl);
