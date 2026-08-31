@@ -30,7 +30,8 @@ function Model() {
 
     // shape keyの初期化
     const index = mesh.morphTargetDictionary[shapeKeyRef.current!];
-    if (index === undefined) throw new Error(`Shape key not found: ${shapeKeyRef.current!}`);
+    if (index === undefined)
+      throw new Error(`Shape key not found: ${shapeKeyRef.current!}`);
     mesh.morphTargetInfluences[index] = 1;
 
     // デフォルトのアニメーションを再生
@@ -58,7 +59,7 @@ function Model() {
 
   return (
     // アバター位置
-    <group position={[1, -0.7, 1]}>
+    <group position={[1, -0.55, 1]} scale={0.8}>
       <primitive object={scene} />
     </group>
   );
