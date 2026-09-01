@@ -6,7 +6,8 @@ import SunMoon from "../components/icons/SunMoon.astro";
 ---
 
 <header
-  class="relative flex items-center justify-between h-16 pl-10 overflow-hidden bg-slate-800/10 backdrop-blur-sm"
+  class="relative grid grid-rows-1 grid-cols-[1fr_auto_1fr] items-center justify-items-center h-16
+         overflow-hidden bg-slate-800/10 backdrop-blur-sm"
 >
   <nav>
     <ul class="flex">
@@ -26,13 +27,27 @@ import SunMoon from "../components/icons/SunMoon.astro";
   </nav>
   <a
     href="/"
-    class="text-6xl font-extrabold text-transparent [-webkit-text-stroke:1px_var(--color-slate-800)] dark:[-webkit-text-stroke-color:var(--color-slate-200)] hover:scale-105 active:scale-95 transition-all"
-    style="text-box: trim-start cap alphabetic"
+    class="flex items-end pb-2 gap-2 h-full hover:scale-105 active:scale-95 transition-all"
     data-header-title-text
   >
-    METAL MENTAL
+    <img
+      src="/Akaricchan.avif"
+      alt="Akaricchan"
+      class="h-full [image-rendering:pixelated]"
+    />
+    <span
+      class="text-6xl font-extrabold text-transparent [-webkit-text-stroke:1px_var(--color-slate-800)] dark:[-webkit-text-stroke-color:var(--color-slate-200)]"
+      style="text-box: trim-both cap alphabetic"
+    >
+      METAL MENTAL
+    </span>
+    <img
+      src="/Flupinochan.avif"
+      alt="Flupinochan"
+      class="h-full [image-rendering:pixelated]"
+    />
   </a>
-  <div class="flex relative z-10 gap-4 pr-10 items-center">
+  <div class="flex relative z-10 gap-4 items-center">
     <button
       aria-label="ダークモードに切り替える"
       class="cursor-pointer toggle-dark-mode group transform active:scale-95 transition-transform duration-150"
