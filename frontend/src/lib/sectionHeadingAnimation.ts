@@ -1,26 +1,6 @@
 import { gsap } from "./gsap";
 import { SplitText } from "gsap/SplitText";
 
-function applySpanningGradient(el: HTMLElement, chars: HTMLElement[]): void {
-  if (chars.length === 0) return;
-  const firstChar = chars[0];
-  const lastChar = chars[chars.length - 1];
-  if (firstChar === undefined || lastChar === undefined) throw new Error("chars is empty");
-  const bgImage = window.getComputedStyle(el).backgroundImage;
-  const firstRect = firstChar.getBoundingClientRect();
-  const lastRect = lastChar.getBoundingClientRect();
-  const textWidth = lastRect.right - firstRect.left;
-  chars.forEach((charEl) => {
-    const charOffset = charEl.getBoundingClientRect().left - firstRect.left;
-    charEl.style.backgroundImage = bgImage;
-    charEl.style.backgroundSize = `${textWidth}px 200px`;
-    charEl.style.backgroundPositionX = `-${charOffset}px`;
-    charEl.style.setProperty("-webkit-background-clip", "text");
-    charEl.style.backgroundClip = "text";
-    charEl.style.setProperty("-webkit-text-fill-color", "transparent");
-  });
-}
-
 interface SectionHeadingAnimationOptions {
   onStart?: () => void;
   onComplete?: () => void;
@@ -32,8 +12,6 @@ export function initSectionHeadingAnimation(
 ): gsap.core.Timeline {
   const splitText = new SplitText(el, { type: "chars" });
   const chars = splitText.chars as HTMLElement[];
-
-  applySpanningGradient(el as HTMLElement, chars);
 
   gsap.set(chars, { autoAlpha: 0, filter: "blur(10px)" });
 

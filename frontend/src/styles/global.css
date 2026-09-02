@@ -39,6 +39,32 @@
 @theme {
   --font-family-geist: "GeistPixelSquare", monospace;
   --scrollbar-track-bg: var(--color-transparent);
+
+  --color-violet-350: color-mix(
+    in oklch,
+    var(--color-violet-300),
+    var(--color-violet-400)
+  );
+  --color-violet-450: color-mix(
+    in oklch,
+    var(--color-violet-400),
+    var(--color-violet-500)
+  );
+  --color-violet-550: color-mix(
+    in oklch,
+    var(--color-violet-500),
+    var(--color-violet-600)
+  );
+  --color-violet-650: color-mix(
+    in oklch,
+    var(--color-violet-600),
+    var(--color-violet-700)
+  );
+  --color-violet-750: color-mix(
+    in oklch,
+    var(--color-violet-700),
+    var(--color-violet-800)
+  );
 }
 
 @layer base {

@@ -1,26 +1,26 @@
 ---
-type AccentColor = "rose" | "amber" | "emerald" | "cyan" | "pink";
+type HeadingStep = 1 | 2 | 3 | 4 | 5 | 6;
 
 interface Props {
-  accent: AccentColor;
+  step: HeadingStep;
   class?: string;
   [key: string]: unknown;
 }
 
-const { accent, class: extraClass = "", ...rest } = Astro.props;
+const { step, class: extraClass = "", ...rest } = Astro.props;
 
-const gradientMap: Record<AccentColor, string> = {
-  rose: "from-violet-500 to-rose-500",
-  amber: "from-violet-500 to-amber-500",
-  emerald: "from-violet-500 to-emerald-500",
-  cyan: "from-violet-500 to-cyan-500",
-  pink: "from-violet-500 to-pink-500",
+const colorMap: Record<HeadingStep, string> = {
+  1: "text-violet-550 dark:text-violet-350",
+  2: "text-violet-600 dark:text-violet-400",
+  3: "text-violet-650 dark:text-violet-450",
+  4: "text-violet-700 dark:text-violet-500",
+  5: "text-violet-750 dark:text-violet-550",
+  6: "text-violet-800 dark:text-violet-600",
 };
 
 const classes = [
   "text-center text-6xl font-bold mt-20 leading-snug",
-  "bg-linear-to-r bg-clip-text text-transparent",
-  gradientMap[accent],
+  colorMap[step],
   extraClass,
 ]
   .filter(Boolean)
