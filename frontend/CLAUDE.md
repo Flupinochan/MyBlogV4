@@ -53,3 +53,7 @@
 
 - Prefer early return over nested `if` blocks — guard clauses at the top of a function keep the happy path unindented
 - Never swallow errors in empty or comment-only `catch` blocks — always log (`console.error`) or surface the error to the user
+
+### No Comment
+
+Please do not add any comments under any circumstances.
