@@ -67,6 +67,16 @@
   );
 }
 
+#avatar-stage {
+  --stage-container: min(80rem, 100%);
+  --stage-column: calc((var(--stage-container) - 4rem) / 3);
+  --stage-center: calc(
+    (100% - var(--stage-container)) / 2 + 1rem + var(--stage-column) / 2
+  );
+  left: calc(var(--stage-center) + var(--avatar-offset-x, 0px));
+  translate: -50% 0;
+}
+
 @layer base {
   html {
     overflow-x: clip;

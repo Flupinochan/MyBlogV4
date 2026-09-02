@@ -2,7 +2,7 @@ import { Canvas, useThree } from "@react-three/fiber";
 import * as THREE from "three";
 import { useGLTF, useAnimations, OrbitControls } from "@react-three/drei";
 import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { shapeKeyNames, type ShapeKeyName } from "./shapeKey.js";
 import { useShapeKeyEffect, type FaceMesh } from "./useShapeKeyEffect.js";
 
@@ -81,51 +81,71 @@ function Model() {
 }
 
 export default function App() {
+  const [dragTarget, setDragTarget] = useState<HTMLDivElement | undefined>(
+    undefined,
+  );
+  // ref付与とアンマウントで毎回関数を再生成しないようメモ化
+  const dragTargetRef = useCallback((el: HTMLDivElement | null) => {
+    setDragTarget(el ?? undefined);
+  }, []);
+
   return (
-    <Canvas
-      // 視野角
-      camera={{ fov: 50 }}
-      dpr={[1, 2]}
-      gl={{ antialias: true }}
-      // 影
-      shadows
-      style={{ width: "100%", height: "100%" }}
-      onCreated={(state) => {
-        // 影の種類
-        state.gl.shadowMap.type = THREE.PCFSoftShadowMap;
-      }}
-    >
-      {/* ライト */}
-      <ambientLight intensity={1.5} />
-      <directionalLight
-        position={[0, 5, 5]}
-        intensity={2.5}
-        castShadow
-        // アバターの影
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-near={0.5}
-        shadow-camera-far={12}
-        shadow-camera-left={-SHADOW_CAMERA_BOUNDS}
-        shadow-camera-right={SHADOW_CAMERA_BOUNDS}
-        shadow-camera-top={SHADOW_CAMERA_BOUNDS}
-        shadow-camera-bottom={-SHADOW_CAMERA_BOUNDS}
-        shadow-bias={-0.0005}
-        shadow-normalBias={0.02}
+    <div className="relative h-full w-full">
+      {/* アバター周辺のみドラッグ回転を受け付ける当たり判定 */}
+      <div
+        ref={dragTargetRef}
+        className="pointer-events-auto absolute top-0 left-1/2 h-full w-[var(--stage-column)] -translate-x-1/2"
       />
-
-      <OrbitControls makeDefault enableZoom={false} enablePan={false} />
-
-      <Model />
-
-      {/* 地面の影 */}
-      <mesh
-        rotation={[-Math.PI / 2, 0, 0]}
-        position={[1, -0.7, 1]}
-        receiveShadow
+      <Canvas
+        // 視野角
+        camera={{ fov: 50 }}
+        dpr={[1, 2]}
+        gl={{ antialias: true }}
+        // 影
+        shadows
+        style={{ width: "100%", height: "100%", pointerEvents: "none" }}
+        onCreated={(state) => {
+          // 影の種類
+          state.gl.shadowMap.type = THREE.PCFSoftShadowMap;
+        }}
       >
-        <planeGeometry args={[11, 10]} />
-        <shadowMaterial opacity={0.3} transparent />
-      </mesh>
-    </Canvas>
+        {/* ライト */}
+        <ambientLight intensity={1.5} />
+        <directionalLight
+          position={[0, 5, 5]}
+          intensity={2.5}
+          castShadow
+          // アバターの影
+          shadow-mapSize={[1024, 1024]}
+          shadow-camera-near={0.5}
+          shadow-camera-far={12}
+          shadow-camera-left={-SHADOW_CAMERA_BOUNDS}
+          shadow-camera-right={SHADOW_CAMERA_BOUNDS}
+          shadow-camera-top={SHADOW_CAMERA_BOUNDS}
+          shadow-camera-bottom={-SHADOW_CAMERA_BOUNDS}
+          shadow-bias={-0.0005}
+          shadow-normalBias={0.02}
+        />
+
+        <OrbitControls
+          makeDefault
+          enableZoom={false}
+          enablePan={false}
+          domElement={dragTarget}
+        />
+
+        <Model />
+
+        {/* 地面の影 */}
+        <mesh
+          rotation={[-Math.PI / 2, 0, 0]}
+          position={[1, -0.7, 1]}
+          receiveShadow
+        >
+          <planeGeometry args={[11, 10]} />
+          <shadowMaterial opacity={0.3} transparent />
+        </mesh>
+      </Canvas>
+    </div>
   );
 }
