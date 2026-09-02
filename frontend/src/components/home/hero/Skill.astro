@@ -12,7 +12,7 @@ const {
 } = Astro.props as SkillItem;
 
 const base = `p-6 rounded-2xl border border-slate-300 dark:border-slate-700
-bg-slate-50 dark:bg-slate-900 ${textColor} hover:border-current`;
+${textColor} hover:border-current`;
 ---
 
 <skill-card class="block">
@@ -32,7 +32,10 @@ bg-slate-50 dark:bg-slate-900 ${textColor} hover:border-current`;
     class="hidden fixed inset-0 z-200 items-center justify-center
          bg-indigo-950/45 dark:bg-slate-950/70 backdrop-blur-sm"
   >
-    <div data-skill-dialog class={`${base} w-[min(92vw,32rem)]`}>
+    <div
+      data-skill-dialog
+      class={`${base} bg-slate-50 dark:bg-slate-900 w-[min(92vw,32rem)]`}
+    >
       <SkillContent
         icon={Icon}
         title={title}
