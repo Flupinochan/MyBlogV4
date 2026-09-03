@@ -20,6 +20,6 @@ voicevox-core = { url = "https://github.com/VOICEVOX/voicevox_core/releases/down
 [dependency-groups]
 dev = [
     "atlas-provider-sqlalchemy>=0.5.0",
-    "boto3-stubs[s3]>=1.42.83",
+    "boto3-stubs[s3,sesv2]>=1.42.83",
     "pyright>=1.1.409",
 ]

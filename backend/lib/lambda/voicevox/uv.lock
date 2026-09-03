@@ -173,6 +173,9 @@ wheels = [
 s3 = [
     { name = "mypy-boto3-s3" },
 ]
+sesv2 = [
+    { name = "mypy-boto3-sesv2" },
+]
 
 [[package]]
 name = "botocore"
@@ -847,6 +850,15 @@ wheels = [
 ]
 
 [[package]]
+name = "mypy-boto3-sesv2"
+version = "1.42.63"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/4e/d5/57b22bfccd9adec11954e16141294313f27faa31e52a4f354151d710559e/mypy_boto3_sesv2-1.42.63.tar.gz", hash = "sha256:1a5ac1d6691b81de9c6e70b53b674a3ddc94b0aa9680c47b039502b176c89d27", size = 47222, upload-time = "2026-03-06T22:49:46.761Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/3c/f2/07a1a0f69193cffb83ef822ff613d7f804533bf651aed332bdc03b6b198d/mypy_boto3_sesv2-1.42.63-py3-none-any.whl", hash = "sha256:90674728d576be37154c9b44ba2b3554ed9c04cc2d11fdf23c514daed565490c", size = 52696, upload-time = "2026-03-06T22:49:40.581Z" },
+]
+
+[[package]]
 name = "nodeenv"
 version = "1.10.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1409,7 +1421,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "atlas-provider-sqlalchemy" },
-    { name = "boto3-stubs", extra = ["s3"] },
+    { name = "boto3-stubs", extra = ["s3", "sesv2"] },
     { name = "pyright" },
 ]
 
@@ -1427,7 +1439,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "atlas-provider-sqlalchemy", specifier = ">=0.5.0" },
-    { name = "boto3-stubs", extras = ["s3"], specifier = ">=1.42.83" },
+    { name = "boto3-stubs", extras = ["s3", "sesv2"], specifier = ">=1.42.83" },
     { name = "pyright", specifier = ">=1.1.409" },
 ]
 

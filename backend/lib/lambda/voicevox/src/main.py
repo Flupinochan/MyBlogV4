@@ -14,8 +14,9 @@ from fastapi import APIRouter, FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
-from routers import chat, conversation, health  # ty:ignore[unresolved-import]
+from routers import chat, contact, conversation, health  # ty:ignore[unresolved-import]
 from services.chat_service import ChatService  # ty:ignore[unresolved-import]
+from services.contact_service import ContactService  # ty:ignore[unresolved-import]
 from services.db_service import DbService  # ty:ignore[unresolved-import]
 from services.voice_service import VoiceService  # ty:ignore[unresolved-import]
 from sqlalchemy.ext.asyncio import create_async_engine
@@ -43,6 +44,7 @@ try:
     OPEN_JTALK_PATH = "voicevox/open_jtalk"
     VOICE_OUTPUT_BUCKET_NAME = os.environ["VOICE_OUTPUT_BUCKET_NAME"]
     POSTGRESQL_URL = os.environ["POSTGRESQL_URL"]
+    CONTACT_EMAIL_ADDRESS = os.environ["CONTACT_EMAIL_ADDRESS"]
 except KeyError:
     logger.exception("環境変数が設定されていません")
     raise
@@ -95,6 +97,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         bucket_name=VOICE_OUTPUT_BUCKET_NAME,
     )
     app.state.db_service = DbService(engine=engine)
+    # sesv2はs3と違いグローバルエンドポイントがなくclient生成時にregionが必須
+    # moduleレベルで生成するとregion未設定環境でのOpenAPI生成がimportで落ちる
+    app.state.contact_service = ContactService(
+        ses_client=boto3.client("sesv2"),
+        from_address=CONTACT_EMAIL_ADDRESS,
+    )
     yield
     await engine.dispose()
 
@@ -119,4 +127,5 @@ v1 = APIRouter(prefix="/v1")
 v1.include_router(health.router)
 v1.include_router(chat.router)
 v1.include_router(conversation.router)
+v1.include_router(contact.router)
 app.include_router(v1)

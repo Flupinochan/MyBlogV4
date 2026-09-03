@@ -43,6 +43,7 @@ const claudeWorkspaceIdParam = "claude-platform-workspace-id";
 const postgresqlUrlParam = "myblogv4-postgresql-url";
 const dockerhubUserParam = "dockerhub-user";
 const dockerhubPasswordParam = "dockerhub-password";
+const contactEmailAddress = "flupino@metalmental.net";
 
 // voicevox engineアップロード用
 // ★最初にこのS3 Bucketだけ単体でデプロイし、voicevox engine関連のリソースをzipでアップロードしておくこと
@@ -72,6 +73,7 @@ new VoicevoxApiLambdaStack(app, `${stackBaseName}-VoicevoxLambdaStack`, {
   claudeApiKeyParam,
   claudeWorkspaceIdParam,
   postgresqlUrlParam,
+  contactEmailAddress,
 });
 
 new OpenSearchBatchLambdaStack(app, `${stackBaseName}-OpenSearchBatchStack`, {

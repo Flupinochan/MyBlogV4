@@ -89,6 +89,23 @@ export interface paths {
         patch: operations["update_conversation_title_v1_conversations__conversation_id__patch"];
         trace?: never;
     };
+    "/v1/contact": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Send Contact */
+        post: operations["send_contact_v1_contact_post"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -108,6 +125,23 @@ export interface components {
             message: string;
             /** Conversation Id */
             conversation_id: string;
+        };
+        /** ContactRequest */
+        ContactRequest: {
+            /** Name */
+            name: string;
+            /**
+             * Email
+             * Format: email
+             */
+            email: string;
+            /** Message */
+            message: string;
+        };
+        /** ContactResponse */
+        ContactResponse: {
+            /** Message */
+            message: string;
         };
         /** ConversationMessage */
         ConversationMessage: {
@@ -328,6 +362,39 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    send_contact_v1_contact_post: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ContactRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["ContactResponse"];
+                };
             };
             /** @description Validation Error */
             422: {

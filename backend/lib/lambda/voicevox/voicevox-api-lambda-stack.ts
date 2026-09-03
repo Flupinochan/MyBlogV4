@@ -15,6 +15,7 @@ interface VoicevoxApiLambdaStackProps extends cdk.StackProps {
   claudeApiKeyParam: string;
   claudeWorkspaceIdParam: string;
   postgresqlUrlParam: string;
+  contactEmailAddress: string;
 }
 
 export class VoicevoxApiLambdaStack extends cdk.Stack {
@@ -73,6 +74,16 @@ export class VoicevoxApiLambdaStack extends cdk.Stack {
             }),
           ],
         }),
+        ContactMailPolicy: new iam.PolicyDocument({
+          statements: [
+            new iam.PolicyStatement({
+              actions: ["ses:SendEmail"],
+              resources: [
+                `arn:aws:ses:${this.region}:${cdk.Aws.ACCOUNT_ID}:identity/${props.contactEmailAddress}`,
+              ],
+            }),
+          ],
+        }),
       },
     });
 
@@ -101,6 +112,7 @@ export class VoicevoxApiLambdaStack extends cdk.Stack {
         CLAUDE_CODE_USE_ANTHROPIC_AWS: "1",
         ANTHROPIC_AWS_WORKSPACE_ID: claudeWorkspaceId,
         POSTGRESQL_URL: postgresqlUrl,
+        CONTACT_EMAIL_ADDRESS: props.contactEmailAddress,
         HOME: "/tmp",
         POWERTOOLS_LOG_LEVEL: "INFO",
         AWS_LAMBDA_LOG_LEVEL: "INFO",

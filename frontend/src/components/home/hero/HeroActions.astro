@@ -22,15 +22,15 @@
       <p class="mt-4">SCROLL</p>
     </div>
   </button>
-  <a
-    aria-label="メールを送信する"
-    href="mailto:flupino@metalmental.net"
+  <button
+    aria-label="お問い合わせセクションへ移動する"
     class="cursor-pointer rounded-4xl border px-5 py-2 transition-all duration-200 ease-out
           text-slate-500 dark:text-slate-300 border-slate-400 hover:border-violet-600 hover:text-violet-600
             hover:scale-105 active:scale-95"
+    data-contact-btn
   >
     Contact me
-  </a>
+  </button>
   <div class="h-px flex-1 bg-linear-to-r from-slate-500 to-transparent"></div>
 </div>
 
@@ -57,5 +57,15 @@
 
   scrollBtn.addEventListener("click", () => {
     target.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  const contactBtn = document.querySelector("[data-contact-btn]");
+  if (!contactBtn) throw new Error("Not found data-contact-btn data attribute");
+  const contactTarget = document.querySelector("[data-contact-title]");
+  if (!contactTarget)
+    throw new Error("Not found data-contact-title data attribute");
+
+  contactBtn.addEventListener("click", () => {
+    contactTarget.scrollIntoView({ behavior: "smooth", block: "start" });
   });
 </script>
