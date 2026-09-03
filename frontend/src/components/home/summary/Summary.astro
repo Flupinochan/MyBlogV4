@@ -1,5 +1,6 @@
 ---
 import SectionHeading from "../../shared/SectionHeading.astro";
+import LinkButton from "../../shared/LinkButton.astro";
 import User from "../../icons/User.astro";
 import Briefcase from "../../icons/Briefcase.astro";
 import Star from "../../icons/Star.astro";
@@ -27,16 +28,35 @@ const items = [
     iconTextClass: "text-emerald-600 dark:text-emerald-400",
   },
 ];
+
+const contents = [
+  {
+    label: "Blog",
+    date: "2024-01-28",
+    description: "AWS SAMを使用したCI/CDの解説",
+    image: "/blog.avif",
+    url: "https://zenn.dev/metalmental",
+    cta: "Go Blog",
+  },
+  {
+    label: "Youtube",
+    date: "2023-11-01",
+    description: "ECS Blue/Green Deploymentのゆっくり実況",
+    image: "/youtube.avif",
+    url: "https://www.youtube.com/@Flupinochan",
+    cta: "Go Youtube",
+  },
+];
 ---
 
 <SectionHeading step={1} class="mb-16 scroll-mt-16" data-summary-title
   >See Me in Summary</SectionHeading
 >
 
-<div class="divide-y divide-slate-300 dark:divide-slate-700 px-20">
+<div class="divide-y divide-slate-300 dark:divide-slate-700 px-10">
   {
     items.map((item) => (
-      <div class="summary-row flex gap-4 items-start py-6 opacity-0 invisible">
+      <div class="summary-row flex gap-4 items-center py-6 opacity-0 invisible">
         <div
           class={`size-9 shrink-0 flex items-center justify-center rounded-full ${item.iconWrapClass} ${item.iconTextClass}`}
         >
@@ -49,6 +69,36 @@ const items = [
           <p class="text-sm mt-2 text-slate-700/80 dark:text-slate-300/80 leading-relaxed">
             {item.body}
           </p>
+        </div>
+      </div>
+    ))
+  }
+</div>
+
+<div
+  class="grid grid-cols-1 md:grid-cols-2 gap-y-16 md:gap-y-0 md:gap-x-8 px-6 pt-16"
+>
+  {
+    contents.map((content) => (
+      <div class="summary-content opacity-0 invisible">
+        <p class="text-lg text-slate-800 dark:text-slate-100 font-bold mb-8">
+          {content.label}
+        </p>
+        <div class="flex flex-col gap-5">
+          <img
+            src={content.image}
+            alt={`${content.label}のサムネイル`}
+            class="w-full h-auto rounded-xl"
+          />
+          <p class="text-xs text-slate-400 dark:text-slate-500">
+            {content.date}
+          </p>
+          <p class="text-sm text-slate-700/80 dark:text-slate-300/80 leading-relaxed">
+            {content.description}
+          </p>
+          <LinkButton href={content.url} class="self-start">
+            {content.cta}
+          </LinkButton>
         </div>
       </div>
     ))
@@ -74,5 +124,10 @@ const items = [
       ease: "power2.out",
     },
     "-=0.2",
-  );
+  ).to(".summary-content", {
+    autoAlpha: 1,
+    stagger: 0.15,
+    duration: 0.3,
+    ease: "power2.out",
+  });
 </script>
