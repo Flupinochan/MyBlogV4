@@ -21,6 +21,8 @@ Use `make help` from the repository root to see all available commands.
 ### Comments
 
 - Preserve existing comments; do not add new comments unless the code cannot be made self-explanatory
+- Never write a comment that justifies, excuses, or narrates why an implementation was changed, fixed, or corrected.
+- Only write a comment that states a genuinely non-obvious fact about the current code — such as a hidden external constraint — never its history.
 
 ## Safety Rules
 

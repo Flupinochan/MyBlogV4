@@ -16,6 +16,7 @@ interface VoicevoxApiLambdaStackProps extends cdk.StackProps {
   claudeWorkspaceIdParam: string;
   postgresqlUrlParam: string;
   contactEmailAddress: string;
+  contactConfigurationSetName: string;
 }
 
 export class VoicevoxApiLambdaStack extends cdk.Stack {
@@ -23,7 +24,11 @@ export class VoicevoxApiLambdaStack extends cdk.Stack {
   public readonly logGroup: logs.LogGroup;
   public readonly role: iam.Role;
 
-  constructor(scope: Construct, id: string, props: VoicevoxApiLambdaStackProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: VoicevoxApiLambdaStackProps,
+  ) {
     super(scope, id, props);
 
     const claudeApiKey = ssm.StringParameter.valueForStringParameter(
@@ -80,6 +85,7 @@ export class VoicevoxApiLambdaStack extends cdk.Stack {
               actions: ["ses:SendEmail"],
               resources: [
                 `arn:aws:ses:${this.region}:${cdk.Aws.ACCOUNT_ID}:identity/${props.contactEmailAddress}`,
+                `arn:aws:ses:${this.region}:${cdk.Aws.ACCOUNT_ID}:configuration-set/${props.contactConfigurationSetName}`,
               ],
             }),
           ],
