@@ -77,25 +77,75 @@ const skillGroups = [
   },
 ];
 
+type SummaryBodyLine = {
+  title?: string;
+  text: string;
+};
+
+const introduction: SummaryBodyLine[] = [
+  {
+    text: "高校卒業後、1年ほどアルバイトをしてお金を貯め、そのお金で自作PCに挑戦したことがITに興味を持つきっかけになりました。半年ほどJavaの研修を受ける中で数日間学んだLinuxに惹かれ、サーバエンジニアとしてキャリアをスタートしました。",
+  },
+  {
+    text: "LinuxではBindやPostfixなどを扱い、Windows ServerではADやSambaを扱いました。またL3/L2スイッチのルーティングやVLAN設定にも携わりました。",
+  },
+  {
+    text: "その後、仮想化技術に興味を持ち、VMware ESXiによる仮想化基盤やHorizonのVDI環境の設計構築を担当しました。この頃、AnsibleやShellScriptによる自動化に取り組んだことからクラウドへの関心が高まり、AWS環境の仕事を始めました。",
+  },
+  {
+    text: "AWSではCDKやTerraformによるIaC、CodePipelineやGitHub ActionsによるCI/CDの構築を経験し、クラウドならではのFinOps(コスト削減)をしたり、CCoEとしてクラウドシフトを推進しました。",
+  },
+  {
+    text: "インフラ全般の経験を積んだ後は、Java Spring BootによるWebアプリケーション開発やC# WPFによるWindowsデスクトップアプリケーション開発も経験しました。",
+  },
+  {
+    text: "こうした経験を踏まえ、現在は事業会社でClaude Codeを活用したAI駆動開発に取り組んでいます。外部ベンダーの撤退に伴う内製化を背景に、開発環境の整備や運用の自動化、異常通知対応や復旧手順書の作成、バグ修正を主な業務としています。",
+  },
+];
+
+const recentWork: SummaryBodyLine[] = [
+  {
+    title: "2重送信・2重課金の不具合修正",
+    text: "送信処理において、エラーの握り潰し、不適切なチャネルフォールバック(LINEからSMSへの切替)、DBの冪等性レコード欠如などが原因で2重送信や2重課金が発生する不具合を修正しました。送信内容から一意の冪等性IDを生成しDBに記録することで2重送信を防止しました。また、アプリ内for文による手動リトライをSQSのvisibility timeoutによるリトライへ変更し、スパイク対策も実施しました。",
+  },
+  {
+    title: "通知処理のパフォーマンス改善",
+    text: "Web Push APIにおける非アクティブデバイスの不適切な管理、HTTP/1.1接続プールの誤った設定、並行処理の設計に起因するパフォーマンス問題を改善しました。アクティブデバイスのみへの通知配信、接続プール数や並行処理数の見直しにより、エラー率を低下させ、サーバースペックを増強することなくCPU使用率を95%から20%まで削減しました。",
+  },
+  {
+    title: "Frontendビルド時間の短縮",
+    text: "モノリシックなfrontendにおいて、ビルド時間を20分から3分へ短縮しました。lintの対象を全ファイルからlint-stagedによる変更ファイルのみへ変更し、minifierをTerserからesbuildへ移行するとともに、適切なchunk分割による重複バンドルの削除やビルドキャッシュの設定見直しを行いました。",
+  },
+];
+
+const hobby: SummaryBodyLine[] = [
+  {
+    text: "オクトパストラベラーが好きです。HD-2Dやドット絵、音楽などすべてが最高です! オクトパストラベラー風のドット絵を作りたいなぁと思っていますw",
+  },
+  {
+    text: "また、Tailscaleを利用した自宅サーバ構築にはまっています! 動的IPでもインターネットに無料で公開できるのはありがたいです。まさかオンプレミス回帰するとは...w",
+  },
+];
+
 const items = [
   {
     icon: User,
     label: "自己紹介",
-    body: "面接の時に利用する自己紹介文を記載",
+    body: introduction,
     iconWrapClass: "bg-cyan-500/10",
     iconTextClass: "text-cyan-600 dark:text-cyan-400",
   },
   {
     icon: Briefcase,
     label: "直近の業務",
-    body: "claude codeを利用したバグ修正、パフォーマンス改善、開発環境整備",
+    body: recentWork,
     iconWrapClass: "bg-amber-500/10",
     iconTextClass: "text-amber-600 dark:text-amber-400",
   },
   {
     icon: Star,
     label: "趣味",
-    body: "オクトパストラベラーとK8s/Tailscaleを利用した自宅サーバ構築",
+    body: hobby,
     iconWrapClass: "bg-rose-500/10",
     iconTextClass: "text-rose-600 dark:text-rose-400",
   },
@@ -159,19 +209,35 @@ const contents = [
 
   {
     items.map((item) => (
-      <div class="summary-row flex gap-4 items-center py-6 opacity-0 invisible">
-        <div
-          class={`size-9 shrink-0 flex items-center justify-center rounded-full ${item.iconWrapClass} ${item.iconTextClass}`}
-        >
-          <item.icon />
-        </div>
-        <div>
+      <div class="summary-row py-6 opacity-0 invisible">
+        <div class="flex items-center gap-4">
+          <div
+            class={`size-9 shrink-0 flex items-center justify-center rounded-full ${item.iconWrapClass} ${item.iconTextClass}`}
+          >
+            <item.icon />
+          </div>
           <p class="text-slate-800 dark:text-slate-100 font-bold">
             {item.label}
           </p>
-          <p class="text-sm mt-2 text-slate-700/80 dark:text-slate-300/80 leading-relaxed">
-            {item.body}
-          </p>
+        </div>
+        <div class="mt-3 pl-[3.25rem] flex flex-col gap-2">
+          {item.body.map((line, index) => (
+            <div
+              class:list={[
+                "flex flex-col gap-1",
+                index > 0 && line.title && "mt-2",
+              ]}
+            >
+              {line.title && (
+                <p class="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                  {line.title}
+                </p>
+              )}
+              <p class="text-sm text-slate-700/80 dark:text-slate-300/80 leading-relaxed">
+                {line.text}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     ))
@@ -187,7 +253,7 @@ const contents = [
       <p class="text-slate-800 dark:text-slate-100 font-bold">スキル・資格</p>
     </div>
 
-    <div class="mt-3 pl-10 flex flex-col gap-0.5">
+    <div class="mt-3 pl-[3.25rem] flex flex-col gap-0.5">
       <details name="summary-skill" class="group" data-skill-details>
         <summary class="skill-summary">
           <span class="size-1.5 shrink-0 rounded-full bg-emerald-500"></span>
