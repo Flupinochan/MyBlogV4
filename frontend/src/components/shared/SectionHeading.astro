@@ -1,27 +1,13 @@
 ---
-type HeadingStep = 1 | 2 | 3 | 4 | 5 | 6 | 7;
-
 interface Props {
-  step: HeadingStep;
   class?: string;
   [key: string]: unknown;
 }
 
-const { step, class: extraClass = "", ...rest } = Astro.props;
-
-const colorMap: Record<HeadingStep, string> = {
-  1: "text-violet-550 dark:text-violet-350",
-  2: "text-violet-600 dark:text-violet-400",
-  3: "text-violet-650 dark:text-violet-450",
-  4: "text-violet-700 dark:text-violet-500",
-  5: "text-violet-750 dark:text-violet-550",
-  6: "text-violet-800 dark:text-violet-600",
-  7: "text-violet-850 dark:text-violet-650",
-};
+const { class: extraClass = "", ...rest } = Astro.props;
 
 const classes = [
-  "text-center text-6xl font-bold mt-20 leading-snug",
-  colorMap[step],
+  "text-center text-6xl font-bold mt-20 leading-snug text-violet-500",
   extraClass,
 ]
   .filter(Boolean)
