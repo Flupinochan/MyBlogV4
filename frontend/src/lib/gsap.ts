@@ -11,4 +11,4 @@ gsap.registerPlugin(ScrollTrigger);
 gsap.registerPlugin(SplitText);
 gsap.registerPlugin(TextPlugin);
 
-export { gsap };
+export { gsap, ScrollTrigger };

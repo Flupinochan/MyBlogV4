@@ -20,10 +20,10 @@ const skills = [
     icon: Database,
     title: "Backend",
     description:
-      "バックエンドでは、API設計とデータモデリングを先に整え、変更に強い実装を優先します。入力検証やエラーハンドリングを明確化し、ログと監視の観点を最初から組み込むことで、障害時の切り分けと復旧を速くできる構成を目指します。",
+      "OpenAPIスキーマから型定義とテストケースを自動生成し、フロントエンドとの整合性とテストの網羅性を担保します。Clean ArchitectureとDDDに基づきUseCaseはRepository・GatewayのInterfaceを介して各処理を実行し、データ取得やビジネスロジックの流れを見通しやすくします。Value Objectとバリデーションでコードの堅牢性を高め、適切な命名規則とコメントで可読性を確保します。AtlasでDBスキーマをバージョン管理し、リトライとキューによる非同期処理でスパイクアクセスや外部サービスの障害に強い構成を実現します。",
     textColor: "text-amber-500",
     badgeColor: "amber",
-    tooltips: ["SpringBoot", "Gin", "OpenSearch", "Valkey"],
+    tooltips: ["ElysiaJS", "Huma", "FastAPI", "Spring Boot"],
   },
   {
     icon: Cloud,
@@ -32,16 +32,16 @@ const skills = [
       "コストと運用負荷を最小化したインフラを設計します。CPU / Memory / Storage の使用率や未使用リソースを定期的に見直し、適切にサイジングして FinOps を実践します。OS / ミドルウェア / Lambda ランタイムの EOL を管理し、自動アップデートや脆弱性スキャンで常に最新の状態を保ち、ビジネスを失速させません。ログ・リソース変更履歴・権限設定・ネットワークを一括管理し、ガードレールを設けてガバナンスを徹底します。",
     textColor: "text-rose-500",
     badgeColor: "rose",
-    tooltips: ["AWS", "K8s", "VMWare", "IoT"],
+    tooltips: ["AWS", "K8s", "VMware", "IoT"],
   },
   {
     icon: Wrench,
     title: "SRE",
     description:
-      "Toilの削除、SREでは、開発速度と信頼性の両立を目的に、監視指標の定義、アラート品質の改善、運用手順の標準化を進めます。障害対応のふりかえりを仕組みに反映し、CI/CDや運用自動化を通じて、継続的に改善が回る状態を作ります。",
+      "構造化ログの徹底とメトリクス・トレースの整備、適切なアラート設定により異常を確実に検知します。対応フローと復旧手順もドキュメント化し、経験の浅いエンジニアでも迷わず障害対応できる体制を整えます。Dev ContainerでOSやマシンに依存しない開発環境を用意し、huskyでのlint・formatの自動化とキャッシュ・並列処理を組み込んだCIでtestとbuild検証を自動実行します。commitやPR作成・レビューはAgent Skillで支援し、スピードと品質を両立します。",
     textColor: "text-emerald-500",
     badgeColor: "emerald",
-    tooltips: ["Grafana", "OpenTelemetry", "Lighthouse", "Postman"],
+    tooltips: ["Grafana", "OpenTelemetry", "Lighthouse", "Agent Skills"],
   },
 ] as const satisfies readonly SkillItem[];
 ---

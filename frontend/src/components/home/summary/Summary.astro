@@ -4,6 +4,78 @@ import LinkButton from "../../shared/LinkButton.astro";
 import User from "../../icons/User.astro";
 import Briefcase from "../../icons/Briefcase.astro";
 import Star from "../../icons/Star.astro";
+import Mail from "../../icons/Mail.astro";
+import Cake from "../../icons/Cake.astro";
+import MapPin from "../../icons/MapPin.astro";
+import Award from "../../icons/Award.astro";
+import ChevronDown from "../../icons/ChevronDown.astro";
+import ExternalLink from "../../icons/ExternalLink.astro";
+import "./summary.css";
+
+const profile = {
+  name: [
+    { text: "川越", ruby: "かわごえ" },
+    { text: "鉄郎", ruby: "てつろう" },
+  ],
+  title: "Full-Stack & SRE Engineer",
+  age: "27歳",
+  birthday: "1999/08/31",
+  location: "神奈川県",
+  email: "flupino@metalmental.net",
+};
+
+const certifications = [
+  "CKA (Certified Kubernetes Administrator)",
+  "AWS SAP (AWS Certified Solutions Architect - Professional)",
+  "Java Silver (Oracle Certified Java Programmer, Silver SE 17)",
+  "Python3 エンジニア認定基礎試験",
+  "LPIC-3 (304 Enterprise Professional Virtualization & High Availability)",
+  "LPIC-3 (300 Enterprise Professional Mixed Environment)",
+  "CCNA (Cisco Certified Network Associate)",
+  "OSS-DB Silver (PostgreSQL)",
+  "Neo4j Certified Professional",
+  "情報処理技能検定試験 表計算1級",
+  "文書デザイン検定試験 2級",
+  "秘書技能検定試験 3級",
+  "ビジネス文書技能検定試験 3級",
+];
+
+const credlyUrl = "https://www.credly.com/users/tetsuro-kawagoe/badges/credly";
+
+const skillGroups = [
+  {
+    label: "言語",
+    items: ["Rust", "Go", "TypeScript", "Python", "Java", "C#", "Dart"],
+  },
+  {
+    label: "フレームワーク",
+    items: [
+      "Astro",
+      "React",
+      "Vue",
+      "Flutter",
+      "ElysiaJS",
+      "Huma",
+      "FastAPI",
+      "Spring Boot",
+    ],
+  },
+  {
+    label: "ツール",
+    items: [
+      "Claude Code",
+      "VSCode",
+      "Herdr",
+      "Obsidian",
+      "Postman",
+      "TablePlus",
+      "draw.io",
+      "GIMP",
+      "YMM4",
+      "Blender",
+    ],
+  },
+];
 
 const items = [
   {
@@ -24,8 +96,8 @@ const items = [
     icon: Star,
     label: "趣味",
     body: "オクトパストラベラーとK8s/Tailscaleを利用した自宅サーバ構築",
-    iconWrapClass: "bg-emerald-500/10",
-    iconTextClass: "text-emerald-600 dark:text-emerald-400",
+    iconWrapClass: "bg-rose-500/10",
+    iconTextClass: "text-rose-600 dark:text-rose-400",
   },
 ];
 
@@ -54,6 +126,37 @@ const contents = [
 >
 
 <div class="divide-y divide-slate-300 dark:divide-slate-700 px-10">
+  <div class="summary-profile py-6 opacity-0 invisible">
+    <p class="profile-name">
+      {
+        profile.name.map((part) => (
+          <ruby>
+            {part.text}
+            <rt>{part.ruby}</rt>
+          </ruby>
+        ))
+      }
+    </p>
+    <p class="mt-1.5 font-semibold">{profile.title}</p>
+    <div class="mt-3 flex flex-wrap gap-x-5 gap-y-2">
+      <span class="profile-meta">
+        <Cake class="size-4 shrink-0" />
+        {profile.age} ({profile.birthday})
+      </span>
+      <span class="profile-meta">
+        <MapPin class="size-4 shrink-0" />
+        {profile.location}
+      </span>
+      <a
+        href={`mailto:${profile.email}`}
+        class="profile-meta hover:text-violet-500 transition-colors"
+      >
+        <Mail class="size-4 shrink-0" />
+        {profile.email}
+      </a>
+    </div>
+  </div>
+
   {
     items.map((item) => (
       <div class="summary-row flex gap-4 items-center py-6 opacity-0 invisible">
@@ -73,6 +176,86 @@ const contents = [
       </div>
     ))
   }
+
+  <div class="summary-row py-6 opacity-0 invisible">
+    <div class="flex items-center gap-4">
+      <div
+        class="size-9 shrink-0 flex items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400"
+      >
+        <Award />
+      </div>
+      <p class="text-slate-800 dark:text-slate-100 font-bold">スキル・資格</p>
+    </div>
+
+    <div class="mt-3 pl-10 flex flex-col gap-0.5">
+      <details name="summary-skill" class="group" data-skill-details>
+        <summary class="skill-summary">
+          <span class="size-1.5 shrink-0 rounded-full bg-emerald-500"></span>
+          <p
+            class="grow text-sm font-semibold text-slate-800 dark:text-slate-200"
+          >
+            資格
+          </p>
+          <span class="text-xs text-slate-400 dark:text-slate-500">
+            {certifications.length}
+          </span>
+          <ChevronDown
+            class="size-4.5 shrink-0 text-slate-400 transition-transform group-open:rotate-180"
+          />
+        </summary>
+        <ul class="pt-1 pr-3 pb-3 pl-7 flex flex-col gap-2.5">
+          {
+            certifications.map((certification) => (
+              <li class="flex items-start gap-2.5">
+                <span class="mt-2 size-1.5 shrink-0 rounded-full bg-emerald-500/50" />
+                <p class="text-sm text-slate-700/80 dark:text-slate-300/80 leading-relaxed">
+                  {certification}
+                </p>
+              </li>
+            ))
+          }
+          <li>
+            <a
+              href={credlyUrl}
+              target="_blank"
+              rel="noopener"
+              class="inline-flex items-center gap-1.5 text-xs text-violet-600 dark:text-violet-400 hover:underline"
+            >
+              <ExternalLink class="size-4" />
+              Credlyで確認
+            </a>
+          </li>
+        </ul>
+      </details>
+
+      {
+        skillGroups.map((group) => (
+          <details name="summary-skill" class="group" data-skill-details>
+            <summary class="skill-summary">
+              <span class="size-1.5 shrink-0 rounded-full bg-emerald-500" />
+              <p class="grow text-sm font-semibold text-slate-800 dark:text-slate-200">
+                {group.label}
+              </p>
+              <span class="text-xs text-slate-400 dark:text-slate-500">
+                {group.items.length}
+              </span>
+              <ChevronDown class="size-4.5 shrink-0 text-slate-400 transition-transform group-open:rotate-180" />
+            </summary>
+            <ul class="pt-1 pr-3 pb-3 pl-7 flex flex-col gap-2.5">
+              {group.items.map((item) => (
+                <li class="flex items-start gap-2.5">
+                  <span class="mt-2 size-1.5 shrink-0 rounded-full bg-emerald-500/50" />
+                  <p class="text-sm text-slate-700/80 dark:text-slate-300/80 leading-relaxed">
+                    {item}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          </details>
+        ))
+      }
+    </div>
+  </div>
 </div>
 
 <div
@@ -106,6 +289,7 @@ const contents = [
 </div>
 
 <script>
+  import { ScrollTrigger } from "../../../lib/gsap";
   import { initSectionHeadingAnimation } from "../../../lib/sectionHeadingAnimation";
 
   const summaryTitleEl = document.querySelector("[data-summary-title]");
@@ -116,18 +300,32 @@ const contents = [
   const tl = initSectionHeadingAnimation(summaryTitleEl);
 
   tl.to(
-    ".summary-row",
+    ".summary-profile",
     {
       autoAlpha: 1,
-      stagger: 0.1,
-      duration: 0.25,
+      duration: 0.3,
       ease: "power2.out",
     },
     "-=0.2",
-  ).to(".summary-content", {
-    autoAlpha: 1,
-    stagger: 0.15,
-    duration: 0.3,
-    ease: "power2.out",
-  });
+  )
+    .to(
+      ".summary-row",
+      {
+        autoAlpha: 1,
+        stagger: 0.1,
+        duration: 0.25,
+        ease: "power2.out",
+      },
+      "-=0.1",
+    )
+    .to(".summary-content", {
+      autoAlpha: 1,
+      stagger: 0.15,
+      duration: 0.3,
+      ease: "power2.out",
+    });
+
+  for (const details of document.querySelectorAll("[data-skill-details]")) {
+    details.addEventListener("toggle", () => ScrollTrigger.refresh());
+  }
 </script>

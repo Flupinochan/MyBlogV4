@@ -9,22 +9,7 @@ import SunMoon from "../components/icons/SunMoon.astro";
   class="relative grid grid-rows-1 grid-cols-[1fr_auto_1fr] items-center justify-items-center h-16
          overflow-hidden bg-slate-800/10 backdrop-blur-sm"
 >
-  <nav>
-    <ul class="flex">
-      <li class="p-4 textWrapper active:scale-95" data-accent-color="cyan">
-        <a href="/" class="backgroundImage" data-header-home>Home</a>
-      </li>
-      <li class="p-4 textWrapper active:scale-95" data-accent-color="amber">
-        <a href="#" class="backgroundImage">Profile</a>
-      </li>
-      <li class="p-4 textWrapper active:scale-95" data-accent-color="rose">
-        <a href="#" class="backgroundImage">Tools</a>
-      </li>
-      <li class="p-4 textWrapper active:scale-95" data-accent-color="emerald">
-        <a href="#" class="backgroundImage">GitHub</a>
-      </li>
-    </ul>
-  </nav>
+  <div></div>
   <a
     href="/"
     class="flex items-end pb-2 gap-2 h-full hover:scale-105 active:scale-95 transition-all"
@@ -120,15 +105,6 @@ import SunMoon from "../components/icons/SunMoon.astro";
     window.scrollTo({ top: 0, behavior: "smooth" });
   });
 
-  const headerHome =
-    header.querySelector<HTMLAnchorElement>("[data-header-home]");
-  if (!headerHome) throw new Error("data-header-home element not found");
-  headerHome.addEventListener("click", (e) => {
-    if (window.location.pathname !== "/") return;
-    e.preventDefault();
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  });
-
   // ダークモード切替
   let isAnimating = false;
   const toggleButton = header.querySelector("button.toggle-dark-mode");
@@ -209,44 +185,7 @@ import SunMoon from "../components/icons/SunMoon.astro";
     --mouse-y: -9999px;
   }
 
-  header:has([data-accent-color="cyan"]:hover) {
-    --spotlight-color: var(--color-cyan-500);
-  }
-  header:has([data-accent-color="amber"]:hover) {
-    --spotlight-color: var(--color-amber-500);
-  }
-  header:has([data-accent-color="rose"]:hover) {
-    --spotlight-color: var(--color-rose-500);
-  }
-  header:has([data-accent-color="emerald"]:hover) {
-    --spotlight-color: var(--color-emerald-500);
-  }
-  header:has([data-accent-color="violet"]:hover) {
-    --spotlight-color: var(--color-violet-500);
-  }
-
-  [data-accent-color="cyan"] {
-    --underline-color: var(--color-cyan-500);
-    --text-fill-color: var(--color-cyan-500);
-  }
-  [data-accent-color="amber"] {
-    --underline-color: var(--color-amber-500);
-    --text-fill-color: var(--color-amber-500);
-  }
-  [data-accent-color="rose"] {
-    --underline-color: var(--color-rose-500);
-    --text-fill-color: var(--color-rose-500);
-  }
-  [data-accent-color="emerald"] {
-    --underline-color: var(--color-emerald-500);
-    --text-fill-color: var(--color-emerald-500);
-  }
-  [data-accent-color="violet"] {
-    --underline-color: var(--color-violet-500);
-    --text-fill-color: var(--color-violet-500);
-  }
-
-  /* 
+  /*
   header非表示設定
     - 下へスクロール中 かつ
     - 下にスクロール可能
@@ -274,48 +213,6 @@ import SunMoon from "../components/icons/SunMoon.astro";
     header {
       translate: 0 0;
     }
-  }
-
-  /* underline animation and text fill animation */
-  .backgroundImage {
-    position: relative;
-    display: inline-block;
-    padding-bottom: 5px;
-    color: inherit;
-    background-image: linear-gradient(
-      90deg,
-      var(--text-fill-color, var(--color-violet-500)),
-      var(--text-fill-color, var(--color-violet-500))
-    );
-    background-size: 0% 100%;
-    background-position: left center;
-    background-repeat: no-repeat;
-    -webkit-background-clip: text;
-    background-clip: text;
-    transition:
-      background-size 0.3s ease-out,
-      color 0.3s ease-out;
-  }
-  .textWrapper:hover .backgroundImage {
-    color: transparent;
-    background-size: 100% 100%;
-    font-weight: 700;
-  }
-  .backgroundImage::after {
-    content: "";
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 0;
-    height: 2px;
-    background-color: var(--underline-color, var(--color-violet-500));
-    transition: width 0.3s ease-out;
-  }
-  .textWrapper:hover .backgroundImage {
-    background-size: 100% 100%;
-  }
-  .textWrapper:hover .backgroundImage::after {
-    width: 100%;
   }
 </style>
 

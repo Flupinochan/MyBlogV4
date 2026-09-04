@@ -1,7 +1,7 @@
 
 ## SVG Iconについて
 
-[heroicons](https://heroicons.com/) 推奨  
+[heroicons](https://heroicons.com/) や [Lucide](https://lucide.dev/) 推奨  
 fillではなくstrokeベースのため、アニメーションや調整がしやすい
 
 ## envファイル
