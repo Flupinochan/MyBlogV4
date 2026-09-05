@@ -1,27 +1,26 @@
 ---
 import Header from "./Header.astro";
 import Footer from "./Footer.astro";
+import Head from "./Head.astro";
 import Avatar from "../components/avatar/Avatar.tsx";
 import "../styles/global.css";
-import ScrollToTopButton from "./ScrollToTopButton.astro";
 import Loading from "./Loading.astro";
-import BackgroundParticles from "./BackgroundParticles.astro";
 import ErrorDialog from "./error-dialog/ErrorDialog.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  ogType?: "website" | "article";
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown>[];
+}
 ---
 
 <!doctype html>
 <html lang="ja">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
-
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
-    <link rel="preconnect" href="https://github.com" />
-    <link rel="preconnect" href="https://zenn.dev" />
-
-    <title>Astro Basics</title>
+    <Head {...Astro.props} />
 
     <script is:inline>
       // デフォルトはダークモード、localStorageにtheme設定がある場合はそれを優先
@@ -43,13 +42,9 @@ import ErrorDialog from "./error-dialog/ErrorDialog.astro";
       </div>
     </div>
     <ErrorDialog />
-    <!-- <BackgroundParticles /> -->
-    <!-- <ScrollToTopButton /> -->
     <Header />
     <div class="flex flex-1 pt-16 max-w-7xl mx-auto px-4 w-full">
-      <main
-        class="relative z-10 my-4 mr-4 ml-auto w-[calc((2*100%-4rem)/3)]"
-      >
+      <main class="relative z-10 my-4 mr-4 ml-auto w-[calc((2*100%-4rem)/3)]">
         <slot />
       </main>
     </div>
