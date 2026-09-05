@@ -59,16 +59,6 @@ export default defineConfig({
               cacheableResponse: { statuses: [0, 200] },
             },
           },
-          {
-            urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname === "/voice/hello.wav",
-            handler: "CacheFirst",
-            options: {
-              cacheName: "static-audio",
-              expiration: { maxEntries: 2, maxAgeSeconds: 60 * 60 * 24 * 30 },
-              cacheableResponse: { statuses: [0, 200] },
-              rangeRequests: true,
-            },
-          },
         ],
       },
     }),

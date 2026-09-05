@@ -171,8 +171,7 @@ export class HostingPipelineStack extends cdk.Stack {
                 --include "*.png" \
                 --include "*.ico" \
                 --include "*.gif" \
-                --include "gltf.glb" \
-                --include "voice/hello.wav" \
+                --include "*gltf.glb" \
                 --cache-control "public, max-age=86400"`,
               // finally invalidate CloudFront
               `aws cloudfront create-invalidation --distribution-id ${props.hostingDistributionId} --paths "/*"`,
