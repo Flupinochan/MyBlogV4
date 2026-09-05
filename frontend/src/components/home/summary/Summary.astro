@@ -130,6 +130,8 @@ const contents = [
     date: "2024-01-28",
     description: "AWS SAMを使用したCI/CDの解説",
     image: "/blog.avif",
+    width: 1920,
+    height: 1080,
     url: "https://zenn.dev/metalmental",
     cta: "Go Blog",
   },
@@ -138,6 +140,8 @@ const contents = [
     date: "2023-11-01",
     description: "ECS Blue/Green Deploymentのゆっくり実況",
     image: "/youtube.avif",
+    width: 1000,
+    height: 564,
     url: "https://www.youtube.com/@Flupinochan",
     cta: "Go Youtube",
   },
@@ -310,6 +314,8 @@ const contents = [
           <img
             src={content.image}
             alt={`${content.label}のサムネイル`}
+            width={content.width}
+            height={content.height}
             class="w-full h-auto rounded-xl"
           />
           <p class="text-xs text-slate-400 dark:text-slate-500">

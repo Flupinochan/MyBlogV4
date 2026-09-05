@@ -12,6 +12,9 @@ export default defineConfig({
   vite: {
     // @ts-ignore
     plugins: [tailwindcss()],
+    build: {
+      sourcemap: true,
+    },
     // Connect to the backend go gin server
     server: {
       proxy: {
