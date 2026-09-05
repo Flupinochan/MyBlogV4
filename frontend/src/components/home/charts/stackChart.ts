@@ -1,7 +1,6 @@
 import * as d3 from "d3";
 import type { GitHubCommitCount } from "./github.types";
 import type { MergedLangStats, StyleAxisFn } from "./main";
-import type { Tooltip } from "./tooltip";
 
 // StackChartに関するデータとUIを管理
 export class StackChart {
@@ -23,10 +22,9 @@ export class StackChart {
   constructor(
     svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>,
     private readonly commitData: GitHubCommitCount[],
-    private readonly width: number,
+    width: number,
     private readonly height: number,
     private readonly margin: number,
-    private readonly tooltip: Tooltip,
     styleAxis: StyleAxisFn,
   ) {
     this.maxTotal = commitData[commitData.length - 1]?.total || 0;

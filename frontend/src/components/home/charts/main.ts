@@ -53,7 +53,7 @@ const langColorMap: Record<string, string> = {
 };
 
 // Pie/BarChart用data
-const mergedLangStats: MergedLangStats[] = langCount.map((stat, i) => {
+const mergedLangStats: MergedLangStats[] = langCount.map((stat) => {
   const byteInfo = langBytes.find((b) => b.name === stat.name);
   return {
     langName: stat.name,
@@ -113,7 +113,6 @@ const barChart = new BarChart(
   width,
   height,
   margin,
-  tooltip,
   styleAxis,
 );
 const stackChart = new StackChart(
@@ -122,7 +121,6 @@ const stackChart = new StackChart(
   width,
   height,
   margin,
-  tooltip,
   styleAxis,
 );
 

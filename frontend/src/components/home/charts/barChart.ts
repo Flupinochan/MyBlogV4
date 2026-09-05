@@ -1,6 +1,5 @@
 import * as d3 from "d3";
 import type { MergedLangStats, StyleAxisFn } from "./main";
-import type { Tooltip } from "./tooltip";
 
 export class BarChart {
   readonly xScale: d3.ScaleBand<string>;
@@ -12,10 +11,9 @@ export class BarChart {
     // svgとarrayデータは全てのグラフで共通して参照して利用
     svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>,
     mergedLangStats: MergedLangStats[],
-    private readonly width: number,
+    width: number,
     private readonly height: number,
     private readonly margin: number,
-    private readonly tooltip: Tooltip,
     styleAxis: StyleAxisFn,
   ) {
     this.xScale = d3
