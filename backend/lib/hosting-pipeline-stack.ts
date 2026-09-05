@@ -157,8 +157,23 @@ export class HostingPipelineStack extends cdk.Stack {
           post_build: {
             "on-failure": "ABORT",
             commands: [
-              // upload built assets to hosting bucket
-              `aws s3 sync $CODEBUILD_SRC_DIR/frontend/dist/ s3://${props.hostingBucketName}/ --delete`,
+              // ハッシュ付き成果物は長期不変
+              `aws s3 sync $CODEBUILD_SRC_DIR/frontend/dist/_astro/ s3://${props.hostingBucketName}/_astro/ --delete \
+                --cache-control "public, max-age=31536000, immutable"`,
+              // 残りは既定でブラウザ側毎回再検証、CDN側は長期保持
+              `aws s3 sync $CODEBUILD_SRC_DIR/frontend/dist/ s3://${props.hostingBucketName}/ --delete \
+                --exclude "_astro/*" \
+                --cache-control "public, max-age=0, s-maxage=31536000, must-revalidate"`,
+              // ハッシュなし静的アセットのみ上書きして中期キャッシュ
+              `aws s3 cp $CODEBUILD_SRC_DIR/frontend/dist/ s3://${props.hostingBucketName}/ --recursive \
+                --exclude "*" \
+                --include "*.avif" \
+                --include "*.png" \
+                --include "*.ico" \
+                --include "*.gif" \
+                --include "gltf.glb" \
+                --include "voice/hello.wav" \
+                --cache-control "public, max-age=86400"`,
               // finally invalidate CloudFront
               `aws cloudfront create-invalidation --distribution-id ${props.hostingDistributionId} --paths "/*"`,
             ],
