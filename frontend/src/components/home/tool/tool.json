@@ -1,102 +1,102 @@
 [
   {
-    "createdAt": "2024-01-01T00:00:00Z",
-    "description": "A powerful tool.",
+    "createdAt": "2026-05-01",
+    "description": "Claude Code Plugins",
     "id": "1",
-    "name": "Tool A",
-    "platform": "Web",
-    "skills": ["React"],
-    "status": "Active",
-    "url": "https://guide-image-tool.metalmental.net"
-  },
-  {
-    "createdAt": "2024-02-01T00:00:00Z",
-    "description": "A mobile app.",
-    "id": "2",
-    "name": "Tool B",
-    "platform": "Android",
-    "skills": ["Flutter"],
-    "status": "Inactive",
-    "url": "https://music.metalmental.net"
-  },
-  {
-    "createdAt": "2024-03-01T00:00:00Z",
-    "description": "A desktop application.",
-    "id": "3",
-    "name": "Tool C",
+    "name": "metalmental-claude",
     "platform": "Windows",
-    "skills": ["Electron", "TypeScript"],
+    "skills": ["Claude"],
     "status": "Active",
-    "url": "https://code.metalmental.net"
+    "url": "https://github.com/Flupinochan/metalmental-claude"
   },
   {
-    "createdAt": "2024-04-01T00:00:00Z",
-    "description": "A Chrome extension.",
-    "id": "4",
-    "name": "Tool D",
-    "platform": "Chrome Extension",
-    "skills": ["Chrome Extension"],
+    "createdAt": "2026-06-06",
+    "description": "GIFを再生・編集・出力するGUIツール",
+    "id": "2",
+    "name": "GIF-IDE",
+    "platform": "Windows",
+    "skills": ["Rust"],
     "status": "Active",
-    "url": "https://chrome-extension.metalmental.net"
+    "url": "https://apps.microsoft.com/detail/9p2b8klc2nsl?hl=ja-JP&gl=JP"
   },
   {
-    "createdAt": "2024-05-01T00:00:00Z",
-    "description": "A VSCode extension.",
-    "id": "5",
-    "name": "Tool E",
-    "platform": "VSCode Extension",
-    "skills": ["VSCode Extension"],
-    "status": "Inactive",
-    "url": "https://vscode-extension.metalmental.net"
-  },
-  {
-    "createdAt": "2024-06-01T00:00:00Z",
-    "description": "A new tool.",
-    "id": "6",
-    "name": "Tool F",
+    "createdAt": "2026-03-06",
+    "description": "ストリーミング音楽再生アプリ",
+    "id": "3",
+    "name": "StreamingMusic",
     "platform": "Web",
     "skills": ["Vue"],
     "status": "Active",
-    "url": "https://new-tool.metalmental.net"
+    "url": "https://music.metalmental.net/"
   },
   {
-    "createdAt": "2024-07-01T00:00:00Z",
-    "description": "An innovative tool.",
-    "id": "7",
-    "name": "Tool G",
-    "platform": "Android",
-    "skills": ["Flutter", "Python"],
+    "createdAt": "2026-02-21",
+    "description": "エビデンス作成用の画像編集ツール",
+    "id": "4",
+    "name": "GuideImageTool",
+    "platform": "Web",
+    "skills": ["Vue"],
+    "status": "Active",
+    "url": "https://guide-image-tool.metalmental.net/"
+  },
+  {
+    "createdAt": "2025-11-22",
+    "description": "ファイル統計ツール",
+    "id": "5",
+    "name": "obsidian-dashboard",
+    "platform": "Web",
+    "skills": ["TypeScript"],
     "status": "Inactive",
-    "url": "https://innovative-tool.metalmental.net"
+    "url": "https://github.com/Flupinochan/obsidian-dashboard"
   },
   {
-    "createdAt": "2024-08-01T00:00:00Z",
-    "description": "A cutting-edge tool.",
+    "createdAt": "2025-09-05",
+    "description": "ファイル保存時にコードレビューするツール",
+    "id": "6",
+    "name": "Review On Save",
+    "platform": "VSCode Extension",
+    "skills": ["VSCode Extension"],
+    "status": "Inactive",
+    "url": "https://marketplace.visualstudio.com/items?itemName=metalmental.review-on-save"
+  },
+  {
+    "createdAt": "2025-05-27",
+    "description": "ローテーション管理アプリ",
+    "id": "7",
+    "name": "PopCal",
+    "platform": "Android",
+    "skills": ["Flutter"],
+    "status": "Inactive",
+    "url": "https://flupinochan.github.io/popcal-document/"
+  },
+  {
+    "createdAt": "2025-05-28",
+    "description": "選択したテキストや画像を翻訳するツール",
     "id": "8",
-    "name": "Tool H",
+    "name": "SelectionTranslator",
+    "platform": "Chrome Extension",
+    "skills": ["React", "Chrome Extension"],
+    "status": "Active",
+    "url": "https://chromewebstore.google.com/detail/selectiontranslator/ckgmmdgflpnffbnkfoamlgfhmafidfmg?authuser=0&hl=ja"
+  },
+  {
+    "createdAt": "2025-03-16",
+    "description": "Googleアカウントで同期されるメモアプリ",
+    "id": "9",
+    "name": "SidePanelSyncMemo",
+    "platform": "Chrome Extension",
+    "skills": ["React", "Chrome Extension"],
+    "status": "Active",
+    "url": "https://chromewebstore.google.com/detail/sidepanelsyncmemo/adbfnbnnohodpfgdhcanndcbmhknlpoc?authuser=0&hl=ja"
+  },
+  {
+    "createdAt": "2025-03-22",
+    "description": "リサイズと枠線を一括適用できる画像編集ツール",
+    "id": "10",
+    "name": "FrameResizer",
     "platform": "Windows",
     "skills": ["C#"],
     "status": "Active",
-    "url": "https://cutting-edge-tool.metalmental.net"
-  },
-  {
-    "createdAt": "2024-09-01T00:00:00Z",
-    "description": "A versatile tool.",
-    "id": "9",
-    "name": "Tool I",
-    "platform": "Chrome Extension",
-    "skills": ["Chrome Extension"],
-    "status": "Inactive",
-    "url": "https://versatile-tool.metalmental.net"
-  },
-  {
-    "createdAt": "2024-10-01T00:00:00Z",
-    "description": "A user-friendly tool.",
-    "id": "10",
-    "name": "Tool J",
-    "platform": "VSCode Extension",
-    "skills": ["VSCode Extension"],
-    "status": "Active",
-    "url": "https://user-friendly-tool.metalmental.net"
+    "url": "https://apps.microsoft.com/detail/9nw60q3d6fmh?hl=ja-JP&gl=JP"
   }
 ]

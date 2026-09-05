@@ -33,6 +33,8 @@ import { MdOpenInNew } from "react-icons/md";
 import { VscVscode } from "react-icons/vsc";
 import toolRowJson from "./tool.json";
 import { ToggleButton } from "./ToggleButton";
+import { FaRust } from "react-icons/fa";
+import { BsClaude } from "react-icons/bs";
 
 type Status = "Active" | "Inactive";
 const PLATFORMS = [
@@ -54,7 +56,9 @@ type Skill =
   | "Electron"
   | "C#"
   | "Chrome Extension"
-  | "VSCode Extension";
+  | "VSCode Extension"
+  | "Rust"
+  | "Claude";
 
 const stringFilterOperators = [
   "includesString",
@@ -104,6 +108,8 @@ const SKILL_SVG_MAP: Record<Skill, React.ReactNode> = {
     <IoExtensionPuzzleOutline className="size-6 text-emerald-500" />
   ),
   "VSCode Extension": <VscVscode className="size-6 text-sky-500" />,
+  Rust: <FaRust className="size-6 text-orange-600" />,
+  Claude: <BsClaude className="size-6 text-orange-500" />,
 } as const;
 
 const toolData = toolRowJson as Tool[];
@@ -798,7 +804,8 @@ export default function ToolTable() {
           >
             {virtualizer.getVirtualItems().map((virtualRow) => {
               const row = rows[virtualRow.index];
-              if (row === undefined) throw new Error(`Row not found at index ${virtualRow.index}`);
+              if (row === undefined)
+                throw new Error(`Row not found at index ${virtualRow.index}`);
               return (
                 <div
                   key={virtualRow.key}
