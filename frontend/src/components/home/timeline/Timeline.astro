@@ -4,39 +4,40 @@ import SectionHeading from "../../shared/SectionHeading.astro";
 const items = [
   {
     year: 2019,
-    title: "Title A",
-    desc: "Description placeholder.",
+    title: "サーバ・ネットワークエンジニア",
+    desc: "DNS、DHCP、Radius等のサーバやHP製スイッチ、Aruba、SonicWallを扱う",
     color: "var(--color-cyan-500)",
   },
   {
     year: 2021,
-    title: "Title B",
-    desc: "Description placeholder.",
+    title: "仮想化(VMware)エンジニア",
+    desc: "ESXi、VCSA、Horizon等を扱う。物理/仮想サーバ、ストレージのバックアップも担当",
     color: "var(--color-emerald-500)",
   },
   {
     year: 2022,
-    title: "Title C",
-    desc: "Description placeholder.",
+    title: "AWSエンジニア",
+    desc: "500以上のAWSアカウントをControlTowerで管理し、CloudHub移行を行う",
     color: "var(--color-amber-500)",
   },
   {
     year: 2024,
-    title: "Title C",
-    desc: "Description placeholder.",
+    title: "アプリケーションエンジニア",
+    desc: "Java、C#でファイル検査アプリを開発",
     color: "var(--color-pink-500)",
   },
   {
     year: 2026,
-    title: "Title D",
-    desc: "Description placeholder.",
+    title: "フルスタック/SREエンジニア",
+    desc: "Claude Codeを利用して車関連の集客アプリをAI駆動で開発中",
     color: "var(--color-violet-500)",
   },
 ];
 
 const firstItem = items[0];
 const lastItem = items.at(-1);
-if (!firstItem || !lastItem) throw new Error("Timeline items must not be empty");
+if (!firstItem || !lastItem)
+  throw new Error("Timeline items must not be empty");
 ---
 
 <SectionHeading class="mb-16" data-timeline-title
@@ -176,7 +177,8 @@ if (!firstItem || !lastItem) throw new Error("Timeline items must not be empty")
     while (gradient.firstChild) gradient.removeChild(gradient.firstChild);
     rowColors.forEach((color, idx) => {
       const rowBottomY = rowBottomYs[idx];
-      if (rowBottomY === undefined) throw new Error(`rowBottomYs[${idx}] is undefined`);
+      if (rowBottomY === undefined)
+        throw new Error(`rowBottomYs[${idx}] is undefined`);
       const stop = document.createElementNS(
         "http://www.w3.org/2000/svg",
         "stop",
@@ -195,7 +197,8 @@ if (!firstItem || !lastItem) throw new Error("Timeline items must not be empty")
     d += ` l -${wrapCenterX - strokeWidthHalf} 0`;
     for (let i = 0; i < rowBottomYs.length; i++) {
       const rowBottomY = rowBottomYs[i];
-      if (rowBottomY === undefined) throw new Error(`rowBottomYs[${i}] is undefined`);
+      if (rowBottomY === undefined)
+        throw new Error(`rowBottomYs[${i}] is undefined`);
       const isEven = i % 2 === 0;
       const entryX = isEven ? strokeWidthHalf : wrapWidth - strokeWidthHalf;
       const exitX = isEven ? wrapWidth - strokeWidthHalf : strokeWidthHalf;
