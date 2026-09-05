@@ -91,6 +91,7 @@
     html::-webkit-scrollbar,
     .custom-scrollbar::-webkit-scrollbar {
       width: 6px;
+      height: 6px;
     }
     html::-webkit-scrollbar-button,
     .custom-scrollbar::-webkit-scrollbar-button {

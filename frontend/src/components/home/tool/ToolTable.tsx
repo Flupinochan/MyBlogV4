@@ -15,12 +15,13 @@ import {
 } from "@tanstack/react-table";
 import type {
   ColumnFiltersState,
+  ColumnSizingState,
   FilterFn,
   OnChangeFn,
   SortingState,
   VisibilityState,
 } from "@tanstack/react-table";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { TbBrandTypescript } from "react-icons/tb";
 import { AiOutlinePython } from "react-icons/ai";
@@ -313,6 +314,9 @@ export default function ToolTable() {
   const [filterColumnsOpen, setFilterColumnsOpen] = useState(false);
   const [rowUpdating, setRowUpdating] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const headerScrollRef = useRef<HTMLDivElement>(null);
+  const hasManualResizeRef = useRef(false);
+  const [scrollbarWidth, setScrollbarWidth] = useState(0);
   const [sorting, setSorting] = useState<SortingState>([
     { id: "status", desc: false },
   ]);
@@ -469,6 +473,8 @@ export default function ToolTable() {
       columnVisibility,
       columnFilters,
     },
+    columnResizeMode: "onChange",
+    defaultColumn: { minSize: 80, maxSize: 800 },
     getCoreRowModel: getCoreRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
@@ -476,6 +482,41 @@ export default function ToolTable() {
     onColumnVisibilityChange: handleVisibilityChange,
     onColumnFiltersChange: handleFilterChange,
   });
+
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+
+    const syncColumnSizing = () => {
+      setScrollbarWidth(container.offsetWidth - container.clientWidth);
+
+      if (hasManualResizeRef.current) return;
+
+      const columns = table.getVisibleLeafColumns();
+      if (columns.length === 0) return;
+
+      const equalWidth = container.clientWidth / columns.length;
+      const nextSizing: ColumnSizingState = {};
+      for (const column of columns) {
+        nextSizing[column.id] = equalWidth;
+      }
+      table.setColumnSizing(nextSizing);
+    };
+
+    syncColumnSizing();
+    const observer = new ResizeObserver(syncColumnSizing);
+    observer.observe(container);
+    return () => observer.disconnect();
+  }, [table, columnVisibility]);
+
+  const columnSizeVars = useMemo(() => {
+    const vars: Record<string, string> = {};
+    for (const header of table.getFlatHeaders()) {
+      vars[`--header-${header.id}-size`] = `${header.getSize()}px`;
+      vars[`--col-${header.column.id}-size`] = `${header.column.getSize()}px`;
+    }
+    return vars;
+  }, [table.getState().columnSizingInfo, table.getState().columnSizing, columnVisibility]);
 
   // Tanstack Virtual Table
   const { rows } = table.getRowModel();
@@ -772,54 +813,78 @@ export default function ToolTable() {
       {/* table */}
       <div
         className="tool-table overflow-hidden rounded-xl shadow-sm border border-slate-200 dark:border-slate-700"
+        style={columnSizeVars}
         role="table"
         aria-label="作成したツール一覧"
       >
         {/* header */}
         <div
+          ref={headerScrollRef}
           // anchor
-          style={{ anchorName: "--header-area" }}
-          className="pr-2 flex w-full border-b border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/60"
+          style={{ anchorName: "--header-area", paddingRight: scrollbarWidth }}
+          className="overflow-hidden select-none border-b border-slate-200 dark:border-slate-700 bg-slate-50/80 dark:bg-slate-800/60"
           role="rowgroup"
         >
-          {table.getHeaderGroups().map((hg) => (
-            <div key={hg.id} className="flex w-full" role="row">
-              {hg.headers.length > 0 ? (
-                hg.headers.map((header) => (
-                  <div
-                    key={header.id}
-                    className="h-12 flex items-center flex-1 px-3 text-xs font-semibold tracking-wider text-slate-500"
-                    role="columnheader"
-                  >
-                    {header.column.getCanSort() ? (
-                      <button
-                        onClick={header.column.getToggleSortingHandler()}
-                        className="uppercase flex items-center gap-1 mr-1 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
-                      >
-                        {flexRender(
+          <div
+            style={{ width: `max(100%, ${table.getTotalSize()}px)` }}
+            className="flex"
+          >
+            {table.getHeaderGroups().map((hg) => (
+              <div key={hg.id} className="flex w-full" role="row">
+                {hg.headers.length > 0 ? (
+                  hg.headers.map((header, headerIndex) => (
+                    <div
+                      key={header.id}
+                      style={{
+                        flex: `${headerIndex === hg.headers.length - 1 ? 1 : 0} 0 var(--header-${header.id}-size)`,
+                      }}
+                      className="relative h-12 flex items-center px-3 text-xs font-semibold tracking-wider text-slate-500"
+                      role="columnheader"
+                    >
+                      {header.column.getCanSort() ? (
+                        <button
+                          onClick={header.column.getToggleSortingHandler()}
+                          className="uppercase flex items-center gap-1 mr-1 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
+                        >
+                          {flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                          <SortIcon
+                            isSorted={header.column.getIsSorted()}
+                            invert={header.column.columnDef.invertSorting}
+                          />
+                        </button>
+                      ) : (
+                        flexRender(
                           header.column.columnDef.header,
                           header.getContext(),
-                        )}
-                        <SortIcon
-                          isSorted={header.column.getIsSorted()}
-                          invert={header.column.columnDef.invertSorting}
+                        )
+                      )}
+                      {header.column.getCanResize() && (
+                        <div
+                          onDoubleClick={() => header.column.resetSize()}
+                          onMouseDown={(e) => {
+                            hasManualResizeRef.current = true;
+                            header.getResizeHandler()(e);
+                          }}
+                          onTouchStart={(e) => {
+                            hasManualResizeRef.current = true;
+                            header.getResizeHandler()(e);
+                          }}
+                          className={`tool-table-resizer ${header.column.getIsResizing() ? "is-resizing" : ""}`}
                         />
-                      </button>
-                    ) : (
-                      flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )
-                    )}
-                  </div>
-                ))
-              ) : (
-                <p className="h-12 px-3 flex items-center text-xs font-semibold tracking-wider text-slate-500 uppercase">
-                  No columns selected
-                </p>
-              )}
-            </div>
-          ))}
+                      )}
+                    </div>
+                  ))
+                ) : (
+                  <p className="h-12 px-3 flex items-center text-xs font-semibold tracking-wider text-slate-500 uppercase">
+                    No columns selected
+                  </p>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* body */}
@@ -827,9 +892,15 @@ export default function ToolTable() {
           ref={scrollContainerRef}
           className="overflow-auto h-62.5 custom-scrollbar"
           role="rowgroup"
+          onScroll={(e) => {
+            if (headerScrollRef.current) {
+              headerScrollRef.current.scrollLeft = e.currentTarget.scrollLeft;
+            }
+          }}
         >
           <div
             style={{
+              width: `max(100%, ${table.getTotalSize()}px)`,
               height: `${virtualizer.getTotalSize()}px`,
               position: "relative",
             }}
@@ -841,7 +912,7 @@ export default function ToolTable() {
               return (
                 <div
                   key={virtualRow.key}
-                  className="tool-table-row absolute flex w-full items-center border-b border-slate-200 dark:border-slate-800 
+                  className="tool-table-row absolute flex w-full items-center border-b border-slate-200 dark:border-slate-800
                 hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors"
                   style={{
                     height: `${virtualRow.size}px`,
@@ -854,10 +925,13 @@ export default function ToolTable() {
                   }}
                   role="row"
                 >
-                  {row.getVisibleCells().map((cell) => (
+                  {row.getVisibleCells().map((cell, cellIndex, cells) => (
                     <div
                       key={cell.id}
-                      className="flex flex-1 self-stretch items-center truncate px-3 text-sm text-slate-700 dark:text-slate-300"
+                      style={{
+                        flex: `${cellIndex === cells.length - 1 ? 1 : 0} 0 var(--col-${cell.column.id}-size)`,
+                      }}
+                      className="flex self-stretch items-center truncate px-3 text-sm text-slate-700 dark:text-slate-300"
                       role="cell"
                     >
                       {flexRender(

@@ -1,3 +1,20 @@
+@reference "../../../styles/global.css";
+@variant dark (&:where(.dark, .dark *));
+
+.tool-table-resizer {
+  @apply absolute right-0 top-0 h-full w-2 translate-x-1
+    cursor-col-resize touch-none;
+}
+.tool-table-resizer::after {
+  content: "";
+  @apply absolute left-1/2 top-1/2 h-8 w-px -translate-x-1/2 -translate-y-1/2
+    bg-slate-300 dark:bg-slate-600 transition-colors;
+}
+.tool-table-resizer:hover::after,
+.tool-table-resizer.is-resizing::after {
+  @apply bg-violet-500;
+}
+
 /* 移動 */
 ::view-transition-group(.row-item) {
   animation-duration: 1s;
