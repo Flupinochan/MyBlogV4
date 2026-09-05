@@ -27,17 +27,8 @@
 */
 @layer theme, base, components, utilities;
 
-/* フォント定義 */
-@font-face {
-  font-family: "GeistPixelSquare";
-  src: url("/geist-font-1.8.0/fonts/GeistPixel/webfonts/GeistPixel-Square.woff2")
-    format("woff2");
-  font-display: swap;
-}
-
 /* Tailwind CSS記法 (@layer theme相当) */
 @theme {
-  --font-family-geist: "GeistPixelSquare", monospace;
   --scrollbar-track-bg: var(--color-transparent);
 
   --color-violet-350: color-mix(
