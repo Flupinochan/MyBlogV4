@@ -56,12 +56,14 @@ function ContactContent() {
       </div>
 
       <div className="contact-gsap flex items-center justify-end gap-4">
-        {isSent && (
-          <p className="text-sm text-violet-500">送信しました</p>
-        )}
-        <button type="submit" disabled={isPending} className="outline-button gap-2">
+        {isSent && <p className="text-sm text-violet-500">送信しました</p>}
+        <button
+          type="submit"
+          disabled={isPending}
+          className="outline-button gap-2"
+        >
           <LuSend size={14} />
-          {isPending ? "送信中..." : "送信する"}
+          {isPending ? "送信中..." : "送信"}
         </button>
       </div>
     </form>

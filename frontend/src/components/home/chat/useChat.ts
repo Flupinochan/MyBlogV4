@@ -57,8 +57,14 @@ export function useChat() {
   const messages = currentHistory?.messages ?? [];
   const [inputMessage, setInputMessage] = useState("");
   const [withVoice, setWithVoice] = useState(false);
-  const [isNavOpen, setIsNavOpen] = useState(true);
+  const [isNavOpen, setIsNavOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (window.matchMedia("(min-width: 1024px)").matches) {
+      setIsNavOpen(true);
+    }
+  }, []);
 
   useEffect(() => {
     const load = async () => {

@@ -5,6 +5,7 @@ import type { OrbitControls as OrbitControlsImpl } from "three-stdlib";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { shapeKeyNames, type ShapeKeyName } from "./shapeKey.js";
 import { useShapeKeyEffect, type FaceMesh } from "./useShapeKeyEffect.js";
+import { hideLoadingOverlay } from "../../layouts/loading/loadingOverlay";
 
 const SHADOW_CAMERA_BOUNDS = 2.5;
 
@@ -58,18 +59,8 @@ function Model() {
 
   useEffect(() => {
     // scene が存在する > モデルロード完了 > ローディングオーバーレイを非表示
-    if (scene) {
-      const loading = document.getElementById("loading-overlay");
-      if (loading) {
-        loading.classList.remove("opacity-100");
-        loading.classList.add("opacity-0");
-        // フェードアウト完了後にDOMからも消すようnoneにしておく
-        setTimeout(() => {
-          loading.style.display = "none";
-          window.dispatchEvent(new Event("loading-overlay-hidden"));
-        }, 500);
-      }
-    }
+    if (!scene) return;
+    hideLoadingOverlay();
   }, [scene]);
 
   return (

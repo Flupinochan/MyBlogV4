@@ -1,19 +1,33 @@
 ---
+
 ---
 
-<div class="flex flex-col gap-14 text-center min-h-80 pt-10">
-  <h1 class="flex flex-col items-center gap-4 text-7xl font-bold">
-    <div class="w-fit whitespace-nowrap">
-      <span data-home-title-name></span><span data-home-title-prefix></span>
+<div
+  class="flex flex-col gap-8 text-center pt-4 lg:min-h-80 lg:gap-14 lg:pt-10"
+>
+  <h1
+    class="flex flex-col items-center gap-2 text-4xl font-bold sm:text-5xl lg:gap-4 lg:text-7xl"
+  >
+    <div class="w-fit lg:whitespace-nowrap">
+      <span data-home-title-name></span><span
+        data-home-title-prefix
+        class="whitespace-pre-wrap lg:whitespace-pre"></span>
     </div>
-    <div class="w-fit whitespace-nowrap">
-      <span data-home-title-cycle></span><span data-home-title-suffix></span>
+    <div class="w-fit lg:whitespace-nowrap">
+      <span data-home-title-cycle class="whitespace-pre-wrap lg:whitespace-pre"
+      ></span><span
+        data-home-title-suffix
+        class="whitespace-pre-wrap lg:whitespace-pre"></span>
     </div>
   </h1>
-  <p class="text-xl font-bold">
-    <span data-home-title-description-lead></span><span
-      data-home-title-description-middle></span><span
-      data-home-title-description-tail></span>
+  <p class="text-base font-bold lg:text-xl">
+    <span
+      data-home-title-description-lead
+      class="whitespace-pre-wrap lg:whitespace-pre"></span><span
+      data-home-title-description-middle
+      class="whitespace-pre-wrap lg:whitespace-pre"></span><span
+      data-home-title-description-tail
+      class="whitespace-pre-wrap lg:whitespace-pre"></span>
   </p>
 </div>
 
@@ -100,7 +114,8 @@
       // 以降2つ目のcycle type writerループ用
       const playNextWord = (): void => {
         const word = cycleWords[currentWordIndex];
-        if (!word) throw new Error(`cycleWords[${currentWordIndex}] is undefined`);
+        if (!word)
+          throw new Error(`cycleWords[${currentWordIndex}] is undefined`);
         currentWordIndex = (currentWordIndex + 1) % cycleWords.length;
         const deleteWordText = currentWordText;
         const deleteState = { progress: 0 };
@@ -313,14 +328,5 @@
     50% {
       opacity: 0;
     }
-  }
-
-  [data-home-title-prefix],
-  [data-home-title-cycle],
-  [data-home-title-suffix],
-  [data-home-title-description-lead],
-  [data-home-title-description-middle],
-  [data-home-title-description-tail] {
-    white-space: pre;
   }
 </style>

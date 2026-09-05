@@ -114,6 +114,15 @@ const SKILL_SVG_MAP: Record<Skill, React.ReactNode> = {
 
 const toolData = toolRowJson as Tool[];
 
+const DESKTOP_MEDIA_QUERY = "(min-width: 64rem)";
+const DESKTOP_COLUMN_VISIBILITY: VisibilityState = { createdAt: false };
+const COMPACT_COLUMN_VISIBILITY: VisibilityState = {
+  description: false,
+  platform: false,
+  status: false,
+  createdAt: false,
+};
+
 // string用カスタムフィルタ関数 (falseの場合に対象の行が除外される)
 const stringFilter: FilterFn<Tool> = (
   row,
@@ -307,9 +316,10 @@ export default function ToolTable() {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "status", desc: false },
   ]);
-  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
-    createdAt: false,
-  });
+  const manualVisibilityRef = useRef(false);
+  const [columnVisibility, setColumnVisibility] = useState<VisibilityState>(
+    DESKTOP_COLUMN_VISIBILITY,
+  );
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [selectedColumnId, setSelectedColumnId] = useState<ToolColumn>("name");
   const [selectedOperator, setSelectedOperator] =
@@ -434,6 +444,22 @@ export default function ToolTable() {
     }
   }, [filterValue, selectedColumnId, selectedOperator]);
 
+  useEffect(() => {
+    const mediaQuery = window.matchMedia(DESKTOP_MEDIA_QUERY);
+    const syncColumnVisibility = () => {
+      if (manualVisibilityRef.current) return;
+      setColumnVisibility(
+        mediaQuery.matches
+          ? DESKTOP_COLUMN_VISIBILITY
+          : COMPACT_COLUMN_VISIBILITY,
+      );
+    };
+
+    syncColumnVisibility();
+    mediaQuery.addEventListener("change", syncColumnVisibility);
+    return () => mediaQuery.removeEventListener("change", syncColumnVisibility);
+  }, []);
+
   // Tanstack Table Hook
   const table = useReactTable({
     columns: defaultColumns,
@@ -479,14 +505,20 @@ export default function ToolTable() {
           <ToggleButton
             label="All"
             isActive={table.getAllColumns().every((col) => col.getIsVisible())}
-            onClick={() => table.toggleAllColumnsVisible()}
+            onClick={() => {
+              manualVisibilityRef.current = true;
+              table.toggleAllColumnsVisible();
+            }}
           />
           {table.getAllLeafColumns().map((column) => (
             <ToggleButton
               key={column.id}
               label={column.id}
               isActive={column.getIsVisible()}
-              onClick={() => column.toggleVisibility(!column.getIsVisible())}
+              onClick={() => {
+                manualVisibilityRef.current = true;
+                column.toggleVisibility(!column.getIsVisible());
+              }}
             />
           ))}
         </div>
@@ -497,7 +529,7 @@ export default function ToolTable() {
         <div
           id="filter-columns-menu"
           style={{ positionAnchor: "--header-area" }}
-          className="flex flex-row gap-8 p-2
+          className="flex flex-col gap-2 lg:flex-row lg:gap-8 p-2
                    z-2 fixed inset-auto min-w-50
                    bg-slate-400/35 backdrop-blur-md
                    text-slate-700 dark:text-slate-100

@@ -40,11 +40,11 @@ if (!firstItem || !lastItem)
   throw new Error("Timeline items must not be empty");
 ---
 
-<SectionHeading id="timeline" class="mb-16" data-timeline-title
+<SectionHeading id="timeline" data-timeline-title
   >See Me in Timeline</SectionHeading
 >
 
-<div id="tl-wrap" class="relative mx-16">
+<div id="tl-wrap" class="relative lg:mx-16">
   <div
     id="tl-start"
     class="text-center font-semibold pb-3"
@@ -57,13 +57,16 @@ if (!firstItem || !lastItem)
     {
       items.map((item, i) => (
         <div
-          class={`tl-row flex justify-between items-center p-4${i % 2 !== 0 ? " flex-row-reverse" : ""}`}
+          class={`tl-row flex justify-between items-center gap-3 p-4${i % 2 !== 0 ? " flex-row-reverse" : ""}`}
           data-color={item.color}
         >
-          <h3 class="text-5xl font-bold" style={`color: ${item.color}`}>
+          <h3
+            class="text-3xl lg:text-5xl font-bold"
+            style={`color: ${item.color}`}
+          >
             {item.year}
           </h3>
-          <div class={i % 2 !== 0 ? "" : "text-right"}>
+          <div class={`flex flex-col${i % 2 !== 0 ? "" : " items-end"}`}>
             <p class="font-bold text-slate-100">{item.title}</p>
             <p class="text-sm text-slate-400">{item.desc}</p>
           </div>

@@ -18,7 +18,7 @@ type PropType = {
 };
 
 const baseButtonStyle =
-  "cursor-pointer text-violet-500 transition-all duration-150 hover:scale-110 enable:active:scale-95 enable:active:text-violet-700 disabled:cursor-default disabled:opacity-50 disabled:scale-100";
+  "hidden lg:block cursor-pointer text-violet-500 transition-all duration-150 hover:scale-110 enable:active:scale-95 enable:active:text-violet-700 disabled:cursor-default disabled:opacity-50 disabled:scale-100";
 
 const EmblaCarousel = (props: PropType) => {
   const { slides, isFetching, options, onReachEnd } = props;

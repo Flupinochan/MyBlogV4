@@ -6,8 +6,8 @@ import SunMoon from "../components/icons/SunMoon.astro";
 ---
 
 <header
-  class="relative grid grid-rows-1 grid-cols-[1fr_auto_1fr] items-center justify-items-center h-16
-         overflow-hidden bg-slate-800/10 backdrop-blur-sm"
+  class="relative flex items-center justify-center h-16 overflow-hidden bg-slate-800/10 backdrop-blur-sm
+         lg:grid lg:grid-rows-1 lg:grid-cols-[1fr_auto_1fr] lg:justify-items-center"
 >
   <div></div>
   <a
@@ -23,7 +23,10 @@ import SunMoon from "../components/icons/SunMoon.astro";
       class="h-full w-auto [image-rendering:pixelated]"
     />
     <span
-      class="text-6xl font-extrabold text-transparent [-webkit-text-stroke:1px_var(--color-slate-800)] dark:[-webkit-text-stroke-color:var(--color-slate-200)]"
+      class="text-4xl text-violet-500 lg:text-6xl lg:font-extrabold lg:text-transparent text-center
+             mb-2 lg:mb-0
+             lg:[-webkit-text-stroke:1px_var(--color-slate-800)]
+             lg:dark:[-webkit-text-stroke-color:var(--color-slate-200)]"
       style="text-box: trim-both cap alphabetic"
     >
       METAL MENTAL
@@ -36,7 +39,7 @@ import SunMoon from "../components/icons/SunMoon.astro";
       class="h-full w-auto [image-rendering:pixelated]"
     />
   </a>
-  <div class="flex relative z-10 gap-4 items-center">
+  <div class="hidden lg:flex relative z-10 gap-4 items-center">
     <button
       aria-label="ダークモードに切り替える"
       class="cursor-pointer toggle-dark-mode group transform active:scale-95 transition-transform duration-150"
@@ -111,59 +114,71 @@ import SunMoon from "../components/icons/SunMoon.astro";
 
   // ダークモード切替
   let isAnimating = false;
-  const toggleButton = header.querySelector("button.toggle-dark-mode");
-  toggleButton?.addEventListener("click", async () => {
-    if (isAnimating) return;
-    isAnimating = true;
-    const enable =
-      "startViewTransition" in document &&
-      window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
+  const toggleButtons = document.querySelectorAll<HTMLButtonElement>(
+    "button.toggle-dark-mode",
+  );
+  toggleButtons.forEach((toggleButton) => {
+    toggleButton.addEventListener("click", async () => {
+      if (isAnimating) return;
+      isAnimating = true;
+      const enable =
+        "startViewTransition" in document &&
+        window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
 
-    const isDark = document.documentElement.classList.contains("dark");
-    const nextTheme = isDark ? "light" : "dark";
-    if (!enable) {
-      localStorage.setItem("theme", nextTheme);
-      document.documentElement.classList.toggle("dark");
-      isAnimating = false;
-      return;
-    }
-
-    const root = document.documentElement;
-
-    const last = localStorage.getItem("theme-switch");
-    if (last && !isNaN(+last)) {
-      const diff = Date.now() - +last;
-
-      if (diff > 3 * 60 * 1000) {
-        root.classList.remove("-animated");
-      } else {
-        root.classList.add("-animated");
-      }
-    }
-
-    localStorage.setItem("theme-switch", Date.now().toString());
-    root.classList.add("is-theme-switching");
-
-    try {
-      await document.startViewTransition(() => {
+      const isDark = document.documentElement.classList.contains("dark");
+      const nextTheme = isDark ? "light" : "dark";
+      if (!enable) {
         localStorage.setItem("theme", nextTheme);
-        root.classList.toggle("dark");
-      }).finished;
-    } finally {
-      // view-transition-nameは実行時だけ付与して、完了後に削除すること!!
-      root.classList.remove("is-theme-switching");
+        document.documentElement.classList.toggle("dark");
+        isAnimating = false;
+        return;
+      }
 
-      const isNowDark = root.classList.contains("dark");
-      const targetShape = isNowDark ? "#target-sun" : "#target-moon";
-      const activePath = document.getElementById("active-path");
-      gsap.to(activePath, {
-        morphSVG: targetShape,
-        duration: 0.8,
-        ease: "expo.inOut",
-        overwrite: true,
-      });
-      isAnimating = false;
-    }
+      const root = document.documentElement;
+
+      const last = localStorage.getItem("theme-switch");
+      if (last && !isNaN(+last)) {
+        const diff = Date.now() - +last;
+
+        if (diff > 3 * 60 * 1000) {
+          root.classList.remove("-animated");
+        } else {
+          root.classList.add("-animated");
+        }
+      }
+
+      localStorage.setItem("theme-switch", Date.now().toString());
+      root.classList.add("is-theme-switching");
+
+      try {
+        await document.startViewTransition(() => {
+          localStorage.setItem("theme", nextTheme);
+          root.classList.toggle("dark");
+        }).finished;
+      } finally {
+        // view-transition-nameは実行時だけ付与して、完了後に削除すること!!
+        root.classList.remove("is-theme-switching");
+
+        const isNowDark = root.classList.contains("dark");
+        document
+          .querySelectorAll<SVGSVGElement>("svg[data-sunmoon-icon]")
+          .forEach((icon) => {
+            const activePath =
+              icon.querySelector<SVGPathElement>("[data-active-path]");
+            const targetPath = icon.querySelector<SVGPathElement>(
+              isNowDark ? "[data-target-moon]" : "[data-target-sun]",
+            );
+            if (!activePath || !targetPath) return;
+            gsap.to(activePath, {
+              morphSVG: targetPath,
+              duration: 0.8,
+              ease: "expo.inOut",
+              overwrite: true,
+            });
+          });
+        isAnimating = false;
+      }
+    });
   });
 </script>
 

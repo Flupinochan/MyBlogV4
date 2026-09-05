@@ -17,6 +17,7 @@
 - `Base.astro`, `Header.astro`, `Footer.astro` — page shell
 - `BackgroundParticles.astro` — tsparticles background effect
 - `error-dialog/` — common error dialog (ErrorDialog.astro + errorDialog.ts)
+- `loading/` — full-screen loading overlay (Loading.astro + loadingOverlay.ts)
 
 ### Shared & Utilities (`src/`)
 

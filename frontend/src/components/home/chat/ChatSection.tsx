@@ -87,7 +87,7 @@ function ChatContent() {
           <button
             type="submit"
             disabled={chatDetectMutation.isPending || !inputMessage.trim()}
-            className="violet-button gap-2 rounded-xl px-5 py-2"
+            className="outline-button gap-2"
           >
             <LuSend size={14} />
             送信
