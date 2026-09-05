@@ -4,7 +4,7 @@
 
 Monorepo with two workspaces:
 
-- `frontend/` — Astro 6 + React 19
+- `frontend/` — Astro 7 + React 19
 - `backend/` — AWS CDK + Lambda (Go Huma, Python FastAPI)
 
 ## Build / Deploy Commands

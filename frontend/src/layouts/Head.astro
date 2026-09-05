@@ -1,4 +1,6 @@
 ---
+import { pwaInfo } from "virtual:pwa-info";
+
 import { profile, sameAs } from "../data/profile";
 
 interface Props {
@@ -54,6 +56,7 @@ const structuredData = [organization, website, ...jsonLd];
 <link rel="icon" href="/favicon.ico" />
 <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 <link rel="canonical" href={canonicalUrl} />
+{pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
 
 <meta name="description" content={description} />
 {noindex && <meta name="robots" content="noindex, nofollow" />}

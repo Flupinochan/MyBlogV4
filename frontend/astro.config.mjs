@@ -3,12 +3,76 @@ import { defineConfig, envField } from "astro/config";
 
 import react from "@astrojs/react";
 import tailwindcss from "@tailwindcss/vite";
+import AstroPWA from "@vite-pwa/astro";
 
 // https://astro.build/config
 export default defineConfig({
   site: "https://www.metalmental.net",
   compressHTML: true,
-  integrations: [react()],
+  integrations: [
+    react(),
+    AstroPWA({
+      registerType: "autoUpdate",
+      injectRegister: null,
+      manifest: {
+        name: "MetalMental Portfolio",
+        short_name: "MetalMental",
+        description:
+          "Full-Stack & SRE EngineerのMetalMentalによるポートフォリオサイトです。経歴、スキル、資格、ブログ記事を掲載しています。",
+        start_url: "/",
+        scope: "/",
+        display: "standalone",
+        orientation: "any",
+        lang: "ja",
+        dir: "ltr",
+        theme_color: "#8E51FF",
+        background_color: "#0F172A",
+        icons: [
+          { src: "/image-512x512.png", sizes: "512x512", type: "image/png" },
+          { src: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+          { src: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
+        ],
+      },
+      workbox: {
+        globPatterns: ["**/*.{js,css,html}"],
+        globIgnores: ["**/*.map"],
+        navigateFallback: "/index.html",
+        navigateFallbackDenylist: [/^\/opensearch-api\//, /^\/voicevox-api\//, /^\/voice\//],
+        cleanupOutdatedCaches: true,
+        runtimeCaching: [
+          {
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname === "/gltf.glb",
+            handler: "CacheFirst",
+            options: {
+              cacheName: "avatar-model",
+              expiration: { maxEntries: 2, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: ({ url, sameOrigin }) =>
+              sameOrigin && /\.(?:png|gif|avif|webp|jpe?g|ico|svg)$/.test(url.pathname),
+            handler: "CacheFirst",
+            options: {
+              cacheName: "static-images",
+              expiration: { maxEntries: 40, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+            },
+          },
+          {
+            urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname === "/voice/hello.wav",
+            handler: "CacheFirst",
+            options: {
+              cacheName: "static-audio",
+              expiration: { maxEntries: 2, maxAgeSeconds: 60 * 60 * 24 * 30 },
+              cacheableResponse: { statuses: [0, 200] },
+              rangeRequests: true,
+            },
+          },
+        ],
+      },
+    }),
+  ],
   vite: {
     // @ts-ignore
     plugins: [tailwindcss()],

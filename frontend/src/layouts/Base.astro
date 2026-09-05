@@ -31,6 +31,16 @@ interface Props {
         localStorage.setItem("theme", "dark");
       }
     </script>
+
+    <script>
+      import { registerSW } from "virtual:pwa-register";
+
+      registerSW({
+        onRegisterError(error) {
+          console.error(error);
+        },
+      });
+    </script>
   </head>
   <body
     class="flex flex-col bg-no-repeat bg-center bg-cover bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200"
