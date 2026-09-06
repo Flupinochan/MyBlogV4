@@ -67,5 +67,14 @@
 
   contactBtn.addEventListener("click", () => {
     contactTarget.scrollIntoView({ behavior: "smooth", block: "start" });
+
+    // 非同期コンテンツの表示によって位置が変動するため
+    // 3秒間ResizeObserverでレイアウト変更を監視し
+    // 変更されるたびにscrollIntoViewでスクロール先を追従させる
+    const resizeObserver = new ResizeObserver(() => {
+      contactTarget.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    resizeObserver.observe(document.body);
+    setTimeout(() => resizeObserver.disconnect(), 3000);
   });
 </script>
