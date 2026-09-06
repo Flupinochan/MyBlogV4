@@ -22,7 +22,7 @@ const commitStats = await getGitHubCommitStats();
 ---
 
 <SectionHeading id="chart" data-chart-title
-  >See Me in Statistics</SectionHeading
+  >Chart</SectionHeading
 >
 
 <div
@@ -149,6 +149,7 @@ const commitStats = await getGitHubCommitStats();
 </style>
 
 <script>
+  import { ScrollTrigger } from "../../../lib/gsap";
   import { initSectionHeadingAnimation } from "../../../lib/sectionHeadingAnimation";
 
   const chartTitleEl = document.querySelector("[data-chart-title]");
@@ -157,6 +158,7 @@ const commitStats = await getGitHubCommitStats();
   }
 
   const { initChartAnimation, isAnimating } = await import("./main");
+  ScrollTrigger.refresh();
 
   const tl = initSectionHeadingAnimation(chartTitleEl, {
     onStart: () => isAnimating.set(true),
