@@ -12,6 +12,7 @@ interface HostingStackProps extends cdk.StackProps {
   envName: string;
   hostingBucketName: string;
   domainName: string;
+  alternateDomainName?: string;
   certificateArnParam: string;
   blogSearchApiStack?: { api: apigateway.RestApi };
   blogSearchApiPath?: string;
@@ -69,7 +70,9 @@ export class HostingStack extends cdk.Stack {
     );
 
     this.distribution = new cloudfront.Distribution(this, "distribution", {
-      domainNames: [props.domainName],
+      domainNames: props.alternateDomainName
+        ? [props.domainName, props.alternateDomainName]
+        : [props.domainName],
       certificate: certificate,
       defaultRootObject: "index.html",
       defaultBehavior: {

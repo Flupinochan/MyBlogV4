@@ -35,7 +35,7 @@ export default defineConfig({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html}"],
-        globIgnores: ["**/*.map"],
+        globIgnores: ["**/*.map", "serviceWorker.js"],
         navigateFallback: "/index.html",
         navigateFallbackDenylist: [/^\/opensearch-api\//, /^\/voicevox-api\//, /^\/voice\//],
         cleanupOutdatedCaches: true,

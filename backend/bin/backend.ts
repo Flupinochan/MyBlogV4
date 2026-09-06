@@ -147,6 +147,7 @@ const hostingStack = new HostingStack(app, `${stackBaseName}-HostingStack`, {
   envName,
   hostingBucketName,
   domainName: cfg.hostingDomainName,
+  alternateDomainName: cfg.alternateDomainName,
   certificateArnParam,
   blogSearchApiStack,
   blogSearchApiPath,
