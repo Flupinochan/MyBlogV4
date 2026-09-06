@@ -1,0 +1,7 @@
+.gitignore
+.python-version
+.venv
+*.wav
+README.md
+__pycache__
+*.ts

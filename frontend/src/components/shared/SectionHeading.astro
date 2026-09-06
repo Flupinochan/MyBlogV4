@@ -1,0 +1,17 @@
+---
+interface Props {
+  class?: string;
+  [key: string]: unknown;
+}
+
+const { class: extraClass = "", ...rest } = Astro.props;
+
+const classes = [
+  "text-center text-4xl lg:text-6xl font-bold mt-20 mb-6 lg:mb-16 leading-snug text-violet-500",
+  extraClass,
+]
+  .filter(Boolean)
+  .join(" ");
+---
+
+<h2 class={classes} {...rest}><slot /></h2>

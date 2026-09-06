@@ -1,0 +1,51 @@
+---
+import MainTitle from "./MainTitle.astro";
+import Skills from "./Skills.astro";
+import HeroActions from "./HeroActions.astro";
+---
+
+<!-- Heroセクションは初期画面の中央に配置 -->
+<div
+  class="flex flex-col items-center justify-center gap-8 lg:min-h-[calc(100dvh-200px)] lg:gap-20"
+>
+  <img
+    src="/mobile-nekottochan.avif"
+    alt="MetalMentalのアバターイラスト"
+    width="675"
+    height="1050"
+    fetchpriority="high"
+    decoding="async"
+    class="h-auto w-full max-w-xs lg:hidden"
+    data-hero-mobile-image
+  />
+  <MainTitle />
+  <Skills />
+  <HeroActions />
+</div>
+
+<script>
+  import { hideLoadingOverlay } from "../../../layouts/loading/loadingOverlay";
+
+  const DESKTOP_MEDIA_QUERY = "(min-width: 64rem)";
+
+  const main = async (): Promise<void> => {
+    if (window.matchMedia(DESKTOP_MEDIA_QUERY).matches) return;
+
+    const image = document.querySelector<HTMLImageElement>(
+      "[data-hero-mobile-image]",
+    );
+    if (!image) {
+      hideLoadingOverlay();
+      return;
+    }
+
+    try {
+      await image.decode();
+    } catch (error) {
+      console.error(error);
+    }
+    hideLoadingOverlay();
+  };
+
+  void main();
+</script>

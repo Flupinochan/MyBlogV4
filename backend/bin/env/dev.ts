@@ -1,14 +1,13 @@
 import { EnvConfig } from "./index";
 
 export const config: EnvConfig = {
-  name: "dev",
-  domainName: "dev-blog.metalmental.net",
-  repoName: "MyBlogV4",
-  branchName: "develop",
-  certificateArnParam: "certificate-arn",
-  githubConnectionArnParam: "github-connection-arn",
-  hostingBucketName: "dev-myblogv4-bucket",
-  buildAssetsBucketName: "dev-myblogv4-build-assets",
-  synthesizeVoiceFunctionName: "dev-myblogv4-synthesize-voice",
-  synthesizeVoiceRepositoryName: "dev-myblogv4-synthesize-voice",
+  envName: "dev",
+  hostingDomainName: "dev-blog.metalmental.net",
+  hostingBranchName: "develop",
+  modelId: "apac.amazon.nova-micro-v1:0",
+  modelIdEmbedding: "amazon.titan-embed-text-v2:0",
+  openSearchUrlParam: "zenn-open-search-url",
+  openSearchPortParam: "zenn-open-search-port",
+  openSearchUserParam: "zenn-open-search-user",
+  openSearchPassParam: "zenn-open-search-pass",
 };

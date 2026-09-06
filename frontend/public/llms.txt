@@ -1,0 +1,23 @@
+# MetalMental Portfolio
+
+> Full-Stack & SRE Engineerの川越鉄郎 (MetalMental) によるポートフォリオサイトです。経歴、スキル、資格、ブログ記事を掲載しています。
+
+サーバ・ネットワークエンジニアとしてキャリアを開始し、仮想化基盤、AWSクラウド、アプリケーション開発を経て、現在はフルスタック/SREエンジニアとしてAI駆動開発に取り組んでいます。
+
+## Sections
+
+- [自己紹介・経歴](https://www.metalmental.net/#summary): 自己紹介、直近の業務内容、資格、スキル、趣味
+- [統計](https://www.metalmental.net/#chart): 使用言語・コミット数などの開発統計
+- [作成したツール一覧](https://www.metalmental.net/#tools): 開発したツールの一覧
+- [ブログ](https://www.metalmental.net/#blog): ブログ記事の全文検索・閲覧
+- [経歴タイムライン](https://www.metalmental.net/#timeline): キャリアの変遷
+- [AIチャット](https://www.metalmental.net/#chat): サイト訪問者向けのAIチャット機能
+- [お問い合わせ](https://www.metalmental.net/#contact): 問い合わせフォーム
+
+## Links
+
+- [GitHub](https://github.com/Flupinochan)
+- [Zenn](https://zenn.dev/metalmental)
+- [YouTube](https://www.youtube.com/@Flupinochan)
+- [Credly (資格認証)](https://www.credly.com/users/tetsuro-kawagoe/badges/credly)
+- [旧ポートフォリオサイト](https://metalmental.net/)

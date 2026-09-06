@@ -1,0 +1,28 @@
+---
+import SectionHeading from "../../shared/SectionHeading.astro";
+import ChatSection from "./ChatSection";
+---
+
+<SectionHeading id="chat" data-chat-title
+  >See Me in Chat</SectionHeading
+>
+<ChatSection client:visible />
+
+<script>
+  import { initSectionHeadingAnimation } from "../../../lib/sectionHeadingAnimation";
+
+  const title = document.querySelector("[data-chat-title]");
+  if (!title) throw new Error("Chat title element not found");
+  const tl = initSectionHeadingAnimation(title);
+
+  tl.to(
+    ".timeline-gsap",
+    {
+      autoAlpha: 1,
+      stagger: 0.12,
+      duration: 0.35,
+      ease: "power2.out",
+    },
+    "-=0.1",
+  );
+</script>

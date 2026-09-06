@@ -1,0 +1,295 @@
+---
+import Mail from "../components/icons/Mail.astro";
+import Zenn from "../components/icons/Zenn.astro";
+import Octcat from "../components/icons/Octcat.astro";
+import SunMoon from "../components/icons/SunMoon.astro";
+---
+
+<header
+  class="relative flex items-center justify-center h-16 overflow-hidden bg-slate-800/10 backdrop-blur-sm
+         lg:grid lg:grid-rows-1 lg:grid-cols-[1fr_auto_1fr] lg:justify-items-center"
+>
+  <div></div>
+  <a
+    href="/"
+    class="flex items-end pb-2 gap-2 h-full hover:scale-105 active:scale-95 transition-all"
+    data-header-title-text
+  >
+    <img
+      src="/Akaricchan.avif"
+      alt="Akaricchan"
+      width="100"
+      height="100"
+      class="h-full w-auto [image-rendering:pixelated]"
+    />
+    <span
+      class="text-4xl text-violet-500 lg:text-6xl lg:font-extrabold lg:text-transparent text-center
+             mb-2 lg:mb-0
+             lg:[-webkit-text-stroke:1px_var(--color-slate-800)]
+             lg:dark:[-webkit-text-stroke-color:var(--color-slate-200)]"
+      style="text-box: trim-both cap alphabetic"
+    >
+      METAL MENTAL
+    </span>
+    <img
+      src="/Flupinochan.avif"
+      alt="Flupinochan"
+      width="100"
+      height="100"
+      class="h-full w-auto [image-rendering:pixelated]"
+    />
+  </a>
+  <div class="hidden lg:flex relative z-10 gap-4 items-center">
+    <button
+      aria-label="ダークモードに切り替える"
+      class="cursor-pointer toggle-dark-mode group transform active:scale-95 transition-transform duration-150"
+    >
+      <SunMoon
+        class="size-6 transition-all duration-300 group-hover:stroke-[2px] hover:brightness-75 dark:hover:brightness-125"
+      />
+    </button>
+    <a
+      aria-label="GitHubのプロフィールを新しいタブで開く"
+      href="https://github.com/Flupinochan"
+      target="_blank"
+      rel="noopener"
+      class="transform active:scale-95 transition-transform duration-150"
+    >
+      <Octcat
+        width={24}
+        height={24}
+        class="hover:brightness-75 dark:hover:brightness-125 transition-all duration-300"
+      />
+    </a>
+    <a
+      aria-label="Zennブログのプロフィールを新しいタブで開く"
+      href="https://zenn.dev/metalmental"
+      target="_blank"
+      rel="noopener"
+      class="transform active:scale-95 transition-transform duration-150"
+    >
+      <Zenn
+        class="size-5 hover:brightness-75 dark:hover:brightness-125 transition-all duration-300"
+      />
+    </a>
+    <a
+      aria-label="メールを送信する"
+      href="mailto:flupino@metalmental.net"
+      class="transform active:scale-95 transition-transform duration-150"
+    >
+      <Mail
+        class="size-6 hover:brightness-75 dark:hover:brightness-125 transition-all duration-300"
+      />
+    </a>
+  </div>
+</header>
+
+<script>
+  import { gsap } from "../lib/gsap";
+
+  const header = document.querySelector("header");
+  if (!header) throw new Error("Header element not found");
+
+  // マウスに追従して背景色が変化するエフェクト
+  header.addEventListener("mousemove", (e) => {
+    const rect = header.getBoundingClientRect();
+    header.style.setProperty("--mouse-x", `${e.clientX - rect.left}px`);
+    header.style.setProperty("--mouse-y", `${e.clientY - rect.top}px`);
+  });
+  header.addEventListener("mouseleave", () => {
+    header.style.setProperty("--mouse-x", "-9999px");
+    header.style.setProperty("--mouse-y", "-9999px");
+  });
+
+  // /にいる場合はtopへスクロール、そのほかのページでは/にページ遷移
+  const headerTitle = header.querySelector<HTMLAnchorElement>(
+    "[data-header-title-text]",
+  );
+  if (!headerTitle) throw new Error("data-header-title-text element not found");
+  headerTitle.addEventListener("click", (e) => {
+    if (window.location.pathname !== "/") return;
+    e.preventDefault();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
+
+  // ダークモード切替
+  let isAnimating = false;
+  const toggleButtons = document.querySelectorAll<HTMLButtonElement>(
+    "button.toggle-dark-mode",
+  );
+  toggleButtons.forEach((toggleButton) => {
+    toggleButton.addEventListener("click", async () => {
+      if (isAnimating) return;
+      isAnimating = true;
+      const enable =
+        "startViewTransition" in document &&
+        window.matchMedia("(prefers-reduced-motion: no-preference)").matches;
+
+      const isDark = document.documentElement.classList.contains("dark");
+      const nextTheme = isDark ? "light" : "dark";
+      if (!enable) {
+        localStorage.setItem("theme", nextTheme);
+        document.documentElement.classList.toggle("dark");
+        isAnimating = false;
+        return;
+      }
+
+      const root = document.documentElement;
+
+      const last = localStorage.getItem("theme-switch");
+      if (last && !isNaN(+last)) {
+        const diff = Date.now() - +last;
+
+        if (diff > 3 * 60 * 1000) {
+          root.classList.remove("-animated");
+        } else {
+          root.classList.add("-animated");
+        }
+      }
+
+      localStorage.setItem("theme-switch", Date.now().toString());
+      root.classList.add("is-theme-switching");
+
+      try {
+        await document.startViewTransition(() => {
+          localStorage.setItem("theme", nextTheme);
+          root.classList.toggle("dark");
+        }).finished;
+      } finally {
+        // view-transition-nameは実行時だけ付与して、完了後に削除すること!!
+        root.classList.remove("is-theme-switching");
+
+        const isNowDark = root.classList.contains("dark");
+        document
+          .querySelectorAll<SVGSVGElement>("svg[data-sunmoon-icon]")
+          .forEach((icon) => {
+            const activePath =
+              icon.querySelector<SVGPathElement>("[data-active-path]");
+            const targetPath = icon.querySelector<SVGPathElement>(
+              isNowDark ? "[data-target-moon]" : "[data-target-sun]",
+            );
+            if (!activePath || !targetPath) return;
+            gsap.to(activePath, {
+              morphSVG: targetPath,
+              duration: 0.8,
+              ease: "expo.inOut",
+              overwrite: true,
+            });
+          });
+        isAnimating = false;
+      }
+    });
+  });
+</script>
+
+<style>
+  header {
+    position: fixed;
+    z-index: 100;
+    inset: 0 0 auto;
+    transition:
+      translate 0.25s,
+      background 0.25s ease;
+    background: radial-gradient(
+      circle 220px at var(--mouse-x) var(--mouse-y),
+      color-mix(
+        in srgb,
+        var(--spotlight-color, var(--color-violet-500)) 12%,
+        transparent
+      ),
+      transparent 80%
+    );
+    --spotlight-color: var(--color-violet-500);
+    --mouse-x: -9999px;
+    --mouse-y: -9999px;
+  }
+
+  /*
+  header非表示設定
+    - 下へスクロール中 かつ
+    - 下にスクロール可能
+   */
+  @container html-scroll-state (
+  scroll-state(scrolled: bottom) and
+  scroll-state(scrollable: bottom)
+) {
+    header {
+      translate: 0 -100%;
+    }
+  }
+
+  /*
+  header表示設定
+    - 上へスクロール中 または
+    - 上にスクロール不可能(ページ最上部) または
+    - 下にスクロール不可能(ページ最下部)
+  */
+  @container html-scroll-state (
+  scroll-state(scrolled: top) or 
+  (not scroll-state(scrollable: top)) or 
+  (not scroll-state(scrollable: bottom))
+) {
+    header {
+      translate: 0 0;
+    }
+  }
+</style>
+
+<style is:global>
+  /* View Transition change dark mode gif animation*/
+  /* view-transitionの仕組み上rootに定義 */
+  :root {
+    --switch-duration: 1.75s;
+    --switch-name: scale;
+  }
+
+  .-animated {
+    --switch-duration: 1s;
+    --switch-name: scale-fast;
+  }
+
+  .is-theme-switching {
+    view-transition-name: theme-switch;
+  }
+
+  ::view-transition-group(theme-switch) {
+    z-index: 100;
+  }
+  ::view-transition-new(theme-switch),
+  ::view-transition-old(theme-switch) {
+    animation: var(--switch-name) var(--switch-duration) both;
+  }
+  ::view-transition-new(theme-switch) {
+    mask: url("/dark-mode.gif") center / 0 no-repeat;
+  }
+
+  @keyframes scale {
+    0% {
+      mask-size: 0;
+    }
+    10% {
+      mask-size: 25vmax;
+    }
+    90% {
+      mask-size: 25vmax;
+    }
+    100% {
+      mask-size: 750vmax;
+    }
+  }
+
+  @keyframes scale-fast {
+    0% {
+      mask-size: 0;
+    }
+    10% {
+      mask-size: 25vmax;
+    }
+    87.5% {
+      mask-size: 25vmax;
+    }
+    100% {
+      mask-size: 750vmax;
+    }
+  }
+</style>

@@ -1,0 +1,67 @@
+---
+import Mail from "../components/icons/Mail.astro";
+import Zenn from "../components/icons/Zenn.astro";
+import Octcat from "../components/icons/Octcat.astro";
+import SunMoon from "../components/icons/SunMoon.astro";
+---
+
+<footer class="relative z-10 bg-gray-800">
+  <div class="max-w-6xl mx-auto px-4 py-6">
+    <!-- 旧ポートフォリオサイトへのリンク -->
+    <div class="flex justify-center">
+      <a
+        href="https://old.metalmental.net/"
+        target="_blank"
+        rel="noopener"
+        class="text-center mb-2">旧ポートフォリオサイトはこちら</a
+      >
+    </div>
+    <div class="flex justify-center gap-4 items-center mb-4">
+      <button
+        aria-label="ダークモードに切り替える"
+        class="cursor-pointer toggle-dark-mode group transform active:scale-95 transition-transform duration-150"
+      >
+        <SunMoon
+          class="size-6 text-slate-200 transition-all duration-300 group-hover:stroke-[2px] hover:brightness-125"
+        />
+      </button>
+      <a
+        aria-label="GitHubのプロフィールを新しいタブで開く"
+        href="https://github.com/Flupinochan"
+        target="_blank"
+        rel="noopener"
+        class="transform active:scale-95 transition-transform duration-150"
+      >
+        <Octcat
+          width={24}
+          height={24}
+          class="text-slate-200 hover:brightness-125 transition-all duration-300"
+        />
+      </a>
+      <a
+        aria-label="Zennブログのプロフィールを新しいタブで開く"
+        href="https://zenn.dev/metalmental"
+        target="_blank"
+        rel="noopener"
+        class="transform active:scale-95 transition-transform duration-150"
+      >
+        <Zenn
+          class="size-5 text-slate-200 hover:brightness-125 transition-all duration-300"
+        />
+      </a>
+      <a
+        aria-label="メールを送信する"
+        href="mailto:flupino@metalmental.net"
+        class="transform active:scale-95 transition-transform duration-150"
+      >
+        <Mail
+          class="size-6 text-slate-200 hover:brightness-125 transition-all duration-300"
+        />
+      </a>
+    </div>
+    <!-- コピーライト -->
+    <p class="text-center text-sm text-gray-400">
+      © 2019-2026 MetalMental. All rights reserved.
+    </p>
+  </div>
+</footer>

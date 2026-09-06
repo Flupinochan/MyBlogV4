@@ -1,0 +1,148 @@
+{
+    "settings": {
+        "index": {
+            "number_of_shards": 1,
+            "number_of_replicas": 0,
+            "codec": "best_compression",
+            "refresh_interval": "-1",
+            "search.idle.after": "30s",
+            "sort.field": "created_at",
+            "sort.order": "desc",
+            "sort.mode": "max",
+            "sort.missing": "_last",
+            "blocks.read_only": false,
+            "requests.cache.enable": true,
+            "search.slowlog.level": "warn",
+            "search.slowlog.threshold.query.warn": "10s",
+            "search.slowlog.threshold.query.info": "5s",
+            "search.slowlog.threshold.query.debug": "2s",
+            "search.slowlog.threshold.query.trace": "500ms",
+            "search.slowlog.threshold.fetch.warn": "1s",
+            "search.slowlog.threshold.fetch.info": "800ms",
+            "search.slowlog.threshold.fetch.debug": "500ms",
+            "search.slowlog.threshold.fetch.trace": "200ms",
+            "indexing.slowlog.level": "warn",
+            "indexing.slowlog.threshold.index.warn": "10s",
+            "indexing.slowlog.threshold.index.info": "5s",
+            "indexing.slowlog.threshold.index.debug": "2s",
+            "indexing.slowlog.threshold.index.trace": "500ms",
+            "indexing.slowlog.source": 1000,
+            "indexing.slowlog.reformat": true
+        },
+        "analysis": {
+            "char_filter": {
+                "icu_normalizer_nfkc_cf": {
+                    "type": "icu_normalizer",
+                    "name": "nfkc_cf",
+                    "mode": "compose"
+                }
+            },
+            "tokenizer": {
+                "kuromoji_search_tokenizer": {
+                    "type": "kuromoji_tokenizer",
+                    "mode": "search",
+                    "discard_punctuation": true,
+                    "lenient": true,
+                    "discard_compound_token": false,
+                    "user_dictionary_rules": [
+                        "MetalMental,MetalMental,メタルメンタル,カスタム名詞"
+                    ]
+                }
+            },
+            "analyzer": {
+                "tech_blog_analyzer": {
+                    "type": "custom",
+                    "char_filter": [
+                        "icu_normalizer_nfkc_cf",
+                        "kuromoji_iteration_mark"
+                    ],
+                    "tokenizer": "kuromoji_search_tokenizer",
+                    "filter": [
+                        "kuromoji_baseform",
+                        "kuromoji_part_of_speech",
+                        "cjk_width",
+                        "ja_stop",
+                        "kuromoji_stemmer",
+                        "lowercase"
+                    ]
+                }
+            }
+        }
+    },
+    "mappings": {
+        "dynamic": "strict",
+        "properties": {
+            "slug": {
+                "type": "keyword",
+                "meta": {
+                    "description": "基本的にファイル名 (ID相当)",
+                    "usage": "返却用"
+                }
+            },
+            "url": {
+                "type": "keyword",
+                "index": false,
+                "doc_values": false,
+                "meta": {
+                    "description": "ZennブログへのURL",
+                    "usage": "返却用"
+                }
+            },
+            "title": {
+                "type": "text",
+                "analyzer": "tech_blog_analyzer",
+                "meta": {
+                    "description": "ブログのタイトル",
+                    "usage": "検索用"
+                }
+            },
+            "emoji": {
+                "type": "keyword",
+                "index": false,
+                "doc_values": false,
+                "meta": {
+                    "description": "絵文字",
+                    "usage": "返却用"
+                }
+            },
+            "type": {
+                "type": "keyword",
+                "meta": {
+                    "description": "ブログの種別 (tech/idea)",
+                    "usage": "検索用"
+                }
+            },
+            "topics": {
+                "type": "keyword",
+                "meta": {
+                    "description": "タグ",
+                    "usage": "検索用"
+                }
+            },
+            "content": {
+                "type": "text",
+                "analyzer": "tech_blog_analyzer",
+                "meta": {
+                    "description": "Markdownのブログ本文",
+                    "usage": "検索用"
+                }
+            },
+            "summary": {
+                "type": "text",
+                "index": false,
+                "meta": {
+                    "description": "ブログの要約",
+                    "usage": "返却用"
+                }
+            },
+            "created_at": {
+                "type": "date",
+                "format": "yyyy-MM-dd HH:mm:ss",
+                "meta": {
+                    "description": "ブログの作成日時",
+                    "usage": "検索用"
+                }
+            }
+        }
+    }
+}

@@ -6,12 +6,17 @@ import * as s3 from "aws-cdk-lib/aws-s3";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import * as cdk from "aws-cdk-lib/core";
 import { Construct } from "constructs";
+import * as apigateway from "aws-cdk-lib/aws-apigateway";
 
 interface HostingStackProps extends cdk.StackProps {
   envName: string;
-  bucketName: string;
+  hostingBucketName: string;
   domainName: string;
-  certificateArn: string;
+  certificateArnParam: string;
+  blogSearchApiStack?: { api: apigateway.RestApi };
+  blogSearchApiPath?: string;
+  voicevoxApiStack?: { api: apigateway.RestApi };
+  voicevoxApiPath?: string;
 }
 
 export class HostingStack extends cdk.Stack {
@@ -23,7 +28,7 @@ export class HostingStack extends cdk.Stack {
 
     // CORS設定を変更する場合はbucket名を変えて再ビルドしないと安定しないため注意
     this.bucket = new s3.Bucket(this, "bucket", {
-      bucketName: props.bucketName,
+      bucketName: props.hostingBucketName,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       encryption: s3.BucketEncryption.S3_MANAGED,
       enforceSSL: true,
@@ -34,7 +39,7 @@ export class HostingStack extends cdk.Stack {
         {
           allowedOrigins: [
             `https://${props.domainName}`,
-            props.envName === "prod" ? "" : "http://localhost:5173",
+            props.envName === "prod" ? "" : "http://localhost:4321",
           ],
           allowedMethods: [
             s3.HttpMethods.GET,
@@ -53,7 +58,7 @@ export class HostingStack extends cdk.Stack {
       this,
       "CertificateArn",
       {
-        parameterName: props.certificateArn,
+        parameterName: props.certificateArnParam,
       },
     ).stringValue;
 
@@ -94,5 +99,35 @@ export class HostingStack extends cdk.Stack {
         },
       ],
     });
+
+    const { blogSearchApiStack, blogSearchApiPath } = props;
+    if (blogSearchApiStack && blogSearchApiPath) {
+      const origin = new origins.HttpOrigin(
+        `${blogSearchApiStack.api.restApiId}.execute-api.${this.region}.amazonaws.com`,
+        { readTimeout: cdk.Duration.seconds(60) },
+      );
+      this.distribution.addBehavior(`/${blogSearchApiPath}/*`, origin, {
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+        originRequestPolicy:
+          cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      });
+    }
+
+    const { voicevoxApiStack, voicevoxApiPath } = props;
+    if (voicevoxApiStack && voicevoxApiPath) {
+      const voicevoxOrigin = new origins.HttpOrigin(
+        `${voicevoxApiStack.api.restApiId}.execute-api.${this.region}.amazonaws.com`,
+        { readTimeout: cdk.Duration.seconds(60) },
+      );
+      this.distribution.addBehavior(`/${voicevoxApiPath}/*`, voicevoxOrigin, {
+        allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
+        cachePolicy: cloudfront.CachePolicy.CACHING_DISABLED,
+        originRequestPolicy:
+          cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
+        viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+      });
+    }
   }
 }

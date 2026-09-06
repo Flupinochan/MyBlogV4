@@ -1,0 +1,154 @@
+@reference "../../../styles/global.css";
+@variant dark (&:where(.dark, .dark *));
+
+.tool-table-resizer {
+  @apply absolute right-0 top-0 h-full w-2 translate-x-1
+    cursor-col-resize touch-none;
+}
+.tool-table-resizer::after {
+  content: "";
+  @apply absolute left-1/2 top-1/2 h-8 w-px -translate-x-1/2 -translate-y-1/2
+    bg-slate-300 dark:bg-slate-600 transition-colors;
+}
+.tool-table-resizer:hover::after,
+.tool-table-resizer.is-resizing::after {
+  @apply bg-violet-500;
+}
+
+/* 移動 */
+::view-transition-group(.row-item) {
+  animation-duration: 1s;
+  animation-timing-function: cubic-bezier(0.76, 0, 0.24, 1);
+}
+
+/* old/newで個別に制御するため無効化 */
+::view-transition-image-pair(.row-item) {
+  animation: none;
+}
+
+/* フェードアウト */
+::view-transition-old(.row-item) {
+  animation: fade-out 0.7s ease forwards;
+}
+
+/* フェードイン */
+::view-transition-new(.row-item) {
+  animation: fade-in 0.7s ease forwards;
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* <select>タグのスタイル */
+/* 以下を参考 */
+/* https://una.im/select-updates/ */
+.filter-select {
+  width: 200px;
+  transition: 0.4s;
+
+  /* selectタグを完全カスタム可能にするための初期化 */
+  &,
+  &::picker(select) {
+    appearance: base-select;
+  }
+
+  /* option全体設定 */
+  &::picker(select) {
+    /* 初期化 */
+    background: none;
+    border: none;
+    /* 下方向へoption一覧を表示 */
+    position-try-fallbacks: none;
+
+    margin-top: 5px;
+  }
+
+  & > div {
+    min-inline-size: anchor-size(self-inline);
+    width: 100%;
+  }
+
+  /* デフォルトのpickerアイコンを削除 */
+  &::picker-icon {
+    display: none;
+  }
+
+  & option {
+    padding: 4px 12px;
+
+    /* デフォルトのチェックマークを削除 */
+    &::checkmark {
+      display: none;
+    }
+
+    &:checked {
+      background-color: color-mix(
+        in srgb,
+        var(--color-violet-500) 35%,
+        transparent
+      );
+    }
+  }
+
+  selectedcontent > * {
+    transition:
+      transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+      display 0.5s allow-discrete,
+      opacity 0.5s;
+  }
+
+  & button {
+    & div {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    & svg.select-arrow {
+      inline-size: 2ch;
+      transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+  }
+
+  /* picker押下して開いた際のsvg回転アニメーション */
+  &:open > button svg.select-arrow {
+    transform: rotate(0.5turn);
+  }
+}
+
+/* 現状は動作していない (理想は選択したoption名が下から上にフェードインしてpickerに表示される) */
+@starting-style {
+  .filter-select selectedcontent > * {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.tools-columns-open-button,
+.tool-table-row,
+.tool-table {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* virtual tableの仕様上、後から動的にDOM挿入されるrowに関しては上書きしてデフォルトで表示しておく */
+.tool-table.rows-animated .tool-table-row {
+  opacity: 1;
+  visibility: visible;
+}

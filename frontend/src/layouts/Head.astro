@@ -1,0 +1,82 @@
+---
+import { pwaInfo } from "virtual:pwa-info";
+
+import { profile, sameAs } from "../data/profile";
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  ogType?: "website" | "article";
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown>[];
+}
+
+const {
+  title,
+  description = "Full-Stack & SRE EngineerのMetalMentalによるポートフォリオサイトです。経歴、スキル、資格、ブログ記事を掲載しています。",
+  ogImage = "/og-image.png",
+  ogType = "website",
+  noindex = false,
+  jsonLd = [],
+} = Astro.props;
+
+const siteName = "MetalMental";
+const siteTitle = "MetalMental Portfolio";
+const pageTitle = title ? `${title} | ${siteTitle}` : siteTitle;
+const canonicalUrl = new URL(Astro.url.pathname, Astro.site);
+const ogImageUrl = new URL(ogImage, Astro.site);
+
+const organization = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  url: "https://www.metalmental.net/",
+  sameAs,
+  logo: "https://www.metalmental.net/image-512x512.png",
+  name: siteName,
+  description: "MetalMental is a Full-Stack and SRE Engineer.",
+  email: profile.email,
+};
+
+const website = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: siteTitle,
+  description,
+  url: "https://www.metalmental.net/",
+};
+
+const structuredData = [organization, website, ...jsonLd];
+---
+
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="generator" content={Astro.generator} />
+
+<link rel="icon" href="/favicon.ico" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="canonical" href={canonicalUrl} />
+{pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
+
+<meta name="description" content={description} />
+{noindex && <meta name="robots" content="noindex, nofollow" />}
+
+<meta name="theme-color" content="#8E51FF" />
+<meta name="msapplication-TileColor" content="#8E51FF" />
+<meta name="msapplication-TileImage" content="/image-512x512.png" />
+<meta name="mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-title" content={siteName} />
+<meta name="apple-mobile-web-app-status-bar-style" content="black" />
+
+<meta property="og:type" content={ogType} />
+<meta property="og:url" content={canonicalUrl} />
+<meta property="og:title" content={pageTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={ogImageUrl} />
+<meta property="og:site_name" content={siteName} />
+<meta property="og:locale" content="ja_JP" />
+<meta name="twitter:card" content="summary_large_image" />
+
+<title>{pageTitle}</title>
+
+<script type="application/ld+json" is:inline set:html={JSON.stringify(structuredData)} />

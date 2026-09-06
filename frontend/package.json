@@ -1,31 +1,55 @@
 {
-  "name": "sleepy-shell",
-  "type": "module",
-  "version": "0.0.1",
-  "engines": {
-    "node": ">=22.12.0"
-  },
-  "scripts": {
-    "dev": "astro dev",
-    "build": "astro build",
-    "preview": "astro preview",
-    "astro": "astro"
-  },
   "dependencies": {
-    "@astrojs/check": "^0.9.8",
-    "@astrojs/react": "^5.0.1",
-    "@astrojs/ts-plugin": "^1.10.7",
+    "@astrojs/check": "^0.9.10",
+    "@astrojs/react": "^6.0.5",
+    "@astrojs/ts-plugin": "^1.10.11",
+    "@octokit/graphql-schema": "^15.26.1",
     "@react-three/drei": "^10.7.7",
     "@react-three/fiber": "^9.5.0",
     "@tailwindcss/vite": "^4.2.2",
+    "@tanstack/react-query": "^5.100.9",
+    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-virtual": "^3.13.24",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@types/three": "^0.183.1",
-    "astro": "^6.0.7",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
+    "astro": "^7.3.1",
+    "d3": "^7.9.0",
+    "embla-carousel-react": "v9.0.0-rc02",
+    "gsap": "^3.15.0",
+    "nanostores": "^1.3.0",
+    "octokit": "^5.0.5",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5",
+    "react-icons": "^5.6.0",
     "tailwindcss": "^4.2.2",
     "three": "^0.181.0",
-    "typescript": "^5.9.3"
-  }
+    "typescript": "^5.9.3",
+    "zod": "^4.5.4"
+  },
+  "devDependencies": {
+    "@tanstack/react-query-devtools": "^5.100.9",
+    "@types/d3": "^7.4.3",
+    "@types/d3-selection": "^3.0.11",
+    "@types/dom-chromium-ai": "^0.0.16",
+    "@vite-pwa/astro": "^1.2.0",
+    "openapi-fetch": "^0.17.0",
+    "openapi-react-query": "^0.5.4",
+    "openapi-typescript": "^7.13.0"
+  },
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "name": "sleepy-shell",
+  "scripts": {
+    "astro": "astro",
+    "build": "astro check && astro build",
+    "dev": "astro dev",
+    "generate:github-stats": "node ./scripts/generate-github-stats.js",
+    "prepare": "husky",
+    "preview": "astro preview",
+    "test:ts": "tsc --noEmit"
+  },
+  "type": "module",
+  "version": "0.0.1"
 }

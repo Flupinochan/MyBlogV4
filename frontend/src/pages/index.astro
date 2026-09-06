@@ -1,9 +1,48 @@
 ---
-import Welcome from "../components/Welcome.astro";
-import Layout from "../layouts/Layout.astro";
-import "../styles/global.css";
+import Layout from "../layouts/Base.astro";
+import Hero from "../components/home/hero/Hero.astro";
+import Summary from "../components/home/summary/Summary.astro";
+import Chart from "../components/home/charts/Chart.astro";
+import Tools from "../components/home/tool/Tool.astro";
+import Blog from "../components/home/blog/Blog.astro";
+import Timeline from "../components/home/timeline/Timeline.astro";
+import Chat from "../components/home/chat/Chat.astro";
+import Contact from "../components/home/contact/Contact.astro";
+import { profile, certifications, sameAs } from "../data/profile";
+
+const profilePage = {
+  "@context": "https://schema.org",
+  "@type": "ProfilePage",
+  mainEntity: {
+    "@type": "Person",
+    name: `${profile.name.map((part) => part.text).join(" ")}`,
+    jobTitle: profile.title,
+    birthDate: "1999-08-31",
+    address: {
+      "@type": "PostalAddress",
+      addressRegion: profile.location,
+      addressCountry: "JP",
+    },
+    email: profile.email,
+    sameAs,
+    hasCredential: certifications.map((name) => ({
+      "@type": "EducationalOccupationalCredential",
+      name,
+    })),
+  },
+};
 ---
 
-<Layout>
-  <Welcome />
+<Layout
+  description="Full-Stack & SRE Engineerの川越鉄郎(MetalMental)によるポートフォリオサイトです。経歴、スキル、資格、ブログ記事を掲載しています。"
+  jsonLd={[profilePage]}
+>
+  <Hero />
+  <Summary />
+  <Chart />
+  <Tools />
+  <Blog />
+  <Timeline />
+  <Chat />
+  <Contact />
 </Layout>

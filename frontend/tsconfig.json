@@ -7,7 +7,10 @@
         "name": "@astrojs/ts-plugin"
       }
     ],
-    "verbatimModuleSyntax": true
+    "verbatimModuleSyntax": true,
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "noUncheckedIndexedAccess": true
   },
   "exclude": ["dist"],
   "extends": "astro/tsconfigs/strict",

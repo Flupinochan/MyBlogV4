@@ -1,0 +1,29 @@
+{
+  "char_filter": [
+    {
+      "mode": "compose",
+      "name": "nfkc_cf",
+      "type": "icu_normalizer"
+    },
+    "kuromoji_iteration_mark"
+  ],
+  "filter": [
+    "kuromoji_baseform",
+    "kuromoji_part_of_speech",
+    "cjk_width",
+    "ja_stop",
+    "kuromoji_stemmer",
+    "lowercase"
+  ],
+  "text": "どうもMetalMentalです。最新のＭａｃで、AWSにおいてサーバーを構築するための勉強をしました。楽しかったです!!🐱",
+  "tokenizer": {
+    "discard_compound_token": false,
+    "discard_punctuation": true,
+    "lenient": true,
+    "mode": "search",
+    "type": "kuromoji_tokenizer",
+    "user_dictionary_rules": [
+      "MetalMental,MetalMental,メタルメンタル,カスタム名詞"
+    ]
+  }
+}

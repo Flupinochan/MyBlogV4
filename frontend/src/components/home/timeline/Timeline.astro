@@ -1,0 +1,297 @@
+---
+import SectionHeading from "../../shared/SectionHeading.astro";
+
+const items = [
+  {
+    year: 2019,
+    title: "サーバ・ネットワークエンジニア",
+    desc: "DNS、DHCP、Radius等のサーバやHP製スイッチ、Aruba、SonicWallを扱う",
+    color: "var(--color-cyan-500)",
+  },
+  {
+    year: 2021,
+    title: "仮想化(VMware)エンジニア",
+    desc: "ESXi、VCSA、Horizon等を扱う。物理/仮想サーバ、ストレージのバックアップも担当",
+    color: "var(--color-emerald-500)",
+  },
+  {
+    year: 2022,
+    title: "AWSエンジニア",
+    desc: "500以上のAWSアカウントをControlTowerで管理し、CloudHub移行を行う",
+    color: "var(--color-amber-500)",
+  },
+  {
+    year: 2024,
+    title: "アプリケーションエンジニア",
+    desc: "Java、C#でファイル検査アプリを開発",
+    color: "var(--color-pink-500)",
+  },
+  {
+    year: 2026,
+    title: "フルスタック/SREエンジニア",
+    desc: "Claude Codeを利用して車関連の集客アプリをAI駆動で開発中",
+    color: "var(--color-violet-500)",
+  },
+];
+
+const firstItem = items[0];
+const lastItem = items.at(-1);
+if (!firstItem || !lastItem)
+  throw new Error("Timeline items must not be empty");
+---
+
+<SectionHeading id="timeline" data-timeline-title
+  >See Me in Timeline</SectionHeading
+>
+
+<div id="tl-wrap" class="relative overflow-x-clip lg:mx-16">
+  <div
+    id="tl-start"
+    class="text-center font-semibold pb-3"
+    style={`color: ${firstItem.color}`}
+  >
+    高校卒業
+  </div>
+
+  <div class="flex flex-col gap-30 mt-35">
+    {
+      items.map((item, i) => (
+        <div
+          class={`tl-row flex justify-between items-center gap-3 p-4${i % 2 !== 0 ? " flex-row-reverse" : ""}`}
+          data-color={item.color}
+        >
+          <h3
+            class="text-3xl lg:text-5xl font-bold"
+            style={`color: ${item.color}`}
+          >
+            {item.year}
+          </h3>
+          <div class={`flex flex-col${i % 2 !== 0 ? "" : " items-end"}`}>
+            <p class="font-bold text-slate-100">{item.title}</p>
+            <p class="text-sm text-slate-400">{item.desc}</p>
+          </div>
+        </div>
+      ))
+    }
+  </div>
+
+  <div
+    id="tl-end"
+    class="text-center font-semibold pt-3 mt-5"
+    style={`color: ${lastItem.color}`}
+  >
+    現在
+  </div>
+
+  <!-- 親要素divと同じ位置、同じサイズの背景用timeline svg -->
+  <svg class="absolute -z-1 inset-0 w-full h-full">
+    <defs>
+      <linearGradient
+        id="timelineGradient"
+        gradientUnits="userSpaceOnUse"
+        x1="0"
+        y1="0"
+        x2="0"
+        y2="1"
+      >
+      </linearGradient>
+    </defs>
+
+    <path
+      id="tl-path"
+      fill="none"
+      stroke="url(#timelineGradient)"
+      stroke-width="2"
+      stroke-linecap="round"></path>
+
+    <g id="tl-dots"></g>
+  </svg>
+</div>
+
+<script>
+  import { gsap } from "../../../lib/gsap";
+  import { initSectionHeadingAnimation } from "../../../lib/sectionHeadingAnimation";
+
+  const wrap = document.getElementById("tl-wrap") as HTMLDivElement | null;
+  const path = document.getElementById("tl-path") as SVGPathElement | null;
+  const start = document.getElementById("tl-start") as HTMLDivElement | null;
+  const end = document.getElementById("tl-end") as HTMLDivElement | null;
+  const gradient = document.getElementById(
+    "timelineGradient",
+  ) as SVGLinearGradientElement | null;
+
+  let svgTween: gsap.core.Tween | undefined;
+  let startTween: gsap.core.Tween | undefined;
+  let endTween: gsap.core.Tween | undefined;
+  let rowTweens: gsap.core.Tween[] = [];
+
+  function draw() {
+    if (!wrap) throw new Error("Timeline wrap element not found");
+    if (!path) throw new Error("Timeline path element not found");
+    if (!start) throw new Error("Timeline start element not found");
+    if (!end) throw new Error("Timeline end element not found");
+    if (!gradient) throw new Error("Timeline gradient element not found");
+
+    // getBoundingClientRect()で要素のtopやright座標を取得する際に
+    // paddingは考慮するが、marginは考慮しないため注意
+    const wrapRect = wrap.getBoundingClientRect();
+    const wrapWidth = wrapRect.width;
+    const wrapHeight = wrapRect.height;
+    const wrapCenterX = wrapRect.width / 2;
+
+    // x軸と違い、y軸は20xx要素ごとに高さが異なるため計算が必要
+    // svgは左上座標(0,0)が基準のため、親要素のwrapからの相対位置でy座標を計算する関数
+    // rowのbottomのy座標を計算する関数
+    const bottomY = (el: Element) => {
+      const rect = el.getBoundingClientRect();
+      return rect.bottom - wrapRect.top;
+    };
+    const endY = (el: Element) => {
+      const rect = el.getBoundingClientRect();
+      return rect.top - wrapRect.top;
+    };
+
+    svgTween?.scrollTrigger?.kill();
+    svgTween?.kill();
+    startTween?.scrollTrigger?.kill();
+    startTween?.kill();
+    endTween?.scrollTrigger?.kill();
+    endTween?.kill();
+    rowTweens.forEach((t) => {
+      t.scrollTrigger?.kill();
+      t.kill();
+    });
+    rowTweens = [];
+
+    const strokeWidthHalf = 1; // stroke-widthの半分 (端でpathが半分見切れるため)
+
+    const startBottomY = bottomY(start);
+    const endTopY = endY(end);
+    const rows = Array.from(document.querySelectorAll<HTMLElement>(".tl-row"));
+    const rowBottomYs = rows.map(bottomY);
+    const rowColors = rows.map((el) => {
+      if (!el.dataset.color) throw new Error("tl-row is missing data-color");
+      return el.dataset.color;
+    });
+
+    // y1からy2(縦方向)へgradient
+    gradient.setAttribute("y2", String(wrapHeight));
+    // observe対策として一度削除
+    while (gradient.firstChild) gradient.removeChild(gradient.firstChild);
+    rowColors.forEach((color, idx) => {
+      const rowBottomY = rowBottomYs[idx];
+      if (rowBottomY === undefined)
+        throw new Error(`rowBottomYs[${idx}] is undefined`);
+      const stop = document.createElementNS(
+        "http://www.w3.org/2000/svg",
+        "stop",
+      );
+      // rowごとのrowBottomYsにstopを設定
+      stop.setAttribute(
+        "offset",
+        String(Math.min(1, Math.max(0, rowBottomY / wrapHeight))),
+      );
+      stop.style.stopColor = color;
+      gradient.appendChild(stop);
+    });
+
+    let d = `M ${wrapCenterX} ${startBottomY}`; // 高校卒業の要素のbottomへ移動
+    d += ` l 0 20`; // 下へ20px線を引く (gap-30 mt-35 mb-5 と合わせて調整)
+    d += ` l -${wrapCenterX - strokeWidthHalf} 0`;
+    for (let i = 0; i < rowBottomYs.length; i++) {
+      const rowBottomY = rowBottomYs[i];
+      if (rowBottomY === undefined)
+        throw new Error(`rowBottomYs[${i}] is undefined`);
+      const isEven = i % 2 === 0;
+      const entryX = isEven ? strokeWidthHalf : wrapWidth - strokeWidthHalf;
+      const exitX = isEven ? wrapWidth - strokeWidthHalf : strokeWidthHalf;
+      const entryY = i === 0 ? rowBottomY : rowBottomY - strokeWidthHalf;
+      d += ` L ${entryX} ${entryY}`;
+      if (i < rowBottomYs.length - 1) {
+        d += ` L ${exitX} ${rowBottomY - strokeWidthHalf}`;
+      } else {
+        d += ` L ${wrapCenterX} ${rowBottomY}`;
+      }
+    }
+    d += ` L ${wrapCenterX} ${endTopY}`; // 現在の要素のtopへ線を引く
+
+    path.setAttribute("d", d);
+
+    // gsap drawSVG + ScrollTrigger
+    // 0% -> 100% へ scrub1 でスクロールに連動してpathを絵画
+    svgTween = gsap.fromTo(
+      path,
+      { drawSVG: "0%" },
+      {
+        drawSVG: "100%",
+        ease: "none",
+        scrollTrigger: {
+          trigger: wrap,
+          start: "top 60%",
+          end: "bottom center",
+          scrub: 1,
+          once: true,
+        },
+      },
+    );
+
+    startTween = gsap.fromTo(
+      start,
+      { opacity: 0 },
+      {
+        opacity: 1,
+        duration: 0.6,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: start,
+          start: "top 60%",
+          end: "bottom center",
+        },
+      },
+    );
+
+    endTween = gsap.fromTo(
+      end,
+      { opacity: 0 },
+      {
+        opacity: 1,
+        duration: 0.6,
+        ease: "power2.out",
+        scrollTrigger: {
+          trigger: end,
+          start: "top 60%",
+          end: "bottom center",
+        },
+      },
+    );
+
+    rowTweens = rows.map((row, i) => {
+      const fromX = i % 2 === 0 ? -40 : 40;
+      return gsap.fromTo(
+        row,
+        { opacity: 0, x: fromX },
+        {
+          opacity: 1,
+          x: 0,
+          duration: 0.6,
+          ease: "power2.out",
+          scrollTrigger: {
+            trigger: row,
+            start: "top 55%",
+            end: "bottom center",
+          },
+        },
+      );
+    });
+  }
+
+  draw();
+
+  if (!wrap) throw new Error("Timeline wrap element not found");
+  const ro = new ResizeObserver(draw);
+  ro.observe(wrap);
+
+  const title = document.querySelector("[data-timeline-title]");
+  if (!title) throw new Error("Timeline title element not found");
+  initSectionHeadingAnimation(title);
+</script>

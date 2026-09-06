@@ -1,1 +1,216 @@
+/* 
+  - メインカラー: violet
+  - サブカラー: cyan, amber, rose, emerald
+  - ライト/ダークモード: white, gray, slate, indigo
+*/
+
+/* Tailwind CSS有効化 */
 @import "tailwindcss";
+
+/* Tailwind CSS記法
+  通常のCSSファイル(astro)でdark:を利用可能にするための定義
+  @variant dark (&:where(.dark, .dark *)); で利用
+*/
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+  CSSの優先順位（右が高）
+  theme < base < components < utilities < class < inline style
+
+  - theme      : CSS変数定義 (color, font等)
+  - base       : リセットCSS・HTMLレベルのグローバルCSS (scrollbar等)
+  - components : グローバルで再利用するclassコンポーネント（.svg-path 等）
+  - utilities  : Tailwindに梱包されているユーティリティクラス（.flex 等）
+
+  各.astro/.cssファイルの固有スタイルは @layer を使わず直接記述すること
+  → unlayered CSSとして本global.cssで定義したスタイルより優先されるため
+*/
+@layer theme, base, components, utilities;
+
+/* Tailwind CSS記法 (@layer theme相当) */
+@theme {
+  --scrollbar-track-bg: var(--color-transparent);
+
+  --color-violet-350: color-mix(
+    in oklch,
+    var(--color-violet-300),
+    var(--color-violet-400)
+  );
+  --color-violet-450: color-mix(
+    in oklch,
+    var(--color-violet-400),
+    var(--color-violet-500)
+  );
+  --color-violet-550: color-mix(
+    in oklch,
+    var(--color-violet-500),
+    var(--color-violet-600)
+  );
+  --color-violet-650: color-mix(
+    in oklch,
+    var(--color-violet-600),
+    var(--color-violet-700)
+  );
+  --color-violet-750: color-mix(
+    in oklch,
+    var(--color-violet-700),
+    var(--color-violet-800)
+  );
+  --color-violet-850: color-mix(
+    in oklch,
+    var(--color-violet-800),
+    var(--color-violet-900)
+  );
+}
+
+#avatar-stage {
+  --stage-container: min(80rem, 100%);
+  --stage-column: calc((var(--stage-container) - 4rem) / 3);
+  --stage-center: calc(
+    (100% - var(--stage-container)) / 2 + 1rem + var(--stage-column) / 2
+  );
+  left: calc(var(--stage-center) + var(--avatar-offset-x, 0px));
+  translate: -50% 0;
+}
+
+@layer base {
+  html {
+    overflow-x: clip;
+  }
+
+  html,
+  .custom-scrollbar,
+  select::picker(select) {
+    container-type: scroll-state;
+    container-name: html-scroll-state;
+    scroll-behavior: smooth;
+    scrollbar-gutter: stable;
+  }
+
+  @supports selector(::-webkit-scrollbar) {
+    html::-webkit-scrollbar,
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    html::-webkit-scrollbar-button,
+    .custom-scrollbar::-webkit-scrollbar-button {
+      display: none;
+    }
+    html::-webkit-scrollbar-thumb,
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background-color: var(--color-violet-500);
+      border-radius: 6px;
+    }
+    html::-webkit-scrollbar-track,
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background-color: var(--scrollbar-track-bg);
+    }
+    html::-webkit-scrollbar-thumb:hover,
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+      background-color: var(--color-violet-400);
+    }
+    html::-webkit-scrollbar-thumb:active,
+    .custom-scrollbar::-webkit-scrollbar-thumb:active {
+      background-color: var(--color-violet-600);
+    }
+  }
+
+  @supports not selector(::-webkit-scrollbar) {
+    html,
+    .custom-scrollbar,
+    select::picker(select) {
+      scrollbar-color: var(--color-violet-500) var(--scrollbar-track-bg);
+      scrollbar-width: thin;
+      scrollbar-gutter: stable;
+    }
+  }
+
+  input {
+    &:focus {
+      outline: none;
+    }
+  }
+}
+
+/* @layer baseに含められないため外だし (優先度は高いが問題ない) */
+@supports selector(::-webkit-scrollbar-button) {
+  html::-webkit-scrollbar-button,
+  .custom-scrollbar::-webkit-scrollbar-button {
+    display: none;
+  }
+}
+
+/* 汎用component */
+@layer components {
+  .form-input-select,
+  .form-textarea {
+    @apply py-2 px-3 text-sm transition-colors rounded-xl border
+      focus:outline-none focus-visible:ring-1
+    border-slate-300 dark:border-slate-700
+    focus:border-violet-400 dark:focus:border-violet-500
+    focus-visible:ring-violet-400 dark:focus-visible:ring-violet-500;
+  }
+  .form-textarea {
+    @apply resize-none;
+  }
+
+  .white-button,
+  .transparent-button,
+  .violet-button {
+    @apply flex justify-center items-center cursor-pointer transition-all font-medium;
+  }
+  .white-button {
+    @apply text-slate-50 dark:text-slate-900
+    bg-slate-800 dark:bg-slate-100;
+  }
+  .transparent-button {
+    @apply text-slate-500 dark:text-slate-400
+      bg-transparent enabled:hover:bg-slate-200 enabled:dark:hover:bg-slate-800;
+  }
+  .violet-button {
+    @apply disabled:opacity-40 disabled:cursor-default
+    bg-violet-500 enabled:hover:bg-violet-400
+    text-white;
+  }
+
+  .outline-button {
+    @apply relative inline-flex items-center overflow-hidden rounded-xl
+      cursor-pointer
+      border border-violet-500 px-5 py-2 text-sm font-medium
+      text-violet-600 dark:text-violet-400
+      transition-colors duration-300 ease-out hover:text-white
+      active:translate-y-0.5
+      after:absolute after:inset-y-0 after:left-0 after:-z-10 after:w-0
+      after:bg-violet-500 after:transition-all after:duration-300 after:ease-out
+      hover:after:w-full;
+  }
+  .outline-button:disabled {
+    @apply opacity-40 cursor-default text-violet-600 dark:text-violet-400
+      active:translate-y-0;
+  }
+  .outline-button:disabled::after {
+    @apply w-0;
+  }
+
+  /* SVG Icon Animation */
+  .svg-path {
+    stroke-dasharray: 300;
+    stroke-dashoffset: 0;
+    stroke-width: 1.5;
+    transition: stroke-width 0.3s;
+  }
+  .svg-button:hover .svg-path {
+    stroke-width: 2;
+    animation: draw 1s ease-in forwards;
+    stroke-dashoffset: 300;
+  }
+  @keyframes draw {
+    0% {
+      stroke-dashoffset: 300;
+    }
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
+}

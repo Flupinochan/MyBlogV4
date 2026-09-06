@@ -1,0 +1,71 @@
+---
+
+---
+
+<div class="flex w-full items-center gap-4 lg:gap-8">
+  <div class="h-px flex-1 bg-linear-to-l from-slate-500 to-transparent"></div>
+  <button
+    class="cursor-pointer p-2 flex flex-col items-center mt-4 transition-all duration-200 ease-out
+          text-slate-500 dark:text-slate-300 hover:text-violet-600
+            hover:scale-105 active:scale-95"
+    data-scroll-btn
+  >
+    <div class="flex flex-col items-center mt-4">
+      {
+        [0, 1, 2].map((i) => (
+          <span
+            class="block size-3 rotate-45 border-b-[1.5px] border-r-[1.5px] opacity-0 animate-[arrow-fall_1.6s_infinite]"
+            style={`animation-delay: ${i * 0.22}s`}
+          />
+        ))
+      }
+      <p class="mt-4">SCROLL</p>
+    </div>
+  </button>
+  <button
+    aria-label="Contact me: お問い合わせセクションへ移動する"
+    class="cursor-pointer rounded-4xl border px-5 py-2 transition-all duration-200 ease-out
+          text-slate-500 dark:text-slate-300 border-slate-400 hover:border-violet-600 hover:text-violet-600
+            hover:scale-105 active:scale-95"
+    data-contact-btn
+  >
+    Contact me
+  </button>
+  <div class="h-px flex-1 bg-linear-to-r from-slate-500 to-transparent"></div>
+</div>
+
+<style>
+  @keyframes arrow-fall {
+    0%,
+    100% {
+      opacity: 0;
+    }
+    35% {
+      opacity: 0.9;
+    }
+    75% {
+      opacity: 0;
+    }
+  }
+</style>
+
+<script>
+  const scrollBtn = document.querySelector("[data-scroll-btn]");
+  if (!scrollBtn) throw new Error("Not found data-scroll-btn data attribute");
+  const target = document.querySelector("[data-summary-title]");
+  if (!target) throw new Error("Not found data-scroll-btn data attribute");
+
+  scrollBtn.addEventListener("click", () => {
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
+  const contactBtn = document.querySelector("[data-contact-btn]");
+  if (!contactBtn) throw new Error("Not found data-contact-btn data attribute");
+  const contactTarget = document.querySelector("[data-contact-title]");
+  if (!contactTarget)
+    throw new Error("Not found data-contact-title data attribute");
+
+  contactBtn.addEventListener("click", () => {
+    contactTarget.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+</script>

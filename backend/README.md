@@ -1,14 +1,17 @@
-# Welcome to your CDK TypeScript project
+## 注意点
 
-This is a blank project for CDK development with TypeScript.
+CodePipelineやCodeBuildの設定を変更する場合はローカルでデプロイすること
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+## 利用可能なModelId確認方法
 
-## Useful commands
+```bash
+aws bedrock list-foundation-models \
+    --region ap-northeast-1 \
+    --query 'modelSummaries[*].[modelId, modelName]' \
+    --output table
 
-* `npm run build`   compile typescript to js
-* `npm run watch`   watch for changes and compile
-* `npm run test`    perform the jest unit tests
-* `npx cdk deploy`  deploy this stack to your default AWS account/region
-* `npx cdk diff`    compare deployed stack with current state
-* `npx cdk synth`   emits the synthesized CloudFormation template
+aws bedrock list-inference-profiles \
+    --region ap-northeast-1 \
+    --query 'inferenceProfileSummaries[*].[inferenceProfileId, status]' \
+    --output table
+```

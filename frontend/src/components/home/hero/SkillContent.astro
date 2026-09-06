@@ -1,0 +1,66 @@
+---
+import type { SkillItem } from "./skill.types";
+import Badge from "../../shared/Badge.astro";
+
+const {
+  icon: Icon,
+  title,
+  textColor,
+  badgeColor,
+  tooltips,
+  description,
+} = Astro.props as SkillItem;
+---
+
+<Icon />
+
+<!-- pタグでView Transitionすると微妙におかしいため、div + spanにすること -->
+<!-- おそらくblockだと適切に動作しない、inlineのspanを利用する -->
+<div class={`mt-3 text-lg font-semibold ${textColor}`}>
+  <span data-skill-title>
+    {title}
+  </span>
+</div>
+
+<div class={`mt-2 flex flex-wrap gap-1.5 ${textColor}`}>
+  {
+    tooltips.map((item, index) => (
+      <Badge color={badgeColor} rounded="md" border data-skill-tooltip={index}>
+        {item}
+      </Badge>
+    ))
+  }
+</div>
+
+<div
+  data-skill-description-wrapper
+  class="skill-card-description w-full mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300"
+>
+  <span data-skill-description>
+    {description}
+  </span>
+</div>
+
+<button
+  data-close-button
+  class="opacity-0 h-0 block ml-auto
+         rounded-md border border-current bg-transparent text-sm font-medium
+         hover:bg-current/10 transition focus:outline-none cursor-pointer"
+>
+  閉じる
+</button>
+
+<style>
+  .skill-card-description {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Skill.astroのscriptからdata-close-buttonに対して付け外しする */
+  .close-button {
+    margin-top: 16px;
+    padding-inline: 16px;
+    padding-block: 8px;
+  }
+</style>

@@ -1,0 +1,37 @@
+---
+import BlogSection from "./BlogSection.tsx";
+import SectionHeading from "../../shared/SectionHeading.astro";
+---
+
+<SectionHeading id="blog" data-blog-title
+  >See Me in Words</SectionHeading
+>
+
+<BlogSection client:visible />
+
+<script>
+  import { initSectionHeadingAnimation } from "../../../lib/sectionHeadingAnimation";
+
+  const blogTitleEl = document.querySelector("[data-blog-title]");
+  if (!blogTitleEl) throw new Error("Blog title element not found");
+  const tl = initSectionHeadingAnimation(blogTitleEl);
+
+  tl.to(
+    ".blog-search",
+    {
+      autoAlpha: 1,
+      stagger: 0.12,
+      duration: 0.35,
+      ease: "power2.out",
+    },
+    "-=0.1",
+  ).to(
+    ".blog-carousel",
+    {
+      autoAlpha: 1,
+      duration: 0.35,
+      ease: "power2.out",
+    },
+    "-=0.1",
+  );
+</script>

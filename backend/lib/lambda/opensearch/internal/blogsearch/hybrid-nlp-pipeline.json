@@ -1,0 +1,18 @@
+{
+  "description": "Post processor for hybrid normalization search",
+  "phase_results_processors": [
+    {
+      "normalization-processor": {
+        "combination": {
+          "parameters": {
+            "weights": [0.3, 0.7]
+          },
+          "technique": "arithmetic_mean"
+        },
+        "normalization": {
+          "technique": "min_max"
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+---
+import Header from "./Header.astro";
+import Footer from "./Footer.astro";
+import Head from "./Head.astro";
+import Avatar from "../components/avatar/Avatar.tsx";
+import "../styles/global.css";
+import Loading from "./loading/Loading.astro";
+import ErrorDialog from "./error-dialog/ErrorDialog.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  ogType?: "website" | "article";
+  noindex?: boolean;
+  jsonLd?: Record<string, unknown>[];
+}
+---
+
+<!doctype html>
+<html lang="ja">
+  <head>
+    <Head {...Astro.props} />
+
+    <script is:inline>
+      // デフォルトはダークモード、localStorageにtheme設定がある場合はそれを優先
+      const savedTheme = localStorage.getItem("theme");
+      const isDarkMode = savedTheme !== null ? savedTheme === "dark" : true;
+      document.documentElement.classList.toggle("dark", isDarkMode);
+      if (savedTheme === null) {
+        localStorage.setItem("theme", "dark");
+      }
+    </script>
+
+    <script>
+      import { registerSW } from "virtual:pwa-register";
+      import { hideLoadingOverlay } from "./loading/loadingOverlay";
+
+      registerSW({
+        onRegisterError(error) {
+          console.error(error);
+        },
+      });
+
+      const DESKTOP_MEDIA_QUERY = "(min-width: 64rem)";
+      const OVERLAY_FALLBACK_MS = 8000;
+
+      if (!window.matchMedia(DESKTOP_MEDIA_QUERY).matches) {
+        if (document.readyState === "complete") {
+          hideLoadingOverlay();
+        } else {
+          window.addEventListener("load", () => hideLoadingOverlay(), {
+            once: true,
+          });
+        }
+        window.setTimeout(() => hideLoadingOverlay(), OVERLAY_FALLBACK_MS);
+      }
+    </script>
+  </head>
+  <body
+    class="flex flex-col bg-no-repeat bg-center bg-cover bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200"
+  >
+    <Loading />
+    <div class="hidden lg:block fixed top-16 inset-x-0 bottom-0 z-0 pointer-events-none">
+      <div id="avatar-stage" class="absolute top-0 h-full w-full">
+        <Avatar client:media="(min-width: 64rem)" />
+      </div>
+    </div>
+    <ErrorDialog />
+    <Header />
+    <div class="flex flex-1 pt-16 max-w-7xl mx-auto px-3 lg:px-4 w-full">
+      <main
+        class="relative z-10 my-2 w-full lg:my-4 lg:mr-4 lg:ml-auto lg:w-[calc((2*100%-4rem)/3)]"
+      >
+        <slot />
+      </main>
+    </div>
+    <Footer />
+  </body>
+</html>

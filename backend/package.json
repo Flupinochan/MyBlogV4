@@ -1,26 +1,39 @@
 {
-  "name": "backend",
-  "version": "0.1.0",
   "bin": {
     "backend": "bin/backend.js"
   },
-  "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
-    "test": "jest",
-    "cdk": "cdk"
+  "dependencies": {
+    "@aws-cdk/aws-bedrock-agentcore-alpha": "^2.247.0-alpha.0",
+    "@aws-cdk/aws-lambda-go-alpha": "^2.252.0-alpha.0",
+    "@aws-cdk/aws-lambda-python-alpha": "^2.248.0-alpha.0",
+    "@aws-lambda-powertools/event-handler": "^2.32.0",
+    "@aws-lambda-powertools/parser": "^2.32.0",
+    "@aws-sdk/client-bedrock-agentcore": "^3.1024.0",
+    "@aws/durable-execution-sdk-js": "^1.1.0",
+    "@strands-agents/sdk": "^1.0.0-rc.3",
+    "aws-cdk-lib": "^2.243.0",
+    "aws-lambda": "^1.0.7",
+    "constructs": "^10.5.0",
+    "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@aws-lambda-powertools/logger": "^2.32.0",
+    "@types/aws-lambda": "^8.10.161",
     "@types/jest": "^30",
-    "@types/node": "^24.10.1",
+    "@types/node": "^24.12.0",
+    "aws-cdk": "2.1112.0",
     "jest": "^30",
     "ts-jest": "^29",
-    "aws-cdk": "2.1112.0",
     "ts-node": "^10.9.2",
     "typescript": "~5.9.3"
   },
-  "dependencies": {
-    "aws-cdk-lib": "^2.243.0",
-    "constructs": "^10.5.0"
-  }
+  "name": "backend",
+  "scripts": {
+    "build": "tsc",
+    "cdk": "cdk",
+    "deploy": "cdk deploy --all --parallel --ci --require-approval never",
+    "test": "jest",
+    "watch": "tsc -w"
+  },
+  "version": "0.1.0"
 }

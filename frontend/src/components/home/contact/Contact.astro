@@ -1,0 +1,40 @@
+---
+import SectionHeading from "../../shared/SectionHeading.astro";
+import ContactSection from "./ContactSection";
+---
+
+<SectionHeading id="contact" class="scroll-mt-16" data-contact-title
+  >See Me in Contact</SectionHeading
+>
+<div
+  class="grid grid-cols-1 lg:grid-cols-2 gap-y-10 lg:gap-y-0 lg:gap-x-8 items-start"
+>
+  <ContactSection client:visible />
+  <img
+    src="/contact.avif"
+    alt="お問い合わせのイメージイラスト"
+    width="501"
+    height="500"
+    loading="lazy"
+    class="contact-gsap hidden lg:block w-full h-auto -translate-y-4"
+  />
+</div>
+
+<script>
+  import { initSectionHeadingAnimation } from "../../../lib/sectionHeadingAnimation";
+
+  const title = document.querySelector("[data-contact-title]");
+  if (!title) throw new Error("Contact title element not found");
+  const tl = initSectionHeadingAnimation(title);
+
+  tl.to(
+    ".contact-gsap",
+    {
+      autoAlpha: 1,
+      stagger: 0.12,
+      duration: 0.35,
+      ease: "power2.out",
+    },
+    "-=0.1",
+  );
+</script>
