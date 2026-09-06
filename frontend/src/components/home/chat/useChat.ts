@@ -111,8 +111,8 @@ export function useChat() {
     },
   });
 
-  const handleSubmit = () => {
-    const trimmedMessage = inputMessage.trim();
+  const sendMessage = (text: string) => {
+    const trimmedMessage = text.trim();
     if (!trimmedMessage || chatDetectMutation.isPending || !currentHistory) return;
 
     const isFirst = messages.length === 0;
@@ -129,11 +129,34 @@ export function useChat() {
         messages: [...h.messages, newUserMessage],
       }));
     });
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
     chatDetectMutation.mutate(
       { messages: [...messages, newUserMessage], withVoice, isFirst, userId: userIdRef.current, conversationId: currentHistory.conversationId },
       {
+        onError: async () => {
+          const conversationId = currentHistory.conversationId;
+          if (!conversationId) {
+            updateCurrentHistory((h) => ({
+              ...h,
+              messages: h.messages.filter((m) => m.id !== newUserMessage.id),
+            }));
+            return;
+          }
+          try {
+            const conversations = await getConversations(userIdRef.current);
+            const synced = conversations.find((c) => c.id === conversationId);
+            if (!synced) return;
+            updateCurrentHistory((h) => ({
+              ...h,
+              name: synced.title,
+              updatedAt: synced.updated_at,
+              messages: synced.messages,
+            }));
+          } catch (e) {
+            console.error("会話履歴の再同期に失敗しました:", e);
+          }
+        },
         onSuccess: async ({ chatResult, lang, conversationId }) => {
           flushSync(() => {
             updateCurrentHistory((h) => ({
@@ -146,7 +169,7 @@ export function useChat() {
               ],
             }));
           });
-          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
           if ("voice_path" in chatResult) {
             try {
               await new Audio(chatResult.voice_path).play();
@@ -172,6 +195,8 @@ export function useChat() {
       },
     );
   };
+
+  const handleSubmit = () => sendMessage(inputMessage);
 
   const handleNewHistory = () => {
     const newId = new Date().toISOString();
@@ -203,6 +228,7 @@ export function useChat() {
     setIsNavOpen,
     messagesEndRef,
     chatDetectMutation,
+    sendMessage,
     handleSubmit,
     handleNewHistory,
     handleKeyDown,

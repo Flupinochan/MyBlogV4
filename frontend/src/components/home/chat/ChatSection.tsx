@@ -23,6 +23,7 @@ function ChatContent() {
     setIsNavOpen,
     messagesEndRef,
     chatDetectMutation,
+    sendMessage,
     handleSubmit,
     handleNewHistory,
     handleKeyDown,
@@ -47,6 +48,7 @@ function ChatContent() {
           isPending={chatDetectMutation.isPending}
           error={chatDetectMutation.error ?? undefined}
           messagesEndRef={messagesEndRef}
+          onSuggestionClick={sendMessage}
         />
       </div>
 

@@ -5,7 +5,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 
 from aws_lambda_powertools import Logger
-from sqlalchemy import select, update
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 from sqlalchemy.orm import selectinload
 
@@ -69,27 +69,38 @@ class DbService:
     async def save_messages(
         self,
         conversation_id: str,
-        messages: list[tuple[str, str, int]],
+        messages: list[tuple[str, str]],
     ) -> None:
         now = datetime.now(timezone.utc)
-        orm_messages = [
-            MessageOrm(
-                conversation_id=uuid.UUID(conversation_id),
-                role=role,
-                content=content,
-                position=position,
-                created_at=now,
-                updated_at=now,
-            )
-            for role, content, position in messages
-        ]
         async with AsyncSession(self._engine) as session:
-            session.add_all(orm_messages)
-            await session.execute(
-                update(ConversationOrm)
-                .where(ConversationOrm.id == uuid.UUID(conversation_id))
-                .values(updated_at=now)
+            conversation = await session.get(
+                ConversationOrm,
+                uuid.UUID(conversation_id),
+                with_for_update=True,
             )
+            if conversation is None:
+                return
+
+            max_position = await session.scalar(
+                select(func.coalesce(func.max(MessageOrm.position), -1)).where(
+                    MessageOrm.conversation_id == uuid.UUID(conversation_id)
+                )
+            )
+            next_position = (max_position or -1) + 1
+
+            orm_messages = [
+                MessageOrm(
+                    conversation_id=uuid.UUID(conversation_id),
+                    role=role,
+                    content=content,
+                    position=next_position + offset,
+                    created_at=now,
+                    updated_at=now,
+                )
+                for offset, (role, content) in enumerate(messages)
+            ]
+            session.add_all(orm_messages)
+            conversation.updated_at = now
             await session.commit()
 
     async def update_conversation_title(

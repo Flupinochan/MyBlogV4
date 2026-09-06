@@ -32,7 +32,6 @@ async def chat(
             "新しいチャット",
         )
 
-    user_msg_position = len(request.messages) - 1
     new_user_msg = request.messages[-1]
 
     message = chat_service.generate_message(
@@ -42,8 +41,8 @@ async def chat(
     await db_service.save_messages(
         conversation_id,
         [
-            (new_user_msg.role, new_user_msg.content, user_msg_position),
-            ("assistant", message, user_msg_position + 1),
+            (new_user_msg.role, new_user_msg.content),
+            ("assistant", message),
         ],
     )
 
@@ -64,7 +63,6 @@ async def chat_with_voice(
             "新しいチャット",
         )
 
-    user_msg_position = len(request.messages) - 1
     new_user_msg = request.messages[-1]
 
     message = chat_service.generate_message(
@@ -75,8 +73,8 @@ async def chat_with_voice(
     await db_service.save_messages(
         conversation_id,
         [
-            (new_user_msg.role, new_user_msg.content, user_msg_position),
-            ("assistant", message, user_msg_position + 1),
+            (new_user_msg.role, new_user_msg.content),
+            ("assistant", message),
         ],
     )
 
