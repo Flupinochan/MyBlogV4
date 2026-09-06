@@ -15,7 +15,11 @@ export class VoicevoxApiGatewayStack extends cdk.Stack {
   public readonly api: apigateway.RestApi;
   public readonly logGroup: logs.LogGroup;
 
-  constructor(scope: Construct, id: string, props: VoicevoxApiGatewayStackProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: VoicevoxApiGatewayStackProps,
+  ) {
     super(scope, id, props);
 
     this.logGroup = new logs.LogGroup(this, "ApiLogGroup", {
@@ -25,6 +29,10 @@ export class VoicevoxApiGatewayStack extends cdk.Stack {
 
     this.api = new apigateway.RestApi(this, "Api", {
       restApiName: `MyBlogV4-Voicevox-${props.domainName}`,
+      // デフォルトのEdgeはtimeoutが伸ばせない。Regionalを指定
+      endpointConfiguration: {
+        types: [apigateway.EndpointType.REGIONAL],
+      },
       cloudWatchRole: true,
       defaultCorsPreflightOptions: {
         allowOrigins: [

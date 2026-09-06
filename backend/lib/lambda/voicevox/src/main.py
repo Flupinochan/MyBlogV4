@@ -66,19 +66,22 @@ user_dict = UserDict()
 user_dict.add_word(user_dict_word)
 open_jtalk = OpenJtalk(OPEN_JTALK_PATH)
 open_jtalk.use_user_dict(user_dict)
+onnxruntime = Onnxruntime.load_once(filename=ONNX_RUNTIME_PATH)
 
-# 1. Synthesizerの初期化
-## Lambdaの場合は1,769MBで1vCPU相当
-synthesizer = Synthesizer(
-    Onnxruntime.load_once(filename=ONNX_RUNTIME_PATH),
-    open_jtalk,
-    acceleration_mode="CPU",
-    cpu_num_threads=multiprocessing.cpu_count(),
-)
 
-# 2. 音声モデルの読み込み
-with VoiceModelFile.open(MODEL_PATH) as model:
-    synthesizer.load_voice_model(model)
+def create_synthesizer() -> Synthesizer:
+    # ONNX Runtimeのメモリアリーナがリクエストを重ねるたびに肥大化するため
+    # VoiceServiceが一定回数ごとにSynthesizerを作り直せるようファクトリ化している
+    ## Lambdaの場合は1,769MBで1vCPU相当
+    synthesizer = Synthesizer(
+        onnxruntime,
+        open_jtalk,
+        acceleration_mode="CPU",
+        cpu_num_threads=multiprocessing.cpu_count(),
+    )
+    with VoiceModelFile.open(MODEL_PATH) as model:
+        synthesizer.load_voice_model(model)
+    return synthesizer
 
 
 @asynccontextmanager
@@ -92,7 +95,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     app.state.engine = engine
     app.state.chat_service = ChatService(client=AnthropicAWS())
     app.state.voice_service = VoiceService(
-        synthesizer=synthesizer,
+        synthesizer_factory=create_synthesizer,
         s3_client=s3_client,
         bucket_name=VOICE_OUTPUT_BUCKET_NAME,
     )

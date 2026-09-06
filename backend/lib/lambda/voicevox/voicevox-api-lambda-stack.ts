@@ -106,7 +106,7 @@ export class VoicevoxApiLambdaStack extends cdk.Stack {
       }),
       architecture: lambda.Architecture.X86_64,
       timeout: Duration.seconds(60),
-      memorySize: 1024,
+      memorySize: 3008,
       logGroup: this.logGroup,
       loggingFormat: lambda.LoggingFormat.JSON,
       applicationLogLevelV2: lambda.ApplicationLogLevel.DEBUG,
