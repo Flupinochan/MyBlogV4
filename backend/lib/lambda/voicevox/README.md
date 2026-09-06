@@ -2,6 +2,9 @@
 
 ## Build & Deploy
 
+
+### Manual
+
 ```bash
 # ビルド
 uv pip compile pyproject.toml -o requirements.txt
@@ -31,6 +34,35 @@ curl -X POST http://localhost:9000/2015-03-31/functions/function/invocations -d 
 ```
 
 [Guide](https://github.com/VOICEVOX/voicevox_core/blob/main/docs/guide/user/usage.md)
+
+### Prod
+
+#### 設定ファイル
+
+`backend/bin/env/prod.ts`
+
+#### 初回
+
+```bash
+# 1. tar化
+tar -czf backend/lib/lambda/voicevox/voicevox.tar.gz -C backend/lib/lambda/voicevox voicevox
+# 2. VoicevoxBucketStackのみデプロイ
+make deploy-target ENV_NAME=prod STACK_NAME=prod-myblogv4-VoicevoxBucketStack
+# 3. S3へアップロード
+aws s3 cp backend/lib/lambda/voicevox/voicevox.tar.gz s3://prod-myblogv4-voicevox-bucket/voicevox.tar.gz
+# 4. VoicevoxEcrStackのみデプロイ
+make deploy-target ENV_NAME=prod STACK_NAME=prod-myblogv4-VoicevoxEcrStack
+# 5. 残り全スタックをデプロイ
+make deploy-all ENV_NAME=prod
+# 6. Route53へのドメイン設定
+```
+
+#### 2回目以降
+
+```bash
+make deploy-all ENV_NAME=prod
+# もしくはmasterへのPRマージでトリガー
+```
 
 ## Downloaderを利用
 

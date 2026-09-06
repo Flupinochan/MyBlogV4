@@ -4,7 +4,7 @@ SHELL := /bin/bash
 
 ENV_NAME := dev
 AWS_REGION := ap-northeast-1
-ECR_NAME := dev-myblogv4-voicevox-ecr
+ECR_NAME := $(ENV_NAME)-myblogv4-voicevox-ecr
 
 .PHONY: help fastapi huma astro list deploy-all deploy-target _deploy \
         _gen-openapi-voicevox _gen-ts-types-voicevox gen-api-types-voicevox \

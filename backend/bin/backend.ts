@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 import * as cdk from "aws-cdk-lib/core";
-import { OpenSearchApiGatewayStack } from "../lib/lambda/opensearch/opensearch-apigateway-stack";
 import { HostingPipelineStack } from "../lib/hosting-pipeline-stack";
 import { HostingStack } from "../lib/hosting-stack";
-import { VoicevoxApiGatewayStack } from "../lib/lambda/voicevox/voicevox-apigateway-stack";
 import { OpenSearchApiLambdaStack } from "../lib/lambda/opensearch/opensearch-api-lambda-stack";
+import { OpenSearchApiGatewayStack } from "../lib/lambda/opensearch/opensearch-apigateway-stack";
 import { OpenSearchBatchLambdaStack } from "../lib/lambda/opensearch/opensearch-batch-lambda-stack";
+import { VoicevoxApiLambdaStack } from "../lib/lambda/voicevox/voicevox-api-lambda-stack";
+import { VoicevoxApiGatewayStack } from "../lib/lambda/voicevox/voicevox-apigateway-stack";
 import { VoicevoxBucketStack } from "../lib/lambda/voicevox/voicevox-bucket-stack";
 import { VoicevoxEcrStack } from "../lib/lambda/voicevox/voicevox-ecr-stack";
-import { VoicevoxApiLambdaStack } from "../lib/lambda/voicevox/voicevox-api-lambda-stack";
 import { getEnvConfig, isProd } from "./env";
 
 const app = new cdk.App();
@@ -52,9 +52,13 @@ new VoicevoxBucketStack(app, `${stackBaseName}-VoicevoxBucketStack`, {
   voicevoxBucketName,
 });
 
-new VoicevoxEcrStack(app, `${stackBaseName}-VoicevoxEcrStack`, {
-  voicevoxEcrName,
-});
+const voicevoxEcrStack = new VoicevoxEcrStack(
+  app,
+  `${stackBaseName}-VoicevoxEcrStack`,
+  {
+    voicevoxEcrName,
+  },
+);
 
 // CodeBuildでビルドした際に引数からImageTag名を取得
 // ローカルからデプロイする際は注意
@@ -66,17 +70,21 @@ const imageTag =
 //   throw new Error("SYNTHESIZE_VOICE_IMAGE_REF is required");
 // }
 
-new VoicevoxApiLambdaStack(app, `${stackBaseName}-VoicevoxLambdaStack`, {
-  voicevoxLambdaName,
-  voicevoxEcrName,
-  imageTag,
-  createdVoiceOutputBucketName: hostingBucketName,
-  claudeApiKeyParam,
-  claudeWorkspaceIdParam,
-  postgresqlUrlParam,
-  contactEmailAddress,
-  contactConfigurationSetName,
-});
+const voicevoxLambdaStack = new VoicevoxApiLambdaStack(
+  app,
+  `${stackBaseName}-VoicevoxLambdaStack`,
+  {
+    voicevoxLambdaName,
+    voicevoxEcrName,
+    imageTag,
+    createdVoiceOutputBucketName: hostingBucketName,
+    claudeApiKeyParam,
+    claudeWorkspaceIdParam,
+    postgresqlUrlParam,
+    contactEmailAddress,
+    contactConfigurationSetName,
+  },
+);
 
 new OpenSearchBatchLambdaStack(app, `${stackBaseName}-OpenSearchBatchStack`, {
   openSearchBatchLambdaName,
@@ -97,31 +105,43 @@ new OpenSearchBatchLambdaStack(app, `${stackBaseName}-OpenSearchBatchStack`, {
   blogBranchName,
 });
 
-new OpenSearchApiLambdaStack(app, `${stackBaseName}-OpenSearchApiStack`, {
-  openSearchApiFunctionName: openSearchApiLambdaName,
-  openSearchUrlParam: cfg.openSearchUrlParam,
-  openSearchPortParam: cfg.openSearchPortParam,
-  openSearchUserParam: cfg.openSearchUserParam,
-  openSearchPassParam: cfg.openSearchPassParam,
-  aliasName,
-  aliasNameEmbedding,
-  modelId: cfg.modelId,
-  modelIdEmbedding: cfg.modelIdEmbedding,
-});
+const openSearchApiLambdaStack = new OpenSearchApiLambdaStack(
+  app,
+  `${stackBaseName}-OpenSearchApiStack`,
+  {
+    openSearchApiFunctionName: openSearchApiLambdaName,
+    openSearchUrlParam: cfg.openSearchUrlParam,
+    openSearchPortParam: cfg.openSearchPortParam,
+    openSearchUserParam: cfg.openSearchUserParam,
+    openSearchPassParam: cfg.openSearchPassParam,
+    aliasName,
+    aliasNameEmbedding,
+    modelId: cfg.modelId,
+    modelIdEmbedding: cfg.modelIdEmbedding,
+  },
+);
 
-const blogSearchApiStack = new OpenSearchApiGatewayStack(app, `${stackBaseName}-BlogSearchApiStack`, {
-  domainName: cfg.hostingDomainName,
-  blogSearchApiPath,
-  isProd: isProd(envName),
-  openSearchApiLambdaName,
-});
+const blogSearchApiStack = new OpenSearchApiGatewayStack(
+  app,
+  `${stackBaseName}-BlogSearchApiStack`,
+  {
+    domainName: cfg.hostingDomainName,
+    blogSearchApiPath,
+    isProd: isProd(envName),
+    openSearchApiLambdaName,
+  },
+);
 
-const voicevoxApiStack = new VoicevoxApiGatewayStack(app, `${stackBaseName}-VoicevoxApiStack`, {
-  domainName: cfg.hostingDomainName,
-  voicevoxApiPath,
-  isProd: isProd(envName),
-  voicevoxLambdaName,
-});
+const voicevoxApiStack = new VoicevoxApiGatewayStack(
+  app,
+  `${stackBaseName}-VoicevoxApiStack`,
+  {
+    domainName: cfg.hostingDomainName,
+    voicevoxApiPath,
+    isProd: isProd(envName),
+    voicevoxLambdaName,
+  },
+);
 
 const hostingStack = new HostingStack(app, `${stackBaseName}-HostingStack`, {
   envName,
@@ -146,3 +166,9 @@ new HostingPipelineStack(app, `${stackBaseName}-HostingPipelineStack`, {
   dockerhubUserParam,
   dockerhubPasswordParam,
 });
+
+// スタック名の文字列渡しはCloudFormationの参照を生成せず、CDKが依存関係を認識できないため明示する
+// 逆に作りなおしたい場合などで依存を消したい場合はコメントアウトすること
+voicevoxLambdaStack.addDependency(voicevoxEcrStack);
+voicevoxApiStack.addDependency(voicevoxLambdaStack);
+blogSearchApiStack.addDependency(openSearchApiLambdaStack);

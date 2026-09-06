@@ -2,7 +2,7 @@ import { EnvConfig } from "./index";
 
 export const config: EnvConfig = {
   envName: "prod",
-  hostingDomainName: "blog.metalmental.net",
+  hostingDomainName: "www.metalmental.net",
   hostingBranchName: "master",
   modelId: "apac.amazon.nova-micro-v1:0",
   modelIdEmbedding: "amazon.titan-embed-text-v2:0",
