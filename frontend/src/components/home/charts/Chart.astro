@@ -149,13 +149,14 @@ const commitStats = await getGitHubCommitStats();
 </style>
 
 <script>
-  import { initChartAnimation, isAnimating } from "./main";
   import { initSectionHeadingAnimation } from "../../../lib/sectionHeadingAnimation";
 
   const chartTitleEl = document.querySelector("[data-chart-title]");
   if (!chartTitleEl) {
     throw new Error("Chart title element not found");
   }
+
+  const { initChartAnimation, isAnimating } = await import("./main");
 
   const tl = initSectionHeadingAnimation(chartTitleEl, {
     onStart: () => isAnimating.set(true),

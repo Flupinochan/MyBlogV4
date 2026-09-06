@@ -65,8 +65,8 @@ function ChatContent() {
           rows={2}
           className="timeline-gsap form-textarea custom-scrollbar"
         />
-        <div className="timeline-gsap flex items-center justify-between">
-          <div className="flex rounded-xl border border-slate-300 dark:border-slate-700">
+        <div className="timeline-gsap flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
+          <div className="flex rounded-xl border border-slate-300 dark:border-slate-700 self-end">
             <button
               type="button"
               onClick={() => setWithVoice(false)}
@@ -87,7 +87,7 @@ function ChatContent() {
           <button
             type="submit"
             disabled={chatDetectMutation.isPending || !inputMessage.trim()}
-            className="outline-button gap-2"
+            className="outline-button gap-2 self-end"
           >
             <LuSend size={14} />
             送信

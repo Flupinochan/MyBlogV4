@@ -171,7 +171,12 @@ export class HostingPipelineStack extends cdk.Stack {
                 --include "*.png" \
                 --include "*.ico" \
                 --include "*.gif" \
-                --include "*gltf.glb" \
+                --cache-control "public, max-age=86400"`,
+              // gltf.glbはCloudFrontの自動圧縮対象Content-Typeに含まれないため手動でbrotli圧縮する
+              `node -e "const z=require('zlib'),f=require('fs'),p='$CODEBUILD_SRC_DIR/frontend/dist/gltf.glb';f.writeFileSync(p,z.brotliCompressSync(f.readFileSync(p)))"`,
+              `aws s3 cp $CODEBUILD_SRC_DIR/frontend/dist/gltf.glb s3://${props.hostingBucketName}/gltf.glb \
+                --content-encoding br \
+                --content-type model/gltf-binary \
                 --cache-control "public, max-age=86400"`,
               // finally invalidate CloudFront
               `aws cloudfront create-invalidation --distribution-id ${props.hostingDistributionId} --paths "/*"`,

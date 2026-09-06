@@ -9,12 +9,13 @@ import ContactSection from "./ContactSection";
 <div
   class="grid grid-cols-1 lg:grid-cols-2 gap-y-10 lg:gap-y-0 lg:gap-x-8 items-start"
 >
-  <ContactSection client:idle />
+  <ContactSection client:visible />
   <img
     src="/contact.avif"
     alt="お問い合わせのイメージイラスト"
     width="501"
     height="500"
+    loading="lazy"
     class="contact-gsap hidden lg:block w-full h-auto -translate-y-4"
   />
 </div>

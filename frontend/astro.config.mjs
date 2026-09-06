@@ -28,7 +28,7 @@ export default defineConfig({
         theme_color: "#8E51FF",
         background_color: "#0F172A",
         icons: [
-          { src: "/image-512x512.png", sizes: "512x512", type: "image/png" },
+          { src: "/image-512x512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
           { src: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
           { src: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
         ],
