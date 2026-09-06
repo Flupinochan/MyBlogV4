@@ -7,12 +7,17 @@ type MessageListProps = {
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
 };
 
-export default function MessageList({ messages, isPending, error, messagesEndRef }: MessageListProps) {
+export default function MessageList({
+  messages,
+  isPending,
+  error,
+  messagesEndRef,
+}: MessageListProps) {
   return (
     <div className="custom-scrollbar flex w-full flex-col gap-3 overflow-y-auto p-4">
       {messages.length === 0 && (
         <p className="m-auto text-sm text-slate-400">
-          メッセージを入力して送信してください
+          経歴やスキルについてお気軽にご質問ください!
         </p>
       )}
       {messages.map((msg) => (
@@ -33,7 +38,10 @@ export default function MessageList({ messages, isPending, error, messagesEndRef
         </p>
       )}
       {isPending && (
-        <div className="flex justify-start items-center space-x-1" aria-label="読み込み中">
+        <div
+          className="flex justify-start items-center space-x-1"
+          aria-label="読み込み中"
+        >
           <div className="h-1 w-1 rounded-full bg-slate-500 animate-pulse" />
           <div className="h-1 w-1 rounded-full bg-slate-500 animate-pulse [animation-delay:150ms]" />
           <div className="h-1 w-1 rounded-full bg-slate-500 animate-pulse [animation-delay:300ms]" />
