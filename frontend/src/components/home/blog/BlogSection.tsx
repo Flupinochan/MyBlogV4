@@ -1,4 +1,4 @@
-import { useState, useDeferredValue } from "react";
+import { useState, useDeferredValue, useEffect } from "react";
 import { Badge } from "../../shared/Badge";
 import {
   useInfiniteQuery,
@@ -9,6 +9,7 @@ import {
 import EmblaCarousel from "./carousel/EmblaCarousel";
 import { type EmblaOptionsType } from "embla-carousel";
 import "./blog.css";
+import { ScrollTrigger } from "../../../lib/gsap";
 import {
   fetchBlogs,
   fetchTopics,
@@ -227,6 +228,10 @@ function BlogCarousel() {
     ? [...rawBlogs].sort((a, b) => (b.score ?? 0) - (a.score ?? 0))
     : rawBlogs;
   const slides = blogs.map((blog) => <BlogCard key={blog.slug} blog={blog} />);
+
+  useEffect(() => {
+    ScrollTrigger.refresh();
+  }, [isLoading, blogs.length]);
 
   return (
     <section className="flex flex-col">

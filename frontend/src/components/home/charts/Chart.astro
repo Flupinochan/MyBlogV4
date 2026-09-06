@@ -149,6 +149,7 @@ const commitStats = await getGitHubCommitStats();
 </style>
 
 <script>
+  import { ScrollTrigger } from "../../../lib/gsap";
   import { initSectionHeadingAnimation } from "../../../lib/sectionHeadingAnimation";
 
   const chartTitleEl = document.querySelector("[data-chart-title]");
@@ -157,6 +158,7 @@ const commitStats = await getGitHubCommitStats();
   }
 
   const { initChartAnimation, isAnimating } = await import("./main");
+  ScrollTrigger.refresh();
 
   const tl = initSectionHeadingAnimation(chartTitleEl, {
     onStart: () => isAnimating.set(true),
