@@ -111,8 +111,8 @@ export function useChat() {
     },
   });
 
-  const handleSubmit = () => {
-    const trimmedMessage = inputMessage.trim();
+  const sendMessage = (text: string) => {
+    const trimmedMessage = text.trim();
     if (!trimmedMessage || chatDetectMutation.isPending || !currentHistory) return;
 
     const isFirst = messages.length === 0;
@@ -129,7 +129,7 @@ export function useChat() {
         messages: [...h.messages, newUserMessage],
       }));
     });
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
 
     chatDetectMutation.mutate(
       { messages: [...messages, newUserMessage], withVoice, isFirst, userId: userIdRef.current, conversationId: currentHistory.conversationId },
@@ -169,7 +169,7 @@ export function useChat() {
               ],
             }));
           });
-          messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+          messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
           if ("voice_path" in chatResult) {
             try {
               await new Audio(chatResult.voice_path).play();
@@ -195,6 +195,8 @@ export function useChat() {
       },
     );
   };
+
+  const handleSubmit = () => sendMessage(inputMessage);
 
   const handleNewHistory = () => {
     const newId = new Date().toISOString();
@@ -226,6 +228,7 @@ export function useChat() {
     setIsNavOpen,
     messagesEndRef,
     chatDetectMutation,
+    sendMessage,
     handleSubmit,
     handleNewHistory,
     handleKeyDown,

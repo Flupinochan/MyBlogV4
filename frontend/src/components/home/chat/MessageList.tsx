@@ -1,10 +1,18 @@
 import type { Message } from "./useChat";
 
+const SUGGESTED_QUESTIONS = [
+  "長所を教えて",
+  "直近の経歴を教えて",
+  "得意な技術スタックを教えて",
+  "今後挑戦したいことを教えて",
+];
+
 type MessageListProps = {
   messages: Message[];
   isPending: boolean;
   error: Error | undefined;
   messagesEndRef: React.RefObject<HTMLDivElement | null>;
+  onSuggestionClick: (text: string) => void;
 };
 
 export default function MessageList({
@@ -12,13 +20,28 @@ export default function MessageList({
   isPending,
   error,
   messagesEndRef,
+  onSuggestionClick,
 }: MessageListProps) {
   return (
     <div className="custom-scrollbar flex w-full flex-col gap-3 overflow-y-auto p-4">
       {messages.length === 0 && (
-        <p className="m-auto text-sm text-slate-400">
-          経歴やスキルについてお気軽にご質問ください!
-        </p>
+        <div className="m-auto flex w-full max-w-xs flex-col items-center gap-4">
+          <p className="text-sm text-slate-400">
+            経歴やスキルについてお気軽にご質問ください!
+          </p>
+          <div className="flex w-full flex-col gap-2">
+            {SUGGESTED_QUESTIONS.map((question) => (
+              <button
+                key={question}
+                type="button"
+                onClick={() => onSuggestionClick(question)}
+                className="chat-suggestion-chip"
+              >
+                {question}
+              </button>
+            ))}
+          </div>
+        </div>
       )}
       {messages.map((msg) => (
         <p
