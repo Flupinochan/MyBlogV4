@@ -5,6 +5,7 @@ import { config as prodConfig } from "./prod";
 export interface EnvConfig {
   envName: string;
   hostingDomainName: string;
+  alternateDomainName?: string;
   hostingBranchName: string;
   modelId: string;
   modelIdEmbedding: string;
