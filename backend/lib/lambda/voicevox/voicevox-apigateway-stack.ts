@@ -85,6 +85,7 @@ export class VoicevoxApiGatewayStack extends cdk.Stack {
     this.api.root.addProxy({
       defaultIntegration: new apigateway.LambdaIntegration(voicevoxLambda, {
         proxy: true,
+        timeout: cdk.Duration.seconds(60),
       }),
       anyMethod: true,
     });
