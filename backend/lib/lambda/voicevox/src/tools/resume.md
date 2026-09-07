@@ -181,16 +181,16 @@ Landing Zoneのサービス終了に伴う基盤刷新が必要だったため�
 
 | 分野               | 技術                                                       |
 | ------------------ | ---------------------------------------------------------- |
-| ガバナンス         | ControlTower、Organizations、SCP、ServiceCatalog、RAM      |
+| ガバナンス         | Control Tower、Organizations、SCP、ServiceCatalog、RAM     |
 | IaC・CI/CD         | CDK (TypeScript)、CloudFormation、CodePipeline             |
 | 自動化             | Boto3 (Python)、StepFunctions、SystemsManager、EventBridge |
-| ネットワーク       | DirectConnect、TransitGateway、Route53、NetworkManager     |
+| ネットワーク       | Direct Connect、Transit Gateway、Route53、NetworkManager   |
 | コンピューティング | ECS、Lambda、EC2ImageBuilder                               |
 | コスト分析         | Budgets、ComputeOptimizer、TrustedAdvisor、CostExplorer    |
 | ログ分析           | Glue、Athena、X-Ray                                        |
 | アラート           | CloudWatch、Health、GuardDuty、Config                      |
 | テスト             | Moto                                                       |
-| ツール             | Jira、VSCode、draw.io                                      |
+| ツール             | Jira、Visual Studio Code、draw.io                          |
 
 ##### 組織貢献
 
@@ -226,7 +226,7 @@ Landing Zoneのサービス終了に伴う基盤刷新が必要だったため�
 | 分野         | 技術                                                                  |
 | ------------ | --------------------------------------------------------------------- |
 | 仮想化       | ESXi 7.0.2、VCSA 7.0.2                                                |
-| OS           | Windows Server 2019、RedHat 8、CentOS 7                               |
+| OS           | Windows Server 2019、RHEL 8、CentOS 7                                 |
 | バックアップ | ArcserveBackup 18、ArcserveUDP 8.1、Systemwalker Operation Manager 16 |
 | ストレージ   | ETERNUS AF650 S3                                                      |
 | セキュリティ | Symantec Endpoint Protection Manager 14                               |
@@ -383,24 +383,24 @@ Linuxサーバのパッチ適用、ネットワーク機器設定、ユーザ管
 | pytest         | 2025年〜現在 |
 | Jest           | 2025年〜現在 |
 | testcontainers | 2025年〜現在 |
-| Playwright     | 2025年～現在 |
+| Playwright     | 2025年〜現在 |
 | Moto           | 2022年〜現在 |
 
 ### ツール
 
-| 技術                             | 経験年数       |
-| -------------------------------- | -------------- |
-| Claude Code                      | 2026年～現在   |
-| Herdr                            | 2026年～現在   |
-| MySQL Workbench / TablePlus      | 2025年～現在   |
-| Git / GitHub / GitLab            | 2020年〜現在   |
-| VSCode / Eclipse / Visual Studio | 2020年〜現在   |
-| devcontainers                    | 2025年〜現在   |
-| Backlog                          | 2025年〜現在   |
-| PowerAutomate                    | 2025年〜現在   |
-| draw.io                          | 2022年〜現在   |
-| Jira                             | 2022年〜2024年 |
-| Ansible                          | 2020年〜2022年 |
+| 技術                                         | 経験年数       |
+| -------------------------------------------- | -------------- |
+| Claude Code                                  | 2026年〜現在   |
+| Herdr                                        | 2026年〜現在   |
+| MySQL Workbench / TablePlus                  | 2025年〜現在   |
+| Git / GitHub / GitLab                        | 2020年〜現在   |
+| Visual Studio Code / Eclipse / Visual Studio | 2020年〜現在   |
+| devcontainers                                | 2025年〜現在   |
+| Backlog                                      | 2025年〜現在   |
+| PowerAutomate                                | 2025年〜現在   |
+| draw.io                                      | 2022年〜現在   |
+| Jira                                         | 2022年〜2024年 |
+| Ansible                                      | 2020年〜2022年 |
 
 ---
 
