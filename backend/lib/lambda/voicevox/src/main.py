@@ -20,6 +20,7 @@ from services.contact_service import ContactService  # ty:ignore[unresolved-impo
 from services.db_service import DbService  # ty:ignore[unresolved-import]
 from services.voice_service import VoiceService  # ty:ignore[unresolved-import]
 from sqlalchemy.ext.asyncio import create_async_engine
+from user_dict_words import RESUME_USER_DICT_WORDS  # ty:ignore[unresolved-import]
 from voicevox_core import UserDictWord
 from voicevox_core.blocking import (
     Onnxruntime,
@@ -64,6 +65,8 @@ user_dict_word = UserDictWord(
 )
 user_dict = UserDict()
 user_dict.add_word(user_dict_word)
+for resume_word in RESUME_USER_DICT_WORDS:
+    user_dict.add_word(resume_word)
 open_jtalk = OpenJtalk(OPEN_JTALK_PATH)
 open_jtalk.use_user_dict(user_dict)
 onnxruntime = Onnxruntime.load_once(filename=ONNX_RUNTIME_PATH)
