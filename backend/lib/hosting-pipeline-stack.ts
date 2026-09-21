@@ -107,6 +107,8 @@ export class HostingPipelineStack extends cdk.Stack {
               "mkdir -p backend/lib/lambda/voicevox",
               `aws s3 cp s3://${props.voicevoxBucketName}/voicevox.tar.gz voicevox.tar.gz`,
               "tar -xzf voicevox.tar.gz -C backend/lib/lambda/voicevox",
+              "mkdir -p backend/lib/lambda/voicevox/voicevox/onnxruntime-arm64",
+              "curl -fsSL https://github.com/VOICEVOX/onnxruntime-builder/releases/download/voicevox_onnxruntime-1.17.3/voicevox_onnxruntime-linux-arm64-1.17.3.tgz | tar -xz --strip-components=1 -C backend/lib/lambda/voicevox/voicevox/onnxruntime-arm64",
             ],
           },
           // build & deploy backend
@@ -119,9 +121,10 @@ export class HostingPipelineStack extends cdk.Stack {
               `export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)`,
               `export ECR_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${props.voicevoxEcrName}`,
               `aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com`,
-              `docker build -t ${props.voicevoxEcrName}:$VOICEVOX_LAMBDA_IMAGE_TAG backend/lib/lambda/voicevox`,
-              `docker tag ${props.voicevoxEcrName}:$VOICEVOX_LAMBDA_IMAGE_TAG $ECR_URI:$VOICEVOX_LAMBDA_IMAGE_TAG`,
-              `docker push $ECR_URI:$VOICEVOX_LAMBDA_IMAGE_TAG`,
+              "docker buildx version || (mkdir -p ~/.docker/cli-plugins && curl -fsSL -o ~/.docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/download/v0.37.1/buildx-v0.37.1.linux-amd64 && chmod +x ~/.docker/cli-plugins/docker-buildx)",
+              "docker run --privileged --rm tonistiigi/binfmt --install arm64",
+              "docker buildx create --use --name multiarch",
+              `docker buildx build --platform linux/amd64,linux/arm64 --provenance=false -t $ECR_URI:$VOICEVOX_LAMBDA_IMAGE_TAG --push backend/lib/lambda/voicevox`,
               "cd $CODEBUILD_SRC_DIR/backend",
               // install uv
               "curl -LsSf https://astral.sh/uv/install.sh | sh",
