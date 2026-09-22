@@ -1,7 +1,6 @@
 """FastAPI: テキストと音声付きチャットBackend"""
 
 import logging
-import multiprocessing
 import os
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
@@ -63,8 +62,24 @@ user_dict_word = UserDictWord(
     priority=9,
     accent_type=4,  # メタルメの4拍目にアクセント
 )
+kawagoe_word = UserDictWord(
+    surface="川越",
+    pronunciation="カワゴエ",
+    word_type="PROPER_NOUN",
+    priority=9,
+    accent_type=0,
+)
+tetsurou_word = UserDictWord(
+    surface="鉄郎",
+    pronunciation="テツロウ",
+    word_type="PROPER_NOUN",
+    priority=9,
+    accent_type=1,
+)
 user_dict = UserDict()
 user_dict.add_word(user_dict_word)
+user_dict.add_word(kawagoe_word)
+user_dict.add_word(tetsurou_word)
 for resume_word in RESUME_USER_DICT_WORDS:
     user_dict.add_word(resume_word)
 open_jtalk = OpenJtalk(OPEN_JTALK_PATH)
@@ -75,12 +90,11 @@ onnxruntime = Onnxruntime.load_once(filename=ONNX_RUNTIME_PATH)
 def create_synthesizer() -> Synthesizer:
     # ONNX Runtimeのメモリアリーナがリクエストを重ねるたびに肥大化するため
     # VoiceServiceが一定回数ごとにSynthesizerを作り直せるようファクトリ化している
-    ## Lambdaの場合は1,769MBで1vCPU相当
     synthesizer = Synthesizer(
         onnxruntime,
         open_jtalk,
         acceleration_mode="CPU",
-        cpu_num_threads=multiprocessing.cpu_count(),
+        cpu_num_threads=2,
     )
     with VoiceModelFile.open(MODEL_PATH) as model:
         synthesizer.load_voice_model(model)

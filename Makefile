@@ -111,11 +111,7 @@ _deploy:
 	bun install --frozen-lockfile --ignore-scripts
 
 	# all deploy
-	# bun run cdk -- deploy --all --parallel --ci --require-approval never --context env=$(ENV_NAME) --context voicevoxLambdaImageTag=$$VOICEVOX_LAMBDA_IMAGE_TAG
-
-	# deploy voicevox lambda only
-	# bun run cdk -- deploy dev-myblogv4-VoicevoxLambdaStack --context env=$(ENV_NAME) --context voicevoxLambdaImageTag=$$VOICEVOX_LAMBDA_IMAGE_TAG
+	# bun run cdk -- deploy --all --parallel --ci --require-approval never --context env=$(ENV_NAME)
 
 	bun run cdk -- deploy $(CDK_ARGS) \
-		--context env=$(ENV_NAME) \
-		--context voicevoxLambdaImageTag=$$VOICEVOX_LAMBDA_IMAGE_TAG
+		--context env=$(ENV_NAME)

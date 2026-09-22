@@ -5,8 +5,6 @@ import { HostingStack } from "../lib/hosting-stack";
 import { OpenSearchApiLambdaStack } from "../lib/lambda/opensearch/opensearch-api-lambda-stack";
 import { OpenSearchApiGatewayStack } from "../lib/lambda/opensearch/opensearch-apigateway-stack";
 import { OpenSearchBatchLambdaStack } from "../lib/lambda/opensearch/opensearch-batch-lambda-stack";
-import { VoicevoxApiLambdaStack } from "../lib/lambda/voicevox/voicevox-api-lambda-stack";
-import { VoicevoxApiGatewayStack } from "../lib/lambda/voicevox/voicevox-apigateway-stack";
 import { VoicevoxBucketStack } from "../lib/lambda/voicevox/voicevox-bucket-stack";
 import { VoicevoxEcrStack } from "../lib/lambda/voicevox/voicevox-ecr-stack";
 import { getEnvConfig, isProd } from "./env";
@@ -20,6 +18,7 @@ const stackPrefixName = "myblogv4";
 const stackBaseName = `${envName}-${stackPrefixName}`;
 const blogSearchApiPath = "opensearch-api";
 const voicevoxApiPath = "voicevox-api";
+const voicevoxApiDomainName = "voicevox-api.tail8d142c.ts.net";
 const hostingRepoName = "MyBlogV4";
 const certificateArnParam = "certificate-arn";
 const githubConnectionArnParam = "github-connection-arn";
@@ -35,16 +34,10 @@ const githubInstallationIdParam = "github-apps-installation-id-zenn-blog";
 const hostingBucketName = `${stackBaseName}-hosting-bucket`;
 const voicevoxBucketName = `${stackBaseName}-voicevox-bucket`;
 const voicevoxEcrName = `${stackBaseName}-voicevox-ecr`;
-const voicevoxLambdaName = `${stackBaseName}-voicevox-lambda`;
 const openSearchBatchLambdaName = `${stackBaseName}-opensearch-batch`;
 const openSearchApiLambdaName = `${stackBaseName}-opensearch-api`;
-const claudeApiKeyParam = "claude-platform-api-key";
-const claudeWorkspaceIdParam = "claude-platform-workspace-id";
-const postgresqlUrlParam = "myblogv4-postgresql-url";
 const dockerhubUserParam = "dockerhub-user";
 const dockerhubPasswordParam = "dockerhub-password";
-const contactEmailAddress = "flupino@metalmental.net";
-const contactConfigurationSetName = "my-first-configuration-set";
 
 // voicevox engineアップロード用
 // ★最初にこのS3 Bucketだけ単体でデプロイし、voicevox engine関連のリソースをzipでアップロードしておくこと
@@ -52,39 +45,9 @@ new VoicevoxBucketStack(app, `${stackBaseName}-VoicevoxBucketStack`, {
   voicevoxBucketName,
 });
 
-const voicevoxEcrStack = new VoicevoxEcrStack(
-  app,
-  `${stackBaseName}-VoicevoxEcrStack`,
-  {
-    voicevoxEcrName,
-  },
-);
-
-// CodeBuildでビルドした際に引数からImageTag名を取得
-// ローカルからデプロイする際は注意
-const imageTag =
-  process.env.SYNTHESIZE_VOICE_IMAGE_REF ??
-  app.node.tryGetContext("voicevoxLambdaImageTag");
-
-// if (!synthesizeVoiceImageTagOrDigest) {
-//   throw new Error("SYNTHESIZE_VOICE_IMAGE_REF is required");
-// }
-
-const voicevoxLambdaStack = new VoicevoxApiLambdaStack(
-  app,
-  `${stackBaseName}-VoicevoxLambdaStack`,
-  {
-    voicevoxLambdaName,
-    voicevoxEcrName,
-    imageTag,
-    createdVoiceOutputBucketName: hostingBucketName,
-    claudeApiKeyParam,
-    claudeWorkspaceIdParam,
-    postgresqlUrlParam,
-    contactEmailAddress,
-    contactConfigurationSetName,
-  },
-);
+new VoicevoxEcrStack(app, `${stackBaseName}-VoicevoxEcrStack`, {
+  voicevoxEcrName,
+});
 
 new OpenSearchBatchLambdaStack(app, `${stackBaseName}-OpenSearchBatchStack`, {
   openSearchBatchLambdaName,
@@ -132,17 +95,6 @@ const blogSearchApiStack = new OpenSearchApiGatewayStack(
   },
 );
 
-const voicevoxApiStack = new VoicevoxApiGatewayStack(
-  app,
-  `${stackBaseName}-VoicevoxApiStack`,
-  {
-    domainName: cfg.hostingDomainName,
-    voicevoxApiPath,
-    isProd: isProd(envName),
-    voicevoxLambdaName,
-  },
-);
-
 const hostingStack = new HostingStack(app, `${stackBaseName}-HostingStack`, {
   envName,
   hostingBucketName,
@@ -151,8 +103,8 @@ const hostingStack = new HostingStack(app, `${stackBaseName}-HostingStack`, {
   certificateArnParam,
   blogSearchApiStack,
   blogSearchApiPath,
-  voicevoxApiStack,
   voicevoxApiPath,
+  voicevoxApiDomainName,
 });
 
 new HostingPipelineStack(app, `${stackBaseName}-HostingPipelineStack`, {
@@ -170,6 +122,4 @@ new HostingPipelineStack(app, `${stackBaseName}-HostingPipelineStack`, {
 
 // スタック名の文字列渡しはCloudFormationの参照を生成せず、CDKが依存関係を認識できないため明示する
 // 逆に作りなおしたい場合などで依存を消したい場合はコメントアウトすること
-voicevoxLambdaStack.addDependency(voicevoxEcrStack);
-voicevoxApiStack.addDependency(voicevoxLambdaStack);
 blogSearchApiStack.addDependency(openSearchApiLambdaStack);

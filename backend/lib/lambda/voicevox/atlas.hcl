@@ -1,12 +1,6 @@
 // HCL Settings: https://atlasgo.io/atlas-schema/projects
 // CLI: https://atlasgo.io/cli-reference
 // Free function: https://atlasgo.io/features
-atlas {
-  cloud {
-    org = "metalmental"
-  }
-}
-
 data "external_schema" "sqlalchemy" {
   program = [
     "uv", "run",
@@ -20,12 +14,6 @@ env "prod" {
   dev = "docker://postgres/16/dev"
   schema {
     src = data.external_schema.sqlalchemy.url
-    repo {
-      name = "myblogv4"
-    }
-  }
-  lint {
-    review = ALWAYS
   }
   data {
     mode     = SYNC

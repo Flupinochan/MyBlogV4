@@ -16,8 +16,8 @@ interface HostingStackProps extends cdk.StackProps {
   certificateArnParam: string;
   blogSearchApiStack?: { api: apigateway.RestApi };
   blogSearchApiPath?: string;
-  voicevoxApiStack?: { api: apigateway.RestApi };
   voicevoxApiPath?: string;
+  voicevoxApiDomainName?: string;
 }
 
 export class HostingStack extends cdk.Stack {
@@ -118,11 +118,25 @@ export class HostingStack extends cdk.Stack {
       });
     }
 
-    const { voicevoxApiStack, voicevoxApiPath } = props;
-    if (voicevoxApiStack && voicevoxApiPath) {
-      const voicevoxOrigin = new origins.HttpOrigin(
-        `${voicevoxApiStack.api.restApiId}.execute-api.${this.region}.amazonaws.com`,
-        { readTimeout: cdk.Duration.seconds(60) },
+    const { voicevoxApiPath, voicevoxApiDomainName } = props;
+    if (voicevoxApiPath && voicevoxApiDomainName) {
+      const voicevoxOrigin = new origins.HttpOrigin(voicevoxApiDomainName, {
+        readTimeout: cdk.Duration.seconds(120),
+      });
+      // FastAPI側は/${voicevoxApiPath}のprefixを持たないため、originへ送る前にCloudFront Functionで取り除く
+      const stripVoicevoxApiPathFunction = new cloudfront.Function(
+        this,
+        "stripVoicevoxApiPathFunction",
+        {
+          code: cloudfront.FunctionCode.fromInline(`
+function handler(event) {
+  var request = event.request;
+  request.uri = request.uri.replace(/^\\/${voicevoxApiPath}/, "") || "/";
+  return request;
+}
+`),
+          runtime: cloudfront.FunctionRuntime.JS_2_0,
+        },
       );
       this.distribution.addBehavior(`/${voicevoxApiPath}/*`, voicevoxOrigin, {
         allowedMethods: cloudfront.AllowedMethods.ALLOW_ALL,
@@ -130,6 +144,12 @@ export class HostingStack extends cdk.Stack {
         originRequestPolicy:
           cloudfront.OriginRequestPolicy.ALL_VIEWER_EXCEPT_HOST_HEADER,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
+        functionAssociations: [
+          {
+            function: stripVoicevoxApiPathFunction,
+            eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
+          },
+        ],
       });
     }
   }
