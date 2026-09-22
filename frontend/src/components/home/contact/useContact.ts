@@ -5,6 +5,7 @@ import type { ContactRequest, ContactResponse } from "./contactApi";
 import { contactSchema } from "./contactSchema";
 import type { ContactFieldErrors } from "./contactSchema";
 import { showErrorDialog } from "../../../layouts/error-dialog/errorDialog";
+import { retryOn5xx } from "../../../lib/queryRetry";
 
 const EMPTY_FORM: ContactRequest = { name: "", email: "", message: "" };
 
@@ -15,6 +16,7 @@ export function useContact() {
 
   const mutation = useMutation<ContactResponse, Error, ContactRequest>({
     mutationFn: sendContact,
+    retry: retryOn5xx,
   });
 
   const setValue = (field: keyof ContactRequest, value: string) => {

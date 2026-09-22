@@ -16,6 +16,7 @@ import {
   type BlogListItem,
   type TopicBucket,
 } from "./blogApi";
+import { retryOn5xx } from "../../../lib/queryRetry";
 
 // ── Constants ────────────────────────────────────────────────────────────────
 const INITIAL_LIMIT = 10;
@@ -195,6 +196,7 @@ function BlogCarousel() {
     queryKey: ["topics"],
     queryFn: fetchTopics,
     staleTime: 5 * 60 * 1000,
+    retry: retryOn5xx,
   });
 
   const {
@@ -218,6 +220,7 @@ function BlogCarousel() {
     initialPageParam: null as unknown,
     getNextPageParam: (lastPage) => lastPage.next_cursor ?? undefined,
     placeholderData: (prev) => prev,
+    retry: retryOn5xx,
   });
 
   // 検索時のみ scoreでソート

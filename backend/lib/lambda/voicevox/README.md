@@ -103,3 +103,35 @@ uv add https://github.com/VOICEVOX/voicevox_core/releases/download/0.16.4/voicev
 ```bash
 uv pip compile -o requirements.txt pyproject.toml
 ```
+
+## Kubernetes (blog namespace)
+
+k8s manifest本体はマニフェスト用リポジトリ (`home-k8s/blog-voicevox`) 側で管理
+
+### DBマイグレーション
+
+`env "prod"` はAtlas Cloudを使わないローカル完結の設定 (`atlas.hcl` に `cloud`/`repo`/`lint.review` は含めない)
+
+```bash
+cd backend/lib/lambda/voicevox
+
+# パスワードはURLエンコードすること (^ & % などが含まれる場合はnet/url: invalid userinfoになる)
+# python3 -c "import urllib.parse; print(urllib.parse.quote('<パスワード>', safe=''))"
+ATLAS_DB_URL="postgres://<ユーザ名>:<URLエンコード済みパスワード>@192.168.1.4:30006/blog?sslmode=disable" \
+  atlas schema apply --env prod --auto-approve
+```
+
+- 接続先はk8s内の `pg-cluster-app` (CloudNativePG) の `blog` DB
+- 実行端末はクラスタ外のためNodePort (`192.168.1.4:30006`) 経由。クラスタ内Service名 (`pg-cluster-rw.postgres.svc.cluster.local`) は名前解決できない
+- `dev = "docker://postgres/16/dev"` を使うため、実行環境にDockerが必要
+
+### 動作確認
+
+```bash
+kubectl run curl-test --rm -it --image=curlimages/curl -n blog --restart=Never -- \
+  curl -X POST http://voicevox/v1/chat \
+  -H "Content-Type: application/json" \
+  -d '{"user_id": "11111111-1111-1111-1111-111111111111", "messages": [{"role": "user", "content": "こんにちは"}]}'
+```
+
+`user_id` はUUID形式が必須

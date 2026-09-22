@@ -9,8 +9,14 @@ import {
   getConversations,
   updateConversationTitle,
 } from "./chatApi";
-import type { ChatRequest, TextChatResponse, VoiceChatResponse } from "./chatApi";
+import type {
+  ChatRequest,
+  ConversationResponse,
+  TextChatResponse,
+  VoiceChatResponse,
+} from "./chatApi";
 import { showErrorDialog } from "../../../layouts/error-dialog/errorDialog";
+import { retryOn5xx } from "../../../lib/queryRetry";
 
 const USER_ID_KEY = "chat_user_id";
 
@@ -60,6 +66,39 @@ export function useChat() {
   const [isNavOpen, setIsNavOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  const chatDetectMutation = useMutation<ChatDetectResult, Error, ChatDetectInput>({
+    mutationFn: async ({ messages, withVoice, isFirst, userId, conversationId }) => {
+      const request: ChatRequest = {
+        messages,
+        user_id: userId,
+        conversation_id: conversationId ?? null,
+      };
+      const [chatResult, lang] = await Promise.all([
+        withVoice ? sendVoiceMessage(request) : sendTextMessage(request),
+        isFirst && "LanguageDetector" in self
+          ? detectLanguage(messages[messages.length - 1]?.content ?? "").catch(() => undefined)
+          : Promise.resolve(undefined),
+      ]);
+      return { chatResult, lang, conversationId: chatResult.conversation_id };
+    },
+    retry: retryOn5xx,
+  });
+
+  const getConversationsMutation = useMutation<ConversationResponse[], Error, string>({
+    mutationFn: getConversations,
+    retry: retryOn5xx,
+  });
+
+  const updateConversationTitleMutation = useMutation<
+    void,
+    Error,
+    { conversationId: string; userId: string; title: string }
+  >({
+    mutationFn: ({ conversationId, userId, title }) =>
+      updateConversationTitle(conversationId, userId, title),
+    retry: retryOn5xx,
+  });
+
   useEffect(() => {
     if (window.matchMedia("(min-width: 1024px)").matches) {
       setIsNavOpen(true);
@@ -70,7 +109,7 @@ export function useChat() {
     const load = async () => {
       userIdRef.current = getUserId();
       try {
-        const conversations = await getConversations(userIdRef.current);
+        const conversations = await getConversationsMutation.mutateAsync(userIdRef.current);
         if (conversations.length === 0) return;
         const loaded: History[] = conversations.map((c) => ({
           id: c.id,
@@ -93,23 +132,6 @@ export function useChat() {
     setHistories((prev) =>
       prev.map((h) => (h.id === currentHistoryId ? updater(h) : h)),
     );
-
-  const chatDetectMutation = useMutation<ChatDetectResult, Error, ChatDetectInput>({
-    mutationFn: async ({ messages, withVoice, isFirst, userId, conversationId }) => {
-      const request: ChatRequest = {
-        messages,
-        user_id: userId,
-        conversation_id: conversationId ?? null,
-      };
-      const [chatResult, lang] = await Promise.all([
-        withVoice ? sendVoiceMessage(request) : sendTextMessage(request),
-        isFirst && "LanguageDetector" in self
-          ? detectLanguage(messages[messages.length - 1]?.content ?? "").catch(() => undefined)
-          : Promise.resolve(undefined),
-      ]);
-      return { chatResult, lang, conversationId: chatResult.conversation_id };
-    },
-  });
 
   const sendMessage = (text: string) => {
     const trimmedMessage = text.trim();
@@ -144,7 +166,7 @@ export function useChat() {
             return;
           }
           try {
-            const conversations = await getConversations(userIdRef.current);
+            const conversations = await getConversationsMutation.mutateAsync(userIdRef.current);
             const synced = conversations.find((c) => c.id === conversationId);
             if (!synced) return;
             updateCurrentHistory((h) => ({
@@ -184,7 +206,11 @@ export function useChat() {
             if (!title) return;
             updateCurrentHistory((h) => ({ ...h, name: title }));
             try {
-              await updateConversationTitle(conversationId, userIdRef.current, title);
+              await updateConversationTitleMutation.mutateAsync({
+                conversationId,
+                userId: userIdRef.current,
+                title,
+              });
             } catch (e) {
               console.error("タイトル更新に失敗しました:", e);
             }

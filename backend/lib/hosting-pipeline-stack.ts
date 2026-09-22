@@ -115,23 +115,23 @@ export class HostingPipelineStack extends cdk.Stack {
           pre_build: {
             "on-failure": "ABORT",
             commands: [
-              // build and push Docker image for synthesizeVoice Lambda
+              // build and push Docker image for voicevox
               `echo $DOCKERHUB_PASS | docker login -u $DOCKERHUB_USER --password-stdin`,
-              `export VOICEVOX_LAMBDA_IMAGE_TAG=$(date -u +%Y%m%d%H%M%S)`,
               `export ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)`,
               `export ECR_URI=$ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/${props.voicevoxEcrName}`,
               `aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com`,
               "docker buildx version || (mkdir -p ~/.docker/cli-plugins && curl -fsSL -o ~/.docker/cli-plugins/docker-buildx https://github.com/docker/buildx/releases/download/v0.37.1/buildx-v0.37.1.linux-amd64 && chmod +x ~/.docker/cli-plugins/docker-buildx)",
               "docker run --privileged --rm tonistiigi/binfmt --install arm64",
               "docker buildx create --use --name multiarch",
-              `docker buildx build --platform linux/amd64,linux/arm64 --provenance=false -t $ECR_URI:$VOICEVOX_LAMBDA_IMAGE_TAG --push backend/lib/lambda/voicevox`,
+              // k8s側はimageのtagが変わらないため、rollout restartで新しいimageを取得させること
+              `docker buildx build --platform linux/amd64,linux/arm64 --provenance=false -t $ECR_URI:latest --push backend/lib/lambda/voicevox`,
               "cd $CODEBUILD_SRC_DIR/backend",
               // install uv
               "curl -LsSf https://astral.sh/uv/install.sh | sh",
               "ln -s $HOME/.local/bin/uv /usr/local/bin/uv",
               // deploy backend
               `bun install --frozen-lockfile --ignore-scripts`,
-              `bun run cdk -- deploy --all --parallel --ci --require-approval never --context env=${props.envName} --context voicevoxLambdaImageTag=$VOICEVOX_LAMBDA_IMAGE_TAG`,
+              `bun run cdk -- deploy --all --parallel --ci --require-approval never --context env=${props.envName}`,
             ],
           },
           // build frontend

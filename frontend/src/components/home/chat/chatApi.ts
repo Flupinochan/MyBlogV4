@@ -3,6 +3,7 @@
 import createClient from "openapi-fetch";
 import createQueryClient from "openapi-react-query";
 import type { components, paths } from "../../../types/api-voicevox.generated";
+import { ApiError } from "../../../lib/apiError";
 
 export type ChatRequest = components["schemas"]["ChatRequest"];
 export type TextChatResponse = components["schemas"]["ChatResponse"];
@@ -54,30 +55,30 @@ export async function generateChatTitle(
 export async function sendTextMessage(
   request: ChatRequest,
 ): Promise<TextChatResponse> {
-  const { data, error } = await client.POST("/v1/chat", {
+  const { data, error, response } = await client.POST("/v1/chat", {
     body: request,
   });
-  if (error) throw new Error("chat request failed");
+  if (error) throw new ApiError(response.status, "chat request failed");
   return data;
 }
 
 export async function sendVoiceMessage(
   request: ChatRequest,
 ): Promise<VoiceChatResponse> {
-  const { data, error } = await client.POST("/v1/chat/voice", {
+  const { data, error, response } = await client.POST("/v1/chat/voice", {
     body: request,
   });
-  if (error) throw new Error("voice chat request failed");
+  if (error) throw new ApiError(response.status, "voice chat request failed");
   return data;
 }
 
 export async function getConversations(
   userId: string,
 ): Promise<ConversationResponse[]> {
-  const { data, error } = await client.GET("/v1/conversations", {
+  const { data, error, response } = await client.GET("/v1/conversations", {
     params: { header: { "x-user-id": userId } },
   });
-  if (error) throw new Error("failed to fetch conversations");
+  if (error) throw new ApiError(response.status, "failed to fetch conversations");
   return data ?? [];
 }
 
@@ -86,12 +87,12 @@ export async function updateConversationTitle(
   userId: string,
   title: string,
 ): Promise<void> {
-  const { error } = await client.PATCH("/v1/conversations/{conversation_id}", {
+  const { error, response } = await client.PATCH("/v1/conversations/{conversation_id}", {
     params: {
       path: { conversation_id: conversationId },
       header: { "x-user-id": userId },
     },
     body: { title },
   });
-  if (error) throw new Error("failed to update conversation title");
+  if (error) throw new ApiError(response.status, "failed to update conversation title");
 }

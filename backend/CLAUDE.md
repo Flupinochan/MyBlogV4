@@ -22,8 +22,6 @@ Do NOT run `npm run build` or `tsc`. These commands generate local JS/.d.ts file
 | -------------------------------------------------- | ------------------------------------------------------------------------------ |
 | `lib/lambda/voicevox/voicevox-bucket-stack.ts`     | S3 for Voicevox engine resources (used by CodeBuild to build the Docker image) |
 | `lib/lambda/voicevox/voicevox-ecr-stack.ts`        | ECR for Voicevox Docker image                                                  |
-| `lib/lambda/voicevox/voicevox-api-lambda-stack.ts` | Python FastAPI Lambda (generative ai chat + voicevox)                          |
-| `lib/lambda/voicevox/voicevox-apigateway-stack.ts` | API Gateway REST API (for FastAPI)                                             |
 
 | Go Stack                                                 | Description                                                |
 | -------------------------------------------------------- | ---------------------------------------------------------- |
