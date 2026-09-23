@@ -6,6 +6,7 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 import boto3
+import pyroscope
 from anthropic import AnthropicAWS
 from aws_lambda_powertools import Logger
 from aws_lambda_powertools.logging.formatter import LambdaPowertoolsFormatter
@@ -45,11 +46,21 @@ try:
     VOICE_OUTPUT_BUCKET_NAME = os.environ["VOICE_OUTPUT_BUCKET_NAME"]
     POSTGRESQL_URL = os.environ["POSTGRESQL_URL"]
     CONTACT_EMAIL_ADDRESS = os.environ["CONTACT_EMAIL_ADDRESS"]
+    PYROSCOPE_SERVER_ADDRESS = os.environ["PYROSCOPE_SERVER_ADDRESS"]
+    ENV_NAME = os.environ["ENV_NAME"]
 except KeyError:
     logger.exception("環境変数が設定されていません")
     raise
 
 s3_client = boto3.client("s3")
+
+pyroscope.configure(
+    application_name="myblogv4.voicevox-api",
+    server_address=PYROSCOPE_SERVER_ADDRESS,
+    tags={"env": ENV_NAME},
+    mem_enabled=True,
+    gil_only=False,
+)
 
 # ユーザ辞書の定義
 # surface 入力テキスト

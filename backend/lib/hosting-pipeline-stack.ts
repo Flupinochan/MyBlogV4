@@ -68,6 +68,8 @@ export class HostingPipelineStack extends cdk.Stack {
         ANTHROPIC_AWS_WORKSPACE_ID: { value: "dummy" },
         POSTGRESQL_URL: { value: "dummy" },
         CONTACT_EMAIL_ADDRESS: { value: "dummy" },
+        PYROSCOPE_SERVER_ADDRESS: { value: "dummy" },
+        ENV_NAME: { value: "dummy" },
         GITHUB_TOKEN: {
           type: codebuild.BuildEnvironmentVariableType.PARAMETER_STORE,
           value: "github-zenn-token",

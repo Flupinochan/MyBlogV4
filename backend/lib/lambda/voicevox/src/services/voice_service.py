@@ -27,7 +27,7 @@ SENTENCE_DELIMITERS = re.compile(r"(?<=[。！？])")
 CLAUSE_DELIMITERS = re.compile(r"(?<=、)")
 
 # 長期稼働時の微小な蓄積に備え、一定回数ごとにSynthesizerを作り直す
-MAX_SYNTHESIS_COUNT = 30
+MAX_SYNTHESIS_COUNT = 5
 
 
 def split_text_for_synthesis(text: str) -> list[str]:
