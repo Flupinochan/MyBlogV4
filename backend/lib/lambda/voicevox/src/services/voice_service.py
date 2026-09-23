@@ -10,12 +10,14 @@ import wave
 from typing import TYPE_CHECKING, Callable
 
 from aws_lambda_powertools import Logger
+from opentelemetry import trace
 
 if TYPE_CHECKING:
     from mypy_boto3_s3 import S3Client
     from voicevox_core.blocking import Synthesizer
 
 logger = Logger(child=True)
+tracer = trace.get_tracer(__name__)
 
 MODEL_STYLE_ID = 0
 OUTPUT_PREFIX = "voice"
@@ -30,6 +32,7 @@ CLAUSE_DELIMITERS = re.compile(r"(?<=、)")
 MAX_SYNTHESIS_COUNT = 5
 
 
+@tracer.start_as_current_span("split_text_for_synthesis")
 def split_text_for_synthesis(text: str) -> list[str]:
     sentences = [s for s in SENTENCE_DELIMITERS.split(text) if s]
     chunks: list[str] = []
@@ -41,6 +44,7 @@ def split_text_for_synthesis(text: str) -> list[str]:
     return chunks or [text]
 
 
+@tracer.start_as_current_span("concat_wavs")
 def concat_wavs(wav_list: list[bytes]) -> bytes:
     if len(wav_list) == 1:
         return wav_list[0]
@@ -57,6 +61,7 @@ def concat_wavs(wav_list: list[bytes]) -> bytes:
 
 
 class VoiceService:
+    @tracer.start_as_current_span("VoiceService.__init__")
     def __init__(
         self,
         synthesizer_factory: Callable[[], Synthesizer],
@@ -69,6 +74,7 @@ class VoiceService:
         self._bucket_name = bucket_name
         self._synthesis_count = 0
 
+    @tracer.start_as_current_span("VoiceService.synthesize_and_upload")
     def synthesize_and_upload(self, text: str) -> str:
         wav = self._synthesize(text)
         key = f"{OUTPUT_PREFIX}/{uuid.uuid4().hex}.wav"
@@ -94,12 +100,14 @@ class VoiceService:
                 raise
         return key
 
+    @tracer.start_as_current_span("VoiceService._synthesize")
     def _synthesize(self, text: str) -> bytes:
         chunks = split_text_for_synthesis(text)
         wav_list = [self._synthesizer.tts(chunk, MODEL_STYLE_ID) for chunk in chunks]
         self._recreate_synthesizer_if_needed()
         return concat_wavs(wav_list)
 
+    @tracer.start_as_current_span("VoiceService._recreate_synthesizer_if_needed")
     def _recreate_synthesizer_if_needed(self) -> None:
         self._synthesis_count += 1
         if self._synthesis_count < MAX_SYNTHESIS_COUNT:

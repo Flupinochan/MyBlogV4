@@ -14,6 +14,12 @@ from fastapi import APIRouter, FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from opentelemetry import trace
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
+from opentelemetry.sdk.resources import Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from routers import chat, contact, conversation, health  # ty:ignore[unresolved-import]
 from services.chat_service import ChatService  # ty:ignore[unresolved-import]
 from services.contact_service import ContactService  # ty:ignore[unresolved-import]
@@ -47,6 +53,7 @@ try:
     POSTGRESQL_URL = os.environ["POSTGRESQL_URL"]
     CONTACT_EMAIL_ADDRESS = os.environ["CONTACT_EMAIL_ADDRESS"]
     PYROSCOPE_SERVER_ADDRESS = os.environ["PYROSCOPE_SERVER_ADDRESS"]
+    TEMPO_SERVER_ADDRESS = os.environ["TEMPO_SERVER_ADDRESS"]
     ENV_NAME = os.environ["ENV_NAME"]
 except KeyError:
     logger.exception("環境変数が設定されていません")
@@ -61,6 +68,19 @@ pyroscope.configure(
     mem_enabled=True,
     gil_only=False,
 )
+
+tracer_provider = TracerProvider(
+    resource=Resource.create(
+        {
+            "service.name": "myblogv4.voicevox-api",
+            "deployment.environment": ENV_NAME,
+        },
+    ),
+)
+tracer_provider.add_span_processor(
+    BatchSpanProcessor(OTLPSpanExporter(endpoint=TEMPO_SERVER_ADDRESS, insecure=True)),
+)
+trace.set_tracer_provider(tracer_provider)
 
 # ユーザ辞書の定義
 # surface 入力テキスト
@@ -140,6 +160,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 
 # Go GinのLayerベースと違い、Dockerベースの場合は/apiは不要
 app = FastAPI(lifespan=lifespan)
+FastAPIInstrumentor.instrument_app(app)
 
 
 @app.exception_handler(RequestValidationError)
