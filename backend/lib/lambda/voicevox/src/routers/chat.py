@@ -40,6 +40,7 @@ async def chat(
 
     await db_service.save_messages(
         conversation_id,
+        request.user_id,
         [
             (new_user_msg.role, new_user_msg.content),
             ("assistant", message),
@@ -72,6 +73,7 @@ async def chat_with_voice(
 
     await db_service.save_messages(
         conversation_id,
+        request.user_id,
         [
             (new_user_msg.role, new_user_msg.content),
             ("assistant", message),
