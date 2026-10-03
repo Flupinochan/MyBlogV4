@@ -78,7 +78,7 @@ tracer_provider = TracerProvider(
     ),
 )
 tracer_provider.add_span_processor(
-    BatchSpanProcessor(OTLPSpanExporter(endpoint=TEMPO_SERVER_ADDRESS, insecure=True)),
+    BatchSpanProcessor(OTLPSpanExporter(endpoint=TEMPO_SERVER_ADDRESS)),
 )
 trace.set_tracer_provider(tracer_provider)
 
