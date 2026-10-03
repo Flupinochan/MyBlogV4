@@ -3,6 +3,7 @@ import * as cdk from "aws-cdk-lib";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as logs from "aws-cdk-lib/aws-logs";
+import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import { Construct } from "constructs";
 import * as path from "path";
@@ -11,8 +12,8 @@ interface OpenSearchApiLambdaStackProps extends cdk.StackProps {
   openSearchApiFunctionName: string;
   openSearchUrlParam: string;
   openSearchPortParam: string;
-  openSearchUserParam: string;
-  openSearchPassParam: string;
+  openSearchUserSecretName: string;
+  openSearchPassSecretName: string;
   aliasName: string;
   aliasNameEmbedding: string;
   modelId: string;
@@ -27,6 +28,7 @@ export class OpenSearchApiLambdaStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: OpenSearchApiLambdaStackProps) {
     super(scope, id, props);
 
+    // Non-secret configuration from SSM String parameters
     const openSearchUrl = ssm.StringParameter.valueForStringParameter(
       this,
       props.openSearchUrlParam,
@@ -35,13 +37,17 @@ export class OpenSearchApiLambdaStack extends cdk.Stack {
       this,
       props.openSearchPortParam,
     );
-    const openSearchUser = ssm.StringParameter.valueForStringParameter(
+
+    // Reference secrets stored in AWS Secrets Manager
+    const openSearchUserSecret = secretsmanager.Secret.fromSecretNameV2(
       this,
-      props.openSearchUserParam,
+      "OpenSearchUserSecret",
+      props.openSearchUserSecretName,
     );
-    const openSearchPass = ssm.StringParameter.valueForStringParameter(
+    const openSearchPassSecret = secretsmanager.Secret.fromSecretNameV2(
       this,
-      props.openSearchPassParam,
+      "OpenSearchPassSecret",
+      props.openSearchPassSecretName,
     );
 
     this.logGroup = new logs.LogGroup(this, "OpenSearchApiLogGroup", {
@@ -73,6 +79,10 @@ export class OpenSearchApiLambdaStack extends cdk.Stack {
       }),
     );
 
+    // Grant the Lambda role permission to read the secrets
+    openSearchUserSecret.grantRead(this.role);
+    openSearchPassSecret.grantRead(this.role);
+
     this.function = new go.GoFunction(this, "OpenSearchApiFunction", {
       functionName: props.openSearchApiFunctionName,
       entry: path.join(__dirname, "cmd/api"),
@@ -89,8 +99,9 @@ export class OpenSearchApiLambdaStack extends cdk.Stack {
       environment: {
         OPEN_SEARCH_URL: openSearchUrl,
         OPEN_SEARCH_PORT: openSearchPort,
-        OPEN_SEARCH_USER: openSearchUser,
-        OPEN_SEARCH_PASS: openSearchPass,
+        // Pass only secret names; the Lambda fetches values from Secrets Manager at runtime
+        OPEN_SEARCH_USER_SECRET_NAME: props.openSearchUserSecretName,
+        OPEN_SEARCH_PASS_SECRET_NAME: props.openSearchPassSecretName,
         ALIAS_NAME: props.aliasName,
         ALIAS_NAME_EMBEDDING: props.aliasNameEmbedding,
         MODEL_ID: props.modelId,

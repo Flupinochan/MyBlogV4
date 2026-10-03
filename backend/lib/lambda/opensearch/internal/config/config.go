@@ -1,10 +1,13 @@
 package config
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
 	"strconv"
+
+	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/secrets"
 )
 
 // Lambda環境変数
@@ -20,6 +23,8 @@ type AppConfig struct {
 }
 
 func GetAppConfig() (*AppConfig, error) {
+	ctx := context.Background()
+
 	// Lambda環境変数取得
 	getRequired := func(key string) (string, error) {
 		val := os.Getenv(key)
@@ -34,14 +39,6 @@ func GetAppConfig() (*AppConfig, error) {
 		return nil, err
 	}
 	port, err := getRequired("OPEN_SEARCH_PORT")
-	if err != nil {
-		return nil, err
-	}
-	username, err := getRequired("OPEN_SEARCH_USER")
-	if err != nil {
-		return nil, err
-	}
-	password, err := getRequired("OPEN_SEARCH_PASS")
 	if err != nil {
 		return nil, err
 	}
@@ -60,6 +57,31 @@ func GetAppConfig() (*AppConfig, error) {
 	modelIdEmbedding, err := getRequired("MODEL_ID_EMBEDDING")
 	if err != nil {
 		return nil, err
+	}
+
+	// Retrieve secret names from env vars (these hold Secrets Manager secret names, not actual secrets)
+	openSearchUserSecretName, err := getRequired("OPEN_SEARCH_USER_SECRET_NAME")
+	if err != nil {
+		return nil, err
+	}
+	openSearchPassSecretName, err := getRequired("OPEN_SEARCH_PASS_SECRET_NAME")
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch actual secret values from AWS Secrets Manager
+	smClient, err := secrets.NewClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Secrets Manager client: %w", err)
+	}
+
+	username, err := smClient.GetSecretValue(ctx, openSearchUserSecretName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve OpenSearch username: %w", err)
+	}
+	password, err := smClient.GetSecretValue(ctx, openSearchPassSecretName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve OpenSearch password: %w", err)
 	}
 
 	var logLevel slog.Level

@@ -9,6 +9,6 @@ export const config: EnvConfig = {
   modelIdEmbedding: "amazon.titan-embed-text-v2:0",
   openSearchUrlParam: "zenn-open-search-url",
   openSearchPortParam: "zenn-open-search-port",
-  openSearchUserParam: "zenn-open-search-user",
-  openSearchPassParam: "zenn-open-search-pass",
+  openSearchUserSecretName: "zenn-open-search-user",
+  openSearchPassSecretName: "zenn-open-search-pass",
 };

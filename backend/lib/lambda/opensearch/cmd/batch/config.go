@@ -1,10 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
 	"strconv"
+
+	"metalmental.net/flupinochan/myblogv4/backend/lib/lambda/open-search-backend/src/internal/secrets"
 )
 
 // Lambda環境変数
@@ -26,6 +29,8 @@ type AppConfig struct {
 }
 
 func GetAppConfig() (*AppConfig, error) {
+	ctx := context.Background()
+
 	// Lambda環境変数取得
 	getRequired := func(key string) (string, error) {
 		val := os.Getenv(key)
@@ -40,14 +45,6 @@ func GetAppConfig() (*AppConfig, error) {
 		return nil, err
 	}
 	port, err := getRequired("OPEN_SEARCH_PORT")
-	if err != nil {
-		return nil, err
-	}
-	username, err := getRequired("OPEN_SEARCH_USER")
-	if err != nil {
-		return nil, err
-	}
-	password, err := getRequired("OPEN_SEARCH_PASS")
 	if err != nil {
 		return nil, err
 	}
@@ -71,26 +68,6 @@ func GetAppConfig() (*AppConfig, error) {
 	if err != nil {
 		return nil, err
 	}
-	githubAppsPrivateKey, err := getRequired("GITHUB_APPS_PRIVATE_KEY")
-	if err != nil {
-		return nil, err
-	}
-	githubAppsIdString, err := getRequired("GITHUB_APPS_ID")
-	if err != nil {
-		return nil, err
-	}
-	githubAppsId, err := strconv.ParseInt(githubAppsIdString, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("invalid GITHUB_APPS_ID: %w", err)
-	}
-	githubInstallationIdString, err := getRequired("GITHUB_INSTALLATION_ID")
-	if err != nil {
-		return nil, err
-	}
-	gitHubInstallationId, err := strconv.ParseInt(githubInstallationIdString, 10, 64)
-	if err != nil {
-		return nil, fmt.Errorf("invalid GITHUB_INSTALLATION_ID: %w", err)
-	}
 	modelId, err := getRequired("MODEL_ID")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get MODEL_ID: %w", err)
@@ -98,6 +75,63 @@ func GetAppConfig() (*AppConfig, error) {
 	embeddingModelId, err := getRequired("EMBEDDING_MODEL_ID")
 	if err != nil {
 		return nil, fmt.Errorf("failed to get EMBEDDING_MODEL_ID: %w", err)
+	}
+
+	// Retrieve secret names from env vars (these hold Secrets Manager secret names, not actual secrets)
+	openSearchUserSecretName, err := getRequired("OPEN_SEARCH_USER_SECRET_NAME")
+	if err != nil {
+		return nil, err
+	}
+	openSearchPassSecretName, err := getRequired("OPEN_SEARCH_PASS_SECRET_NAME")
+	if err != nil {
+		return nil, err
+	}
+	githubAppsPrivateKeySecretName, err := getRequired("GITHUB_APPS_PRIVATE_KEY_SECRET_NAME")
+	if err != nil {
+		return nil, err
+	}
+	githubAppsIdSecretName, err := getRequired("GITHUB_APPS_ID_SECRET_NAME")
+	if err != nil {
+		return nil, err
+	}
+	githubInstallationIdSecretName, err := getRequired("GITHUB_INSTALLATION_ID_SECRET_NAME")
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch actual secret values from AWS Secrets Manager
+	smClient, err := secrets.NewClient(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create Secrets Manager client: %w", err)
+	}
+
+	username, err := smClient.GetSecretValue(ctx, openSearchUserSecretName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve OpenSearch username: %w", err)
+	}
+	password, err := smClient.GetSecretValue(ctx, openSearchPassSecretName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve OpenSearch password: %w", err)
+	}
+	githubAppsPrivateKey, err := smClient.GetSecretValue(ctx, githubAppsPrivateKeySecretName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve GitHub Apps private key: %w", err)
+	}
+	githubAppsIdString, err := smClient.GetSecretValue(ctx, githubAppsIdSecretName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve GitHub Apps ID: %w", err)
+	}
+	githubAppsId, err := strconv.ParseInt(githubAppsIdString, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("invalid GITHUB_APPS_ID: %w", err)
+	}
+	githubInstallationIdString, err := smClient.GetSecretValue(ctx, githubInstallationIdSecretName)
+	if err != nil {
+		return nil, fmt.Errorf("failed to retrieve GitHub Installation ID: %w", err)
+	}
+	gitHubInstallationId, err := strconv.ParseInt(githubInstallationIdString, 10, 64)
+	if err != nil {
+		return nil, fmt.Errorf("invalid GITHUB_INSTALLATION_ID: %w", err)
 	}
 
 	var logLevel slog.Level

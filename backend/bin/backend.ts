@@ -28,9 +28,9 @@ const aliasNameEmbedding = "tech-blog-embedding";
 const githubOwner = "Flupinochan";
 const githubRepo = "zenn-content";
 const githubPath = "articles";
-const githubAppsPrivateKeyParam = "github-apps-private-key-zenn-blog";
-const githubAppsIdParam = "github-apps-app-id-zenn-blog";
-const githubInstallationIdParam = "github-apps-installation-id-zenn-blog";
+const githubAppsPrivateKeySecretName = "github-apps-private-key-zenn-blog";
+const githubAppsIdSecretName = "github-apps-app-id-zenn-blog";
+const githubInstallationIdSecretName = "github-apps-installation-id-zenn-blog";
 const hostingBucketName = `${stackBaseName}-hosting-bucket`;
 const voicevoxBucketName = `${stackBaseName}-voicevox-bucket`;
 const voicevoxEcrName = `${stackBaseName}-voicevox-ecr`;
@@ -53,15 +53,15 @@ new OpenSearchBatchLambdaStack(app, `${stackBaseName}-OpenSearchBatchStack`, {
   openSearchBatchLambdaName,
   openSearchUrlParam: cfg.openSearchUrlParam,
   openSearchPortParam: cfg.openSearchPortParam,
-  openSearchUserParam: cfg.openSearchUserParam,
-  openSearchPassParam: cfg.openSearchPassParam,
+  openSearchUserSecretName: cfg.openSearchUserSecretName,
+  openSearchPassSecretName: cfg.openSearchPassSecretName,
   aliasName,
   githubOwner,
   githubRepo,
   githubPath,
-  githubAppsPrivateKeyParam,
-  githubAppsIdParam,
-  githubInstallationIdParam,
+  githubAppsPrivateKeySecretName,
+  githubAppsIdSecretName,
+  githubInstallationIdSecretName,
   modelId: cfg.modelId,
   embeddingModelId: cfg.modelIdEmbedding,
   githubConnectionArnParam,
@@ -75,8 +75,8 @@ const openSearchApiLambdaStack = new OpenSearchApiLambdaStack(
     openSearchApiFunctionName: openSearchApiLambdaName,
     openSearchUrlParam: cfg.openSearchUrlParam,
     openSearchPortParam: cfg.openSearchPortParam,
-    openSearchUserParam: cfg.openSearchUserParam,
-    openSearchPassParam: cfg.openSearchPassParam,
+    openSearchUserSecretName: cfg.openSearchUserSecretName,
+    openSearchPassSecretName: cfg.openSearchPassSecretName,
     aliasName,
     aliasNameEmbedding,
     modelId: cfg.modelId,

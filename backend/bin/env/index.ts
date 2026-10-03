@@ -11,8 +11,8 @@ export interface EnvConfig {
   modelIdEmbedding: string;
   openSearchUrlParam: string;
   openSearchPortParam: string;
-  openSearchUserParam: string;
-  openSearchPassParam: string;
+  openSearchUserSecretName: string;
+  openSearchPassSecretName: string;
 }
 
 export function getEnvConfig(env: string): EnvConfig {

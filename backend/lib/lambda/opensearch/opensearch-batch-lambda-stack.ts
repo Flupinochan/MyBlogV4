@@ -6,6 +6,7 @@ import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as logs from "aws-cdk-lib/aws-logs";
 import * as s3 from "aws-cdk-lib/aws-s3";
+import * as secretsmanager from "aws-cdk-lib/aws-secretsmanager";
 import * as ssm from "aws-cdk-lib/aws-ssm";
 import { Construct } from "constructs";
 import * as path from "path";
@@ -14,15 +15,15 @@ interface OpenSearchBatchLambdaStackProps extends cdk.StackProps {
   openSearchBatchLambdaName: string;
   openSearchUrlParam: string;
   openSearchPortParam: string;
-  openSearchUserParam: string;
-  openSearchPassParam: string;
+  openSearchUserSecretName: string;
+  openSearchPassSecretName: string;
   aliasName: string;
   githubOwner: string;
   githubRepo: string;
   githubPath: string;
-  githubAppsPrivateKeyParam: string;
-  githubAppsIdParam: string;
-  githubInstallationIdParam: string;
+  githubAppsPrivateKeySecretName: string;
+  githubAppsIdSecretName: string;
+  githubInstallationIdSecretName: string;
   modelId: string;
   embeddingModelId: string;
   githubConnectionArnParam: string;
@@ -38,6 +39,7 @@ export class OpenSearchBatchLambdaStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: OpenSearchBatchLambdaStackProps) {
     super(scope, id, props);
 
+    // Non-secret configuration from SSM String parameters
     const openSearchUrl = ssm.StringParameter.valueForStringParameter(
       this,
       props.openSearchUrlParam,
@@ -46,25 +48,32 @@ export class OpenSearchBatchLambdaStack extends cdk.Stack {
       this,
       props.openSearchPortParam,
     );
-    const openSearchUser = ssm.StringParameter.valueForStringParameter(
+
+    // Reference secrets stored in AWS Secrets Manager
+    const openSearchUserSecret = secretsmanager.Secret.fromSecretNameV2(
       this,
-      props.openSearchUserParam,
+      "OpenSearchUserSecret",
+      props.openSearchUserSecretName,
     );
-    const openSearchPass = ssm.StringParameter.valueForStringParameter(
+    const openSearchPassSecret = secretsmanager.Secret.fromSecretNameV2(
       this,
-      props.openSearchPassParam,
+      "OpenSearchPassSecret",
+      props.openSearchPassSecretName,
     );
-    const githubAppsPrivateKey = ssm.StringParameter.valueForStringParameter(
+    const githubAppsPrivateKeySecret = secretsmanager.Secret.fromSecretNameV2(
       this,
-      props.githubAppsPrivateKeyParam,
+      "GitHubAppsPrivateKeySecret",
+      props.githubAppsPrivateKeySecretName,
     );
-    const githubAppsId = ssm.StringParameter.valueForStringParameter(
+    const githubAppsIdSecret = secretsmanager.Secret.fromSecretNameV2(
       this,
-      props.githubAppsIdParam,
+      "GitHubAppsIdSecret",
+      props.githubAppsIdSecretName,
     );
-    const githubInstallationId = ssm.StringParameter.valueForStringParameter(
+    const githubInstallationIdSecret = secretsmanager.Secret.fromSecretNameV2(
       this,
-      props.githubInstallationIdParam,
+      "GitHubInstallationIdSecret",
+      props.githubInstallationIdSecretName,
     );
 
     this.logGroup = new logs.LogGroup(this, "OpenSearchBatchLogGroup", {
@@ -107,6 +116,13 @@ export class OpenSearchBatchLambdaStack extends cdk.Stack {
       }),
     );
 
+    // Grant the Lambda role permission to read the secrets
+    openSearchUserSecret.grantRead(this.role);
+    openSearchPassSecret.grantRead(this.role);
+    githubAppsPrivateKeySecret.grantRead(this.role);
+    githubAppsIdSecret.grantRead(this.role);
+    githubInstallationIdSecret.grantRead(this.role);
+
     new go.GoFunction(this, "OpenSearchBatchFunction", {
       functionName: props.openSearchBatchLambdaName,
       entry: path.join(__dirname, "cmd/batch"),
@@ -123,17 +139,18 @@ export class OpenSearchBatchLambdaStack extends cdk.Stack {
       environment: {
         OPEN_SEARCH_URL: openSearchUrl,
         OPEN_SEARCH_PORT: openSearchPort,
-        OPEN_SEARCH_USER: openSearchUser,
-        OPEN_SEARCH_PASS: openSearchPass,
+        // Pass only secret names; the Lambda fetches values from Secrets Manager at runtime
+        OPEN_SEARCH_USER_SECRET_NAME: props.openSearchUserSecretName,
+        OPEN_SEARCH_PASS_SECRET_NAME: props.openSearchPassSecretName,
         LOG_LEVEL: "-4", // DEBUG:-4、INFO:0、WARN:4、ERROR:8
         ALIAS_NAME: props.aliasName,
         ALIAS_NAME_EMBEDDING: `${props.aliasName}-embedding`,
         GITHUB_OWNER: props.githubOwner,
         GITHUB_REPO: props.githubRepo,
         GITHUB_PATH: props.githubPath,
-        GITHUB_APPS_PRIVATE_KEY: githubAppsPrivateKey,
-        GITHUB_APPS_ID: githubAppsId,
-        GITHUB_INSTALLATION_ID: githubInstallationId,
+        GITHUB_APPS_PRIVATE_KEY_SECRET_NAME: props.githubAppsPrivateKeySecretName,
+        GITHUB_APPS_ID_SECRET_NAME: props.githubAppsIdSecretName,
+        GITHUB_INSTALLATION_ID_SECRET_NAME: props.githubInstallationIdSecretName,
         MODEL_ID: props.modelId,
         EMBEDDING_MODEL_ID: props.embeddingModelId,
       },
