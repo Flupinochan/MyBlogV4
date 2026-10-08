@@ -1,9 +1,7 @@
 package blogsearch
 
 import (
-	"crypto/tls"
 	"fmt"
-	"net/http"
 	"time"
 
 	"github.com/opensearch-project/opensearch-go/v2"
@@ -13,9 +11,6 @@ func NewOpenSearchClient(config *OpenSearchConfig) (*opensearch.Client, error) {
 	// 429 (Too Many Requests) を追加
 	// 指数バックオフ (100ms, 200ms, 400ms, ...) を設定
 	cfg := opensearch.Config{
-		Transport: &http.Transport{
-			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-		},
 		Addresses:           []string{config.Address},
 		Username:            config.Username,
 		Password:            config.Password,
