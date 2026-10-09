@@ -69,15 +69,20 @@ class DbService:
     async def save_messages(
         self,
         conversation_id: str,
+        user_id: str,
         messages: list[tuple[str, str]],
     ) -> None:
         now = datetime.now(timezone.utc)
         async with AsyncSession(self._engine) as session:
-            conversation = await session.get(
-                ConversationOrm,
-                uuid.UUID(conversation_id),
-                with_for_update=True,
+            result = await session.execute(
+                select(ConversationOrm)
+                .where(
+                    ConversationOrm.id == uuid.UUID(conversation_id),
+                    ConversationOrm.user_id == uuid.UUID(user_id),
+                )
+                .with_for_update()
             )
+            conversation = result.scalar_one_or_none()
             if conversation is None:
                 return
 
