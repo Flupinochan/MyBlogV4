@@ -40,9 +40,9 @@ if (!firstItem || !lastItem)
   throw new Error("Timeline items must not be empty");
 ---
 
-<SectionHeading id="timeline" data-timeline-title
-  >Timeline</SectionHeading
->
+<SectionHeading id="timeline" data-timeline-title>
+  Timeline
+</SectionHeading>
 
 <div id="tl-wrap" class="relative overflow-x-clip lg:mx-16">
   <div
@@ -54,25 +54,23 @@ if (!firstItem || !lastItem)
   </div>
 
   <div class="flex flex-col gap-30 mt-35">
-    {
-      items.map((item, i) => (
-        <div
-          class={`tl-row flex justify-between items-center gap-3 p-4${i % 2 !== 0 ? " flex-row-reverse" : ""}`}
-          data-color={item.color}
+    {items.map((item, i) => (
+      <div
+        class={`tl-row flex justify-between items-center gap-3 p-4${i % 2 !== 0 ? " flex-row-reverse" : ""}`}
+        data-color={item.color}
+      >
+        <h3
+          class="text-3xl lg:text-5xl font-bold"
+          style={`color: ${item.color}`}
         >
-          <h3
-            class="text-3xl lg:text-5xl font-bold"
-            style={`color: ${item.color}`}
-          >
-            {item.year}
-          </h3>
-          <div class={`flex flex-col${i % 2 !== 0 ? "" : " items-end"}`}>
-            <p class="font-bold text-slate-100">{item.title}</p>
-            <p class="text-sm text-slate-400">{item.desc}</p>
-          </div>
+          {item.year}
+        </h3>
+        <div class={`flex flex-col${i % 2 !== 0 ? "" : " items-end"}`}>
+          <p class="font-bold text-slate-100">{item.title}</p>
+          <p class="text-sm text-slate-400">{item.desc}</p>
         </div>
-      ))
-    }
+      </div>
+    ))}
   </div>
 
   <div
@@ -93,8 +91,7 @@ if (!firstItem || !lastItem)
         y1="0"
         x2="0"
         y2="1"
-      >
-      </linearGradient>
+      ></linearGradient>
     </defs>
 
     <path
@@ -102,7 +99,8 @@ if (!firstItem || !lastItem)
       fill="none"
       stroke="url(#timelineGradient)"
       stroke-width="2"
-      stroke-linecap="round"></path>
+      stroke-linecap="round"
+    ></path>
 
     <g id="tl-dots"></g>
   </svg>

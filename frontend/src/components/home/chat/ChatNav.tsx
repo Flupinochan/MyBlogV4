@@ -26,7 +26,10 @@ export default function ChatNav({
       <button className="nav-item flex h-10 justify-end" onClick={onToggleNav}>
         <FiSidebar className="h-full w-auto shrink-0" />
       </button>
-      <button className="nav-item flex h-10 flex-row gap-2" onClick={onNewHistory}>
+      <button
+        className="nav-item flex h-10 flex-row gap-2"
+        onClick={onNewHistory}
+      >
         <IoIosAddCircle className="h-full w-auto shrink-0" />
         <p
           className={`whitespace-nowrap transition-opacity duration-200 ${isNavOpen ? "opacity-100 delay-150" : "opacity-0"}`}
@@ -43,11 +46,18 @@ export default function ChatNav({
         }
       >
         {[...histories]
-          .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+          .sort(
+            (a, b) =>
+              new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
+          )
           .map((h) => (
             <li
               key={h.id}
-              style={{ anchorName: `--hist-${h.id.replace(/[:.]/g, "-")}` } as React.CSSProperties}
+              style={
+                {
+                  anchorName: `--hist-${h.id.replace(/[:.]/g, "-")}`,
+                } as React.CSSProperties
+              }
               className="nav-item relative z-10"
               onClick={() => onSelectHistory(h.id)}
             >

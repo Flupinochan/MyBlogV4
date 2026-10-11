@@ -31,7 +31,6 @@ interface Props {
         localStorage.setItem("theme", "dark");
       }
     </script>
-
     <script>
       import { registerSW } from "virtual:pwa-register";
       import { hideLoadingOverlay } from "./loading/loadingOverlay";
@@ -57,13 +56,9 @@ interface Props {
       }
     </script>
   </head>
-  <body
-    class="flex flex-col bg-no-repeat bg-center bg-cover bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200"
-  >
+  <body class="flex flex-col bg-no-repeat bg-center bg-cover bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-200">
     <Loading />
-    <div
-      class="hidden lg:block fixed top-16 inset-x-0 bottom-0 z-0 pointer-events-none"
-    >
+    <div class="hidden lg:block fixed top-16 inset-x-0 bottom-0 z-0 pointer-events-none">
       <div id="avatar-stage" class="absolute top-0 h-full w-full">
         <Avatar client:media="(min-width: 64rem)" />
       </div>
@@ -71,9 +66,7 @@ interface Props {
     <ErrorDialog />
     <Header />
     <div class="flex flex-1 pt-16 mb-10 max-w-7xl mx-auto px-3 lg:px-4 w-full">
-      <main
-        class="relative z-10 my-2 w-full lg:my-4 lg:mr-4 lg:ml-auto lg:w-[calc((2*100%-4rem)/3)]"
-      >
+      <main class="relative z-10 my-2 w-full lg:my-4 lg:mr-4 lg:ml-auto lg:w-[calc((2*100%-4rem)/3)]">
         <slot />
       </main>
     </div>

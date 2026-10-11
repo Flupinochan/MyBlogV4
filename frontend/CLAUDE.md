@@ -37,7 +37,7 @@
 @variant dark (&:where(.dark, .dark *));
 
 .your-class {
-@apply <tailwind-classes>;
+  @apply <tailwind-classes>;
 }
 ```
 
