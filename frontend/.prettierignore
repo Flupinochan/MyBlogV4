@@ -1,0 +1,7 @@
+dist
+.astro
+node_modules
+public
+bun.lock
+src/types/*.generated.ts
+src/types/openapi-*.json

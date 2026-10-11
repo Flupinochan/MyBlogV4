@@ -28,26 +28,44 @@
     "zod": "^4.5.4"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@tanstack/react-query-devtools": "^5.100.9",
+    "@testing-library/jest-dom": "^7.0.1",
+    "@testing-library/react": "^16.3.3",
+    "@testing-library/user-event": "^14.6.7",
     "@types/d3": "^7.4.3",
     "@types/d3-selection": "^3.0.11",
     "@types/dom-chromium-ai": "^0.0.16",
     "@vite-pwa/astro": "^1.2.0",
+    "eslint": "^10.12.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-astro": "^3.2.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "jsdom": "^30.1.2",
     "openapi-fetch": "^0.17.0",
     "openapi-react-query": "^0.5.4",
-    "openapi-typescript": "^7.13.0"
+    "openapi-typescript": "^7.13.0",
+    "prettier": "^3.9.10",
+    "prettier-plugin-astro": "^1.1.1",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.3"
   },
   "engines": {
-    "node": ">=22.12.0"
+    "node": ">=22.13.0"
   },
   "name": "sleepy-shell",
   "scripts": {
     "astro": "astro",
     "build": "astro check && astro build",
     "dev": "astro dev",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "generate:github-stats": "node ./scripts/generate-github-stats.js",
+    "lint": "eslint .",
     "prepare": "husky",
     "preview": "astro preview",
+    "test": "vitest run",
     "test:ts": "tsc --noEmit"
   },
   "type": "module",
