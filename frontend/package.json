@@ -56,6 +56,13 @@
     "node": ">=22.13.0"
   },
   "name": "sleepy-shell",
+  "overrides": {
+    "browserslist": "^4.28.7",
+    "defu": "^6.1.5",
+    "devalue": "^5.9.4",
+    "js-yaml": "^4.3.2",
+    "source-map-js": "^1.2.2"
+  },
   "scripts": {
     "astro": "astro",
     "build": "astro check && astro build",
