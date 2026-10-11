@@ -28,7 +28,8 @@ export function useShapeKeyEffect({
       mesh.morphTargetInfluences.fill(0);
       // 対象のShapeKeyを1に設定
       const index = mesh.morphTargetDictionary[shapeKeyRef.current];
-      if (index === undefined) throw new Error(`Shape key not found: ${shapeKeyRef.current}`);
+      if (index === undefined)
+        throw new Error(`Shape key not found: ${shapeKeyRef.current}`);
       mesh.morphTargetInfluences[index] = 1;
     };
 

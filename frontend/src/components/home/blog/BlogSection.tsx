@@ -54,9 +54,7 @@ async function fetchBlogsWithMode({
     query: query || undefined,
     topic: topics[0],
     search_mode: (pipeline ? "hybrid" : searchMode) as
-      | "fulltext"
-      | "vector"
-      | "hybrid",
+      "fulltext" | "vector" | "hybrid",
     search_pipeline: pipeline,
   });
 }
@@ -253,7 +251,7 @@ function BlogCarousel() {
           <SearchModeSelect value={searchMode} onChange={setSearchMode} />
           {/* topic */}
           <TopicSelect
-            topics={topicsData?.data ?? [] as TopicBucket[]}
+            topics={topicsData?.data ?? ([] as TopicBucket[])}
             value={selectedTopics[0] ?? ""}
             onChange={(v) => setSelectedTopics(v ? [v] : [])}
           />

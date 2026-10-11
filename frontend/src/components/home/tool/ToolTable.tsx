@@ -516,7 +516,11 @@ export default function ToolTable() {
       vars[`--col-${header.column.id}-size`] = `${header.column.getSize()}px`;
     }
     return vars;
-  }, [table.getState().columnSizingInfo, table.getState().columnSizing, columnVisibility]);
+  }, [
+    table.getState().columnSizingInfo,
+    table.getState().columnSizing,
+    columnVisibility,
+  ]);
 
   // Tanstack Virtual Table
   const { rows } = table.getRowModel();

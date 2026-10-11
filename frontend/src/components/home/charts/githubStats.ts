@@ -61,7 +61,8 @@ export async function getRepositoryCountByLanguage(): Promise<
         color: lang.color || DEFAULT_COLOR,
       };
       const stat = languageStats[lang.name];
-      if (stat === undefined) throw new Error(`Language stat not found: ${lang.name}`);
+      if (stat === undefined)
+        throw new Error(`Language stat not found: ${lang.name}`);
       stat.count += 1;
     }
   }
@@ -152,6 +153,20 @@ async function getAccountCreateAt(): Promise<Date> {
   return new Date(res.user.createdAt);
 }
 
+interface CommitStatsResponse {
+  user: Record<
+    string,
+    | {
+        contributionCalendar: {
+          weeks: {
+            contributionDays: { date: string; contributionCount: number }[];
+          }[];
+        };
+      }
+    | undefined
+  > | null;
+}
+
 export async function getGitHubCommitStats(): Promise<GitHubCommitCount[]> {
   const accountCreateAt = await getAccountCreateAt();
   const now = new Date();
@@ -184,7 +199,7 @@ export async function getGitHubCommitStats(): Promise<GitHubCommitCount[]> {
     )
     .join("\n");
 
-  const res = await getOctokit().graphql<any>(
+  const res = await getOctokit().graphql<CommitStatsResponse>(
     `query ($owner: String!) { user(login: $owner) { ${fields} } }`,
     { owner: GITHUB_OWNER },
   );

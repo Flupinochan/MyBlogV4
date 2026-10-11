@@ -21,13 +21,11 @@ const langBytes = await getGitHubLanguageBytesStats();
 const commitStats = await getGitHubCommitStats();
 ---
 
-<SectionHeading id="chart" data-chart-title
-  >Chart</SectionHeading
->
+<SectionHeading id="chart" data-chart-title>
+  Chart
+</SectionHeading>
 
-<div
-  class="flex flex-col items-stretch gap-6 lg:flex-row lg:items-center lg:gap-10"
->
+<div class="flex flex-col items-stretch gap-6 lg:flex-row lg:items-center lg:gap-10">
   <div class="radio-group">
     <label data-anchor="pie" class="radio-label [anchor-name:--pie]">
       <input
@@ -75,8 +73,7 @@ const commitStats = await getGitHubCommitStats();
     data-stats={JSON.stringify(langCount)}
     data-bytes={JSON.stringify(langBytes)}
     data-commits={JSON.stringify(commitStats)}
-  >
-  </div>
+  ></div>
 </div>
 
 <!-- darkを利用するためにglobalで定義 -->

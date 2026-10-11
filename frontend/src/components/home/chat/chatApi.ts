@@ -78,7 +78,8 @@ export async function getConversations(
   const { data, error, response } = await client.GET("/v1/conversations", {
     params: { header: { "x-user-id": userId } },
   });
-  if (error) throw new ApiError(response.status, "failed to fetch conversations");
+  if (error)
+    throw new ApiError(response.status, "failed to fetch conversations");
   return data ?? [];
 }
 
@@ -87,12 +88,16 @@ export async function updateConversationTitle(
   userId: string,
   title: string,
 ): Promise<void> {
-  const { error, response } = await client.PATCH("/v1/conversations/{conversation_id}", {
-    params: {
-      path: { conversation_id: conversationId },
-      header: { "x-user-id": userId },
+  const { error, response } = await client.PATCH(
+    "/v1/conversations/{conversation_id}",
+    {
+      params: {
+        path: { conversation_id: conversationId },
+        header: { "x-user-id": userId },
+      },
+      body: { title },
     },
-    body: { title },
-  });
-  if (error) throw new ApiError(response.status, "failed to update conversation title");
+  );
+  if (error)
+    throw new ApiError(response.status, "failed to update conversation title");
 }

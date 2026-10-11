@@ -5,7 +5,7 @@ import type { MergedLangStats } from "./main";
 // 絵画はしない
 export class PieChart {
   readonly arc: d3.Arc<unknown, d3.PieArcDatum<MergedLangStats>>;
-  readonly pie: d3.Pie<any, MergedLangStats>;
+  readonly pie: d3.Pie<unknown, MergedLangStats>;
   readonly pieData: d3.PieArcDatum<MergedLangStats>[];
 
   constructor(MergedLangStats: MergedLangStats[], radius: number) {

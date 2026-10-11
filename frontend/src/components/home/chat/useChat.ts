@@ -29,7 +29,10 @@ function getUserId(): string {
 }
 
 export type MessageParam = ChatRequest["messages"][number];
-export type Message = Omit<MessageParam, "content"> & { content: string; id: string };
+export type Message = Omit<MessageParam, "content"> & {
+  content: string;
+  id: string;
+};
 export type History = {
   id: string;
   conversationId: string | undefined;
@@ -54,9 +57,15 @@ type ChatDetectResult = {
 
 export function useChat() {
   const { current: initialId } = useRef(new Date().toISOString());
-  const userIdRef = useRef('');
+  const userIdRef = useRef("");
   const [histories, setHistories] = useState<History[]>([
-    { id: initialId, conversationId: undefined, name: "新しいチャット", updatedAt: initialId, messages: [] },
+    {
+      id: initialId,
+      conversationId: undefined,
+      name: "新しいチャット",
+      updatedAt: initialId,
+      messages: [],
+    },
   ]);
   const [currentHistoryId, setCurrentHistoryId] = useState<string>(initialId);
   const currentHistory = histories.find((h) => h.id === currentHistoryId);
@@ -66,8 +75,18 @@ export function useChat() {
   const [isNavOpen, setIsNavOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const chatDetectMutation = useMutation<ChatDetectResult, Error, ChatDetectInput>({
-    mutationFn: async ({ messages, withVoice, isFirst, userId, conversationId }) => {
+  const chatDetectMutation = useMutation<
+    ChatDetectResult,
+    Error,
+    ChatDetectInput
+  >({
+    mutationFn: async ({
+      messages,
+      withVoice,
+      isFirst,
+      userId,
+      conversationId,
+    }) => {
       const request: ChatRequest = {
         messages,
         user_id: userId,
@@ -76,7 +95,9 @@ export function useChat() {
       const [chatResult, lang] = await Promise.all([
         withVoice ? sendVoiceMessage(request) : sendTextMessage(request),
         isFirst && "LanguageDetector" in self
-          ? detectLanguage(messages[messages.length - 1]?.content ?? "").catch(() => undefined)
+          ? detectLanguage(messages[messages.length - 1]?.content ?? "").catch(
+              () => undefined,
+            )
           : Promise.resolve(undefined),
       ]);
       return { chatResult, lang, conversationId: chatResult.conversation_id };
@@ -84,7 +105,11 @@ export function useChat() {
     retry: retryOn5xx,
   });
 
-  const getConversationsMutation = useMutation<ConversationResponse[], Error, string>({
+  const getConversationsMutation = useMutation<
+    ConversationResponse[],
+    Error,
+    string
+  >({
     mutationFn: getConversations,
     retry: retryOn5xx,
   });
@@ -109,7 +134,9 @@ export function useChat() {
     const load = async () => {
       userIdRef.current = getUserId();
       try {
-        const conversations = await getConversationsMutation.mutateAsync(userIdRef.current);
+        const conversations = await getConversationsMutation.mutateAsync(
+          userIdRef.current,
+        );
         if (conversations.length === 0) return;
         const loaded: History[] = conversations.map((c) => ({
           id: c.id,
@@ -135,7 +162,8 @@ export function useChat() {
 
   const sendMessage = (text: string) => {
     const trimmedMessage = text.trim();
-    if (!trimmedMessage || chatDetectMutation.isPending || !currentHistory) return;
+    if (!trimmedMessage || chatDetectMutation.isPending || !currentHistory)
+      return;
 
     const isFirst = messages.length === 0;
     const newUserMessage: Message = {
@@ -151,10 +179,19 @@ export function useChat() {
         messages: [...h.messages, newUserMessage],
       }));
     });
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    messagesEndRef.current?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
 
     chatDetectMutation.mutate(
-      { messages: [...messages, newUserMessage], withVoice, isFirst, userId: userIdRef.current, conversationId: currentHistory.conversationId },
+      {
+        messages: [...messages, newUserMessage],
+        withVoice,
+        isFirst,
+        userId: userIdRef.current,
+        conversationId: currentHistory.conversationId,
+      },
       {
         onError: async () => {
           const conversationId = currentHistory.conversationId;
@@ -166,7 +203,9 @@ export function useChat() {
             return;
           }
           try {
-            const conversations = await getConversationsMutation.mutateAsync(userIdRef.current);
+            const conversations = await getConversationsMutation.mutateAsync(
+              userIdRef.current,
+            );
             const synced = conversations.find((c) => c.id === conversationId);
             if (!synced) return;
             updateCurrentHistory((h) => ({
@@ -187,11 +226,18 @@ export function useChat() {
               updatedAt: new Date().toISOString(),
               messages: [
                 ...h.messages,
-                { role: "assistant", content: chatResult.message, id: crypto.randomUUID() },
+                {
+                  role: "assistant",
+                  content: chatResult.message,
+                  id: crypto.randomUUID(),
+                },
               ],
             }));
           });
-          messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          messagesEndRef.current?.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+          });
           if ("voice_path" in chatResult) {
             try {
               await new Audio(chatResult.voice_path).play();
@@ -227,7 +273,13 @@ export function useChat() {
   const handleNewHistory = () => {
     const newId = new Date().toISOString();
     setHistories((prev) => [
-      { id: newId, conversationId: undefined, name: "新しいチャット", updatedAt: newId, messages: [] },
+      {
+        id: newId,
+        conversationId: undefined,
+        name: "新しいチャット",
+        updatedAt: newId,
+        messages: [],
+      },
       ...prev,
     ]);
     setCurrentHistoryId(newId);

@@ -1,11 +1,5 @@
 export type BadgeColor =
-  | "current"
-  | "violet"
-  | "cyan"
-  | "amber"
-  | "rose"
-  | "emerald"
-  | "slate";
+  "current" | "violet" | "cyan" | "amber" | "rose" | "emerald" | "slate";
 
 export type BadgeRounded = "full" | "md";
 

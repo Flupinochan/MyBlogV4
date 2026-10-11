@@ -44,9 +44,7 @@ import SunMoon from "../components/icons/SunMoon.astro";
       aria-label="ダークモードに切り替える"
       class="cursor-pointer toggle-dark-mode group transform active:scale-95 transition-transform duration-150"
     >
-      <SunMoon
-        class="size-6 transition-all duration-300 group-hover:stroke-[2px] hover:brightness-75 dark:hover:brightness-125"
-      />
+      <SunMoon class="size-6 transition-all duration-300 group-hover:stroke-[2px] hover:brightness-75 dark:hover:brightness-125" />
     </button>
     <a
       aria-label="GitHubのプロフィールを新しいタブで開く"
@@ -68,18 +66,14 @@ import SunMoon from "../components/icons/SunMoon.astro";
       rel="noopener"
       class="transform active:scale-95 transition-transform duration-150"
     >
-      <Zenn
-        class="size-5 hover:brightness-75 dark:hover:brightness-125 transition-all duration-300"
-      />
+      <Zenn class="size-5 hover:brightness-75 dark:hover:brightness-125 transition-all duration-300" />
     </a>
     <a
       aria-label="メールを送信する"
       href="mailto:flupino@metalmental.net"
       class="transform active:scale-95 transition-transform duration-150"
     >
-      <Mail
-        class="size-6 hover:brightness-75 dark:hover:brightness-125 transition-all duration-300"
-      />
+      <Mail class="size-6 hover:brightness-75 dark:hover:brightness-125 transition-all duration-300" />
     </a>
   </div>
 </header>
@@ -205,30 +199,30 @@ import SunMoon from "../components/icons/SunMoon.astro";
   }
 
   /*
-  header非表示設定
-    - 下へスクロール中 かつ
-    - 下にスクロール可能
-   */
+    header非表示設定
+      - 下へスクロール中 かつ
+      - 下にスクロール可能
+     */
   @container html-scroll-state (
-  scroll-state(scrolled: bottom) and
-  scroll-state(scrollable: bottom)
-) {
+    scroll-state(scrolled: bottom) and
+    scroll-state(scrollable: bottom)
+  ) {
     header {
       translate: 0 -100%;
     }
   }
 
   /*
-  header表示設定
-    - 上へスクロール中 または
-    - 上にスクロール不可能(ページ最上部) または
-    - 下にスクロール不可能(ページ最下部)
-  */
+    header表示設定
+      - 上へスクロール中 または
+      - 上にスクロール不可能(ページ最上部) または
+      - 下にスクロール不可能(ページ最下部)
+    */
   @container html-scroll-state (
-  scroll-state(scrolled: top) or 
-  (not scroll-state(scrollable: top)) or 
-  (not scroll-state(scrollable: bottom))
-) {
+    scroll-state(scrolled: top) or
+    (not scroll-state(scrollable: top)) or
+    (not scroll-state(scrollable: bottom))
+  ) {
     header {
       translate: 0 0;
     }

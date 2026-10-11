@@ -10,7 +10,9 @@ const client = createClient<paths>({ baseUrl: "/voicevox-api" });
 export async function sendContact(
   request: ContactRequest,
 ): Promise<ContactResponse> {
-  const { data, error, response } = await client.POST("/v1/contact", { body: request });
+  const { data, error, response } = await client.POST("/v1/contact", {
+    body: request,
+  });
   if (error) throw new ApiError(response.status, "contact request failed");
   return data;
 }

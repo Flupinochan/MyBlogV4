@@ -17,28 +17,22 @@ const {
 <!-- pタグでView Transitionすると微妙におかしいため、div + spanにすること -->
 <!-- おそらくblockだと適切に動作しない、inlineのspanを利用する -->
 <div class={`mt-3 text-lg font-semibold ${textColor}`}>
-  <span data-skill-title>
-    {title}
-  </span>
+  <span data-skill-title>{title}</span>
 </div>
 
 <div class={`mt-2 flex flex-wrap gap-1.5 ${textColor}`}>
-  {
-    tooltips.map((item, index) => (
-      <Badge color={badgeColor} rounded="md" border data-skill-tooltip={index}>
-        {item}
-      </Badge>
-    ))
-  }
+  {tooltips.map((item, index) => (
+    <Badge color={badgeColor} rounded="md" border data-skill-tooltip={index}>
+      {item}
+    </Badge>
+  ))}
 </div>
 
 <div
   data-skill-description-wrapper
   class="skill-card-description w-full mt-2 text-sm leading-relaxed text-slate-600 dark:text-slate-300"
 >
-  <span data-skill-description>
-    {description}
-  </span>
+  <span data-skill-description>{description}</span>
 </div>
 
 <button

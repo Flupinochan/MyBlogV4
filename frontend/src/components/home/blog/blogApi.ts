@@ -1,5 +1,8 @@
 import createClient from "openapi-fetch";
-import type { components, paths } from "../../../types/api-opensearch.generated";
+import type {
+  components,
+  paths,
+} from "../../../types/api-opensearch.generated";
 import { ApiError } from "../../../lib/apiError";
 
 export type BlogListItem = components["schemas"]["BlogSearchResultItem"];
@@ -30,12 +33,14 @@ export async function fetchBlogs(params: {
       },
     },
   });
-  if (error !== undefined) throw new ApiError(response.status, "Failed to fetch blogs");
+  if (error !== undefined)
+    throw new ApiError(response.status, "Failed to fetch blogs");
   return data;
 }
 
 export async function fetchTopics(): Promise<TopicsResponse> {
   const { data, error, response } = await client.GET("/v1/topics", {});
-  if (error !== undefined) throw new ApiError(response.status, "Failed to fetch topics");
+  if (error !== undefined)
+    throw new ApiError(response.status, "Failed to fetch topics");
   return data;
 }
