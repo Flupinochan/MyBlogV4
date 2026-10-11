@@ -22,6 +22,6 @@ jobs:
       - run: bun install --frozen-lockfile --ignore-scripts
       - run: bun run format:check
       - run: bun run lint
-      - run: bun run astro sync
+      - run: bun run astro check
       - run: bun run test:ts
       - run: bun run test
