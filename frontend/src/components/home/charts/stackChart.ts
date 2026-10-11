@@ -11,16 +11,21 @@ export class StackChart {
   readonly yScale: d3.ScaleLinear<number, number>;
   // UIは初期表示では非表示
   // Axis UI
-  readonly xAxis: d3.Selection<SVGGElement, unknown, HTMLElement, any>;
-  readonly yAxis: d3.Selection<SVGGElement, unknown, HTMLElement, any>;
+  readonly xAxis: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>;
+  readonly yAxis: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>;
   // Border UI
-  readonly borderPath: d3.Selection<SVGPathElement, unknown, HTMLElement, any>;
+  readonly borderPath: d3.Selection<
+    SVGPathElement,
+    unknown,
+    HTMLElement,
+    unknown
+  >;
 
   private readonly timeExtent: [Date, Date];
   private readonly bisectDate: d3.Bisector<GitHubCommitCount, Date>["left"];
 
   constructor(
-    svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>,
+    svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, unknown>,
     private readonly commitData: GitHubCommitCount[],
     width: number,
     private readonly height: number,
@@ -49,7 +54,8 @@ export class StackChart {
       .nice();
 
     const [yMin, yMax] = this.yScale.domain();
-    if (yMin === undefined || yMax === undefined) throw new Error("yScale domain is not set");
+    if (yMin === undefined || yMax === undefined)
+      throw new Error("yScale domain is not set");
     const yTickValues = d3.range(2).map((i) => yMin + ((yMax - yMin) / 1) * i);
 
     this.xAxis = svg
@@ -112,7 +118,8 @@ export class StackChart {
     if (idx >= this.commitData.length) return last.total;
     const d0 = this.commitData[idx - 1];
     const d1 = this.commitData[idx];
-    if (d0 === undefined || d1 === undefined) throw new Error("commitData index out of bounds");
+    if (d0 === undefined || d1 === undefined)
+      throw new Error("commitData index out of bounds");
     const t =
       (date.getTime() - new Date(d0.date).getTime()) /
       (new Date(d1.date).getTime() - new Date(d0.date).getTime());

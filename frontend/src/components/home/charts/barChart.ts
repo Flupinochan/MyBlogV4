@@ -4,12 +4,12 @@ import type { MergedLangStats, StyleAxisFn } from "./main";
 export class BarChart {
   readonly xScale: d3.ScaleBand<string>;
   readonly yScale: d3.ScaleLinear<number, number>;
-  readonly xAxis: d3.Selection<SVGGElement, unknown, HTMLElement, any>;
-  readonly yAxis: d3.Selection<SVGGElement, unknown, HTMLElement, any>;
+  readonly xAxis: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>;
+  readonly yAxis: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>;
 
   constructor(
     // svgとarrayデータは全てのグラフで共通して参照して利用
-    svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, any>,
+    svg: d3.Selection<SVGSVGElement, unknown, HTMLElement, unknown>,
     mergedLangStats: MergedLangStats[],
     width: number,
     private readonly height: number,
@@ -70,7 +70,7 @@ export class BarChart {
    */
   updateAxes(mergedLangStats: MergedLangStats[]) {
     this.xScale.domain(
-      mergedLangStats.filter((d) => d.repoBytes > 0).map((d) => d.langName)
+      mergedLangStats.filter((d) => d.repoBytes > 0).map((d) => d.langName),
     );
   }
 

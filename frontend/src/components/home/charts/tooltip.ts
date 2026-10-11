@@ -2,7 +2,12 @@ import * as d3 from "d3";
 import type { MergedLangStats } from "./main";
 
 export class Tooltip {
-  private readonly el: d3.Selection<HTMLDivElement, unknown, HTMLElement, any>;
+  private readonly el: d3.Selection<
+    HTMLDivElement,
+    unknown,
+    HTMLElement,
+    unknown
+  >;
 
   constructor() {
     this.el = d3
@@ -39,7 +44,12 @@ export class Tooltip {
       .on("mouseleave", () => this.hide());
   }
 
-  removeEvent(elements: d3.Selection<any, any, any, any>) {
+  removeEvent<
+    GElement extends d3.BaseType,
+    Datum,
+    PElement extends d3.BaseType,
+    PDatum,
+  >(elements: d3.Selection<GElement, Datum, PElement, PDatum>) {
     elements.on("mouseover", null).on("mousemove", null).on("mouseleave", null);
   }
 

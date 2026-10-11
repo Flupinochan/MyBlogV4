@@ -89,11 +89,11 @@ const svgMain = d3
 
 // axis共通のcolor等のスタイル定義
 export type StyleAxisFn = (
-  sel: d3.Selection<SVGGElement, unknown, HTMLElement, any>,
+  sel: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>,
 ) => void;
 
 const styleAxis: StyleAxisFn = (
-  selection: d3.Selection<SVGGElement, unknown, HTMLElement, any>,
+  selection: d3.Selection<SVGGElement, unknown, HTMLElement, unknown>,
 ) => {
   selection
     .selectAll("path, line")
@@ -140,7 +140,10 @@ elements
   .append("path")
   .attr("d", (d) => {
     // endAngle = startAngleにして非表示
-    return d3.arc<any>().innerRadius(0).outerRadius(radius)({
+    return d3
+      .arc<d3.PieArcDatum<MergedLangStats>>()
+      .innerRadius(0)
+      .outerRadius(radius)({
       ...d,
       endAngle: d.startAngle,
     })!;
@@ -155,10 +158,7 @@ elements
 // label定義
 const labels = elements
   .append("text")
-  .attr(
-    "class",
-    "text-xs fill-current select-none [text-anchor:middle]",
-  )
+  .attr("class", "text-xs fill-current select-none [text-anchor:middle]")
   .attr("opacity", 0);
 // language name
 labels
@@ -211,7 +211,10 @@ export const initChartAnimation = () => {
         onUpdate: function () {
           path.attr(
             "d",
-            d3.arc<any>().innerRadius(0).outerRadius(radius)({
+            d3
+              .arc<d3.PieArcDatum<MergedLangStats>>()
+              .innerRadius(0)
+              .outerRadius(radius)({
               ...data,
               endAngle: this.targets()[0].val,
             })!,
@@ -307,12 +310,11 @@ const updateChart = (type: ChartType) => {
   // 2. 各グラフのメインアニメーション
   const elementTl = gsap.timeline();
   elements.each(function (d) {
-    const g = this;
-    const pathNode = d3.select(g).select("path").node() as SVGPathElement;
-    const textNode = d3.select(g).select("text").node() as SVGTextElement;
+    const pathNode = d3.select(this).select("path").node() as SVGPathElement;
+    const textNode = d3.select(this).select("text").node() as SVGTextElement;
     const nameLabel = d3.select(textNode).select(".name-label").node();
     const percentLabel = d3.select(textNode).select(".percent-label").node();
-    const gElement = d3.select(g);
+    const gElement = d3.select(this);
 
     const hasTransitionTarget = targetLanguages.has(d.data.langName);
 
@@ -326,7 +328,7 @@ const updateChart = (type: ChartType) => {
       if (hasTransitionTarget) {
         // g
         elementTl.to(
-          g,
+          this,
           {
             x: width / 2,
             y: height / 2,
@@ -397,7 +399,7 @@ const updateChart = (type: ChartType) => {
 
         // g
         elementTl.to(
-          g,
+          this,
           {
             x: target.elementX,
             y: target.elementY,
@@ -471,7 +473,7 @@ const updateChart = (type: ChartType) => {
       if (hasTransitionTarget) {
         // g
         elementTl.to(
-          g,
+          this,
           { x: 0, y: 0, opacity: 1, duration: showDuration, ease: showEase },
           0,
         );

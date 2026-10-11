@@ -28,7 +28,12 @@ export default defineConfig({
         theme_color: "#8E51FF",
         background_color: "#0F172A",
         icons: [
-          { src: "/image-512x512.png", sizes: "512x512", type: "image/png", purpose: "any maskable" },
+          {
+            src: "/image-512x512.png",
+            sizes: "512x512",
+            type: "image/png",
+            purpose: "any maskable",
+          },
           { src: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
           { src: "/favicon.ico", sizes: "48x48", type: "image/x-icon" },
         ],
@@ -37,11 +42,16 @@ export default defineConfig({
         globPatterns: ["**/*.{js,css,html}"],
         globIgnores: ["**/*.map", "serviceWorker.js"],
         navigateFallback: "/index.html",
-        navigateFallbackDenylist: [/^\/opensearch-api\//, /^\/voicevox-api\//, /^\/voice\//],
+        navigateFallbackDenylist: [
+          /^\/opensearch-api\//,
+          /^\/voicevox-api\//,
+          /^\/voice\//,
+        ],
         cleanupOutdatedCaches: true,
         runtimeCaching: [
           {
-            urlPattern: ({ url, sameOrigin }) => sameOrigin && url.pathname === "/gltf.glb",
+            urlPattern: ({ url, sameOrigin }) =>
+              sameOrigin && url.pathname === "/gltf.glb",
             handler: "CacheFirst",
             options: {
               cacheName: "avatar-model",
@@ -51,7 +61,8 @@ export default defineConfig({
           },
           {
             urlPattern: ({ url, sameOrigin }) =>
-              sameOrigin && /\.(?:png|gif|avif|webp|jpe?g|ico|svg)$/.test(url.pathname),
+              sameOrigin &&
+              /\.(?:png|gif|avif|webp|jpe?g|ico|svg)$/.test(url.pathname),
             handler: "CacheFirst",
             options: {
               cacheName: "static-images",
@@ -64,7 +75,6 @@ export default defineConfig({
     }),
   ],
   vite: {
-    // @ts-ignore
     plugins: [tailwindcss()],
     build: {
       sourcemap: true,
