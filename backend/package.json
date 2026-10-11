@@ -33,6 +33,7 @@
     "cdk": "cdk",
     "deploy": "cdk deploy --all --parallel --ci --require-approval never",
     "test": "jest",
+    "test:coverage": "jest --coverage",
     "watch": "tsc -w"
   },
   "version": "0.1.0"
