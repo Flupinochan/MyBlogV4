@@ -170,6 +170,12 @@ export class HostingPipelineStack extends cdk.Stack {
               `aws s3 sync $CODEBUILD_SRC_DIR/frontend/dist/ s3://${props.hostingBucketName}/ --delete \
                 --exclude "_astro/*" \
                 --cache-control "public, max-age=0, s-maxage=31536000, must-revalidate"`,
+              // syncのMIME推測ではtext/plainにcharsetが付かず日本語が文字化けするため明示的に設定
+              `aws s3 cp $CODEBUILD_SRC_DIR/frontend/dist/ s3://${props.hostingBucketName}/ --recursive \
+                --exclude "*" \
+                --include "*.txt" \
+                --content-type "text/plain; charset=utf-8" \
+                --cache-control "public, max-age=0, s-maxage=31536000, must-revalidate"`,
               // ハッシュなし静的アセットのみ上書きして中期キャッシュ
               `aws s3 cp $CODEBUILD_SRC_DIR/frontend/dist/ s3://${props.hostingBucketName}/ --recursive \
                 --exclude "*" \
@@ -178,7 +184,7 @@ export class HostingPipelineStack extends cdk.Stack {
                 --include "*.ico" \
                 --include "*.gif" \
                 --cache-control "public, max-age=86400"`,
-              // gltf.glbはCloudFrontの自動圧縮対象Content-Typeに含まれないため手動でbrotli圧縮する
+              // gltf.glbはCloudFrontの自動圧縮対象Content-Typeに含まれないため手動でbrotli圧縮
               `node -e "const z=require('zlib'),f=require('fs'),p='$CODEBUILD_SRC_DIR/frontend/dist/gltf.glb';f.writeFileSync(p,z.brotliCompressSync(f.readFileSync(p)))"`,
               `aws s3 cp $CODEBUILD_SRC_DIR/frontend/dist/gltf.glb s3://${props.hostingBucketName}/gltf.glb \
                 --content-encoding br \

@@ -1,5 +1,9 @@
 # CLAUDE.md
 
+## Important
+
+After changing CodePipeline / CodeBuild (`lib/hosting-pipeline-stack.ts`), run `make deploy-target STACK_NAME=<stack-name>` manually to update them.
+
 ## Build Rules
 
 Do NOT run `npm run build` or `tsc`. These commands generate local JS/.d.ts files that pollute the working tree. Use `npx tsc --noEmit` for type-checking only.
